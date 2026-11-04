@@ -6,7 +6,6 @@ import { UserResource } from './UserResource'
  */
 export class UserCollection extends ResourceCollection {
   collects = UserResource
-
   /**
    * Build the response object
    * @returns this

@@ -2,36 +2,40 @@ import 'clear-router/decorators/setup'
 
 import { Controller as BaseController, Request } from 'clear-router'
 import { beforeEach, describe, it } from 'vitest'
+import express, { Router as ExRouter } from 'express'
 
 import { Bind } from 'clear-router/decorators'
 import { Container } from 'clear-router/decorators'
-import { H3 } from 'h3'
-import { Router } from 'clear-router/h3'
+import { Router } from 'clear-router/express'
 import { request } from 'parasito'
 
 describe('@Bind() — Controllers', () => {
-  let app: H3
+  let app: express.Application
+  let router: ExRouter
 
   const setupApp = async (): Promise<void> => {
-    Router.apply(app)
+    Router.apply(router)
+    app.use(router)
   }
 
   beforeEach(() => {
     Router.reset()
     Container.clear()
 
-    app = new H3()
+    app = express()
+    router = ExRouter()
+    app.use(express.json())
   })
 
   class UserController extends BaseController {
     @Bind()
     async test(req: Request) {
-      return req.path ?? ''
+      return req.url ?? ''
     }
   }
 
   it('can setup basic route', async () => {
-    Router.get('/test', () => 'OK')
+    Router.get('/test', ({ res }) => res.send('OK'))
     await setupApp()
     await request(app).get('/test').expect(200).expect('OK')
   })

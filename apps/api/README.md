@@ -1,10 +1,10 @@
-# Arkstack H3.js
+# Arkstack Express.js
 
-H3.js app scaffolded with Toneflix's Arkstack.
+Express.js app scaffolded with Toneflix's Arkstack.
 
 Full framework documentations are available from [https://arkstack.toneflix.net](https://arkstack.toneflix.net/).
 
-- Runtime interaction guide: [guide/h3-runtime](https://arkstack.toneflix.net/guide/h3-runtime)
+- Runtime interaction guide: [guide/express-runtime](https://arkstack.toneflix.net/guide/express-runtime)
 - Getting started guide: [guide/getting-started](https://arkstack.toneflix.net/guide/getting-started)
 
 ## Developing
