@@ -1,0 +1,9 @@
+node_modules/
+.wrangler/
+.react-router/
+/build/
+.env*
+!.env.example
+.dev.vars*
+!.dev.vars.example
+*.tsbuildinfo
