@@ -1,25 +1,35 @@
-import { cors, requestLogger, resora } from '@arkstack/driver-h3/middlewares'
+import { formdata, requestLogger, resora } from '@arkstack/driver-express/middlewares'
 
-import { MiddlewareConfig } from '@arkstack/driver-h3/types'
+import { MiddlewareConfig } from '@arkstack/driver-express/types'
+import cors from 'cors'
+import { localeMiddleware } from '@arkstack/lang'
 import corsConfig from './cors'
-import { h3LocaleMiddleware } from '@arkstack/lang'
-import { useH3UploadContext } from '@kanun-hq/plugin-file'
+import express from 'express'
+import { useExpressUploadContext } from '@kanun-hq/plugin-file'
 
 export default (): MiddlewareConfig => {
   const cConf = corsConfig()
 
   return {
     global: [
+      // Parse application/json
+      express.json({
+        verify: (req, _res, buffer) => {
+          req.rawBody = Buffer.from(buffer)
+        },
+      }),
+      express.urlencoded({ extended: true }),
       cors({
         origin: cConf.allowed_origins.length > 0 ? cConf.allowed_origins : true,
         credentials: true,
       }),
+      formdata.any(),
     ],
     before: [
       resora(),
-      h3LocaleMiddleware(),
-      function ({ req }, next) {
-        useH3UploadContext(req)
+      localeMiddleware(),
+      (req, _res, next) => {
+        useExpressUploadContext(req as never)
         next()
       },
     ],

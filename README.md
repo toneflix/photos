@@ -8,7 +8,7 @@ This is a pnpm monorepo.
 
 | Path | What it is |
 | --- | --- |
-| `apps/api` | The API, built on [Arkstack](https://arkstack.toneflix.net) (H3 driver, PostgreSQL). Arkstack's filesystem module also manages photo storage. |
+| `apps/api` | The API, built on [Arkstack](https://arkstack.toneflix.net) (Express driver, PostgreSQL). Arkstack's filesystem module also manages photo storage. |
 | `apps/web` | The web app: React Router with server-side rendering, deployed to Cloudflare Workers. |
 | `apps/mobile` | The mobile app: React Native with Expo. A minimal shell for now; it is built after the web app. |
 | `packages/types` | Shared domain and API response types (`@photos/types`). |

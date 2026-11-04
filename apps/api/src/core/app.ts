@@ -1,22 +1,22 @@
-import { Arkstack, ArkstackRouteListOptions, ArkstackRouterContract } from '@arkstack/contract'
+import { Router } from '@arkstack/driver-express'
+import path from 'path'
+import { ExpressDriver } from '@arkstack/driver-express'
+import { Arkstack, ArkstackRouterContract, ArkstackRouteListOptions } from '@arkstack/contract'
+import { type Express, type Handler } from 'express'
 
-import { H3 } from 'h3'
-import { H3Driver } from '@arkstack/driver-h3'
-import { H3Middleware } from '@arkstack/driver-h3/types'
-import { Router } from '@arkstack/driver-h3'
-
-export default class Application extends Arkstack<H3, unknown, H3Middleware> {
+export default class Application extends Arkstack<Express, unknown, Handler> {
   /**
    * Creates an instance of the Application class, initializing
-   * the H3 driver with the provided options and creating an H3 application instance.
+   * the Express driver with the provided options and creating an Express
+   * application instance.
    *
    * @param app
    */
-  constructor(app?: H3) {
+  constructor(app?: Express) {
     super()
-    this.driver = new H3Driver({
+    this.driver = new ExpressDriver({
       bindRouter: async (runtime) => {
-        await Router.bind(runtime)
+        runtime.use(await Router.bind())
       },
     })
 
@@ -27,14 +27,14 @@ export default class Application extends Arkstack<H3, unknown, H3Middleware> {
   }
 
   /**
-   * Gets the ArkstackRouterContract implementation for the H3 framework.
+   * Gets the ArkstackRouterContract implementation for the Express framework.
    *
    * @returns
    */
-  getRouter(): ArkstackRouterContract<H3, unknown> {
+  getRouter(): ArkstackRouterContract<Express, unknown> {
     return {
-      bind: (app: H3) => Router.bind(app),
-      list: (options: ArkstackRouteListOptions = {}, app?: H3) => Router.list(options, app ?? this.app),
+      bind: (_app: Express) => Router.bind(),
+      list: (options: ArkstackRouteListOptions = {}) => Router.list(options),
     }
   }
 
@@ -47,13 +47,16 @@ export default class Application extends Arkstack<H3, unknown, H3Middleware> {
    */
   public async boot(port: number, defer = false) {
     // Load public assets
-    await this.driver.mountPublicAssets(this.app, 'public')
+    await this.driver.mountPublicAssets(this.app, path.join(Arkstack.rootDir(), 'public'))
 
     // Apply all middleware
-    await this.driver.applyMiddleware(this.app, config('middleware') as never)
+    await this.driver.applyMiddleware(this.app, config('middleware') as any)
 
     // Bind the router
     await this.driver.bindRouter(this.app)
+
+    // Error Handler
+    await this.driver.registerErrorHandler?.(this.app)
 
     // Start the server
     if (defer !== true) {

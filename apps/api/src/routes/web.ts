@@ -1,4 +1,4 @@
-import { Router } from '@arkstack/driver-h3'
+import { Router } from '@arkstack/driver-express'
 import { view } from '@arkstack/view'
 
 Router.get('/', async () => {
