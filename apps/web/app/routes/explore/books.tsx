@@ -1,9 +1,9 @@
 import { Link, useLocation, useParams, type MetaDescriptor } from "react-router";
-import type { PublicBook } from "@photos/types";
+import { FlipbookModel, type PublicBook } from "@photos/types";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { getServerApi } from "~/lib/api.server";
 import { useInfiniteList } from "~/lib/use-infinite-list";
-import { CoverView } from "~/components/flipbook/PageView";
+import { CoverView } from "@toneflix/flipbook-react";
 import { Empty } from "~/components/explore/Empty";
 import { Owner } from "~/components/explore/Owner";
 import { Spinner } from "~/components/ui";
@@ -77,7 +77,7 @@ function PublicBookCard({ book }: { book: PublicBook }) {
 				style={{ containerType: "size" }}
 				aria-label={`Open ${book.title}`}
 			>
-				<CoverView book={{ ...book, coverPhoto: book.coverPhoto ?? null }} />
+				<CoverView book={FlipbookModel.cover(book)} />
 			</Link>
 			<h2 className="mt-3 truncate font-display font-bold text-ink-900">{book.title}</h2>
 			<div className="mt-1 flex items-center justify-between gap-2">

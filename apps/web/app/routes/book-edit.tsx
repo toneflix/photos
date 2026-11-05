@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { data, Link, redirect, useFetcher, type ShouldRevalidateFunctionArgs } from "react-router";
-import type { BookPageInput, BookTheme, BookWithPages, FrameStyle, PageLayout, PaperColor, Photo, Space, Visibility } from "@photos/types";
-import { FRAME_STYLES, PAGE_LAYOUTS, PAPER_COLORS } from "@photos/types";
+import type { BookPageInput, BookPagePhoto, BookTheme, BookWithPages, FrameStyle, PageLayout, PaperColor, Photo, Space, Visibility } from "@photos/types";
+import { FlipbookModel, FRAME_STYLES, PAGE_LAYOUTS, PAPER_COLORS } from "@photos/types";
+import { BookLookProvider, CoverView, PageView, PHOTO_DRAG_TYPE, PLACED_LAYOUTS, PrintedPhoto, TitlePageView } from "@toneflix/flipbook-react";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { formError, getServerApi } from "~/lib/api.server";
 import { BookCodes } from "~/lib/book-codes.server";
 import { readToken } from "~/lib/session.server";
 import { handlePhotoIntent } from "~/lib/photo-actions.server";
-import { CoverView, PageView, PaperContext, PHOTO_DRAG_TYPE, TitlePageView } from "~/components/flipbook/PageView";
-import { FrameContext, PrintedPhoto } from "~/components/flipbook/PrintedPhoto";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
 import { Button, Field, Input, Textarea, buttonClass, Spinner } from "~/components/ui";
@@ -86,10 +85,13 @@ export function shouldRevalidate({ actionResult, defaultShouldRevalidate }: Shou
 	return defaultShouldRevalidate;
 }
 
-type DraftPage = { key: string; layout: PageLayout; frame: FrameStyle | null; caption: string; photos: Photo[] };
+type DraftPage = { key: string; layout: PageLayout; frame: FrameStyle | null; caption: string; photos: BookPagePhoto[] };
 
 let keySeq = 0;
 const newKey = () => `p${Date.now().toString(36)}${(keySeq++).toString(36)}`;
+
+/** A library photo placed on a page, with its own frame or null to use the page's. */
+const placed = (photo: Photo, frame: FrameStyle | null = null): BookPagePhoto => ({ ...photo, frame });
 
 const toDraft = (book: BookWithPages): DraftPage[] => book.pages.map((p) => ({ key: p.id, layout: p.layout, frame: p.frame ?? null, caption: p.caption ?? "", photos: p.photos }));
 
@@ -128,7 +130,13 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 			saver.submit(
 				{
 					intent: "pages",
-					pages: pages.map((p) => ({ layout: p.layout, frame: p.frame, caption: p.caption || null, photoIds: p.photos.map((ph) => ph.id) })),
+					pages: pages.map((p) => ({
+						layout: p.layout,
+						frame: p.frame,
+						caption: p.caption || null,
+						photoIds: p.photos.map((ph) => ph.id),
+						photoFrames: p.photos.map((ph) => ph.frame),
+					})),
 				},
 				{ method: "post", encType: "application/json" },
 			);
@@ -171,7 +179,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 		const at = pages.length ? selected + 1 : 0;
 		change((prev) => {
 			const next = [...prev];
-			next.splice(at, 0, { key: newKey(), layout, frame: null, caption: "", photos: withPhotos });
+			next.splice(at, 0, { key: newKey(), layout, frame: null, caption: "", photos: withPhotos.map((photo) => placed(photo)) });
 			return next;
 		});
 		select(at);
@@ -195,7 +203,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 	};
 
 	const setLayout = (layout: PageLayout) => {
-		change((prev) => prev.map((p, i) => (i === selected ? { ...p, layout, photos: p.photos.slice(0, PAGE_LAYOUTS[layout].maxPhotos) } : p)));
+		change((prev) => prev.map((p, i) => (i === selected ? { ...p, layout, photos: p.photos.slice(0, PAGE_LAYOUTS[layout].slots) } : p)));
 		setSlot(0);
 	};
 
@@ -206,15 +214,15 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 			addPage("framed", [photo]);
 			return;
 		}
-		const max = PAGE_LAYOUTS[page.layout].maxPhotos;
+		const max = PAGE_LAYOUTS[page.layout].slots;
 		if (max === 0) return;
 		const target = targetSlot !== null && targetSlot < max ? targetSlot : Math.min(page.photos.length, max - 1);
 		change((prev) =>
 			prev.map((p, i) => {
 				if (i !== pageIndex) return p;
 				const next = [...p.photos];
-				if (target >= next.length) next.push(photo);
-				else next[target] = photo;
+				if (target >= next.length) next.push(placed(photo));
+				else next[target] = placed(photo, next[target].frame);
 				return { ...p, photos: next.slice(0, max) };
 			}),
 		);
@@ -235,8 +243,8 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 		let n = 0;
 		while (i < unused.length) {
 			const layout = layouts[n++ % layouts.length];
-			const count = PAGE_LAYOUTS[layout].maxPhotos;
-			added.push({ key: newKey(), layout, frame: null, caption: "", photos: unused.slice(i, i + count) });
+			const count = PAGE_LAYOUTS[layout].slots;
+			added.push({ key: newKey(), layout, frame: null, caption: "", photos: unused.slice(i, i + count).map((photo) => placed(photo)) });
 			i += count;
 		}
 		change((prev) => [...prev, ...added]);
@@ -255,7 +263,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 		if (index < 0) {
 			return (
 				<div className="relative h-full" style={{ containerType: "size" }}>
-					<TitlePageView book={{ ...book, title: book.title }} />
+					<TitlePageView book={FlipbookModel.book(book)} side={side} />
 					<span className="absolute inset-x-0 bottom-3 text-center text-[11px] tracking-wide text-ink-500/70 uppercase">Title page</span>
 				</div>
 			);
@@ -265,7 +273,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 				<button
 					type="button"
 					onClick={() => addPage()}
-					className="paper flex h-full w-full flex-col items-center justify-center gap-2 text-ink-500 transition hover:text-brand-700"
+					className={`fb-paper fb-paper-${paper} flex h-full w-full flex-col items-center justify-center gap-2 text-ink-500 transition hover:text-brand-700`}
 				>
 					<span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-dashed border-current text-2xl">+</span>
 					<span className="text-sm font-medium">Add a page</span>
@@ -276,7 +284,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 		return (
 			<div className="relative h-full" style={{ containerType: "size" }}>
 				<PageView
-					page={page}
+					page={FlipbookModel.page(page)}
 					number={index + 1}
 					side={side}
 					onSlotClick={isSelected ? setSlot : undefined}
@@ -325,8 +333,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 	);
 
 	return (
-		<PaperContext.Provider value={paper}>
-		<FrameContext.Provider value={bookFrame}>
+		<BookLookProvider paper={paper} frame={bookFrame}>
 			<div className="flex h-dvh flex-col bg-[#ece6da]">
 				{/* Header */}
 				<header className="flex items-center gap-3 border-b border-surface-300/70 bg-surface-50 px-3 py-2.5 sm:px-5">
@@ -415,7 +422,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 										aria-current={i === selected}
 									>
 										<div className="relative aspect-[3/4]" style={{ containerType: "size" }}>
-											<PageView page={page} />
+											<PageView page={FlipbookModel.page(page)} />
 										</div>
 									</button>
 									<div className="mt-1 flex items-center justify-between text-xs text-ink-500">
@@ -602,8 +609,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 					/>
 				)}
 			</div>
-		</FrameContext.Provider>
-		</PaperContext.Provider>
+		</BookLookProvider>
 	);
 }
 
@@ -645,13 +651,13 @@ function FramePicker({
 			className="group flex flex-col items-center gap-1"
 		>
 			<span
-				className={`paper paper-${paper} relative block aspect-square w-full overflow-hidden rounded-md ring-2 transition ${
+				className={`fb-paper fb-paper-${paper} relative block aspect-square w-full overflow-hidden rounded-md ring-2 transition ${
 					checked ? "ring-brand-500" : "ring-black/5 group-hover:ring-surface-300"
 				}`}
 				style={{ containerType: "size" }}
 			>
 				<span className="absolute inset-[12%]">
-					<PrintedPhoto photo={sample} frame={frame} scale={3} />
+					<PrintedPhoto photo={FlipbookModel.photo(sample)} frame={frame} scale={3} />
 				</span>
 			</span>
 			<span className={`text-[11px] leading-tight ${checked ? "font-medium text-ink-900" : "text-ink-500"}`}>{label}</span>
@@ -732,7 +738,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 				<div className="flex-1 space-y-6 px-6 py-6">
 					<div className="mx-auto w-40">
 						<div className="relative aspect-[3/4] overflow-hidden rounded-r-md shadow-lg" style={{ containerType: "size" }}>
-							<CoverView book={{ title: title || "Untitled", description, theme, coverPhoto }} />
+							<CoverView book={FlipbookModel.cover({ ...book, title: title || "Untitled", description, theme, coverPhoto })} />
 						</div>
 					</div>
 					<Field label="Title">
@@ -879,7 +885,7 @@ function IconButton({ label, path, onClick, disabled }: { label: string; path: s
 }
 
 function LayoutIcon({ layout }: { layout: PageLayout }) {
-	const rects: Record<PageLayout, [number, number, number, number][]> = {
+	const drawn: Partial<Record<PageLayout, [number, number, number, number][]>> = {
 		single: [[0, 0, 12, 16]],
 		framed: [[2, 2, 8, 9]],
 		pair: [
@@ -903,10 +909,12 @@ function LayoutIcon({ layout }: { layout: PageLayout }) {
 			[3, 10, 6, 1],
 		],
 	};
+	const rects = drawn[layout] ?? (PLACED_LAYOUTS[layout]?.slots ?? []).map(({ x, y, width, height }) => [x * 0.12, y * 0.12, width * 0.12, height * 0.12]);
+
 	return (
 		<svg viewBox="0 0 12 16" className="h-4 w-3" aria-hidden>
 			<rect x="0.5" y="0.5" width="11" height="15" fill="none" stroke="currentColor" strokeOpacity="0.5" />
-			{rects[layout].map(([x, y, w, h], i) => (
+			{rects.map(([x, y, w, h], i) => (
 				<rect key={i} x={x} y={y} width={w} height={h} fill="currentColor" />
 			))}
 		</svg>
