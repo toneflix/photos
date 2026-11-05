@@ -3,16 +3,16 @@ import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleShee
 import { Image } from 'expo-image'
 import * as Clipboard from 'expo-clipboard'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import type { BookTheme, BookWithPages, Photo, Space, Visibility } from '@photos/types'
-import { BookCover, COVERS } from '@/components/BookCover'
+import type { BookTheme, BookWithPages, CoverDesign, Photo, Space, Visibility } from '@photos/types'
+import { BookCover } from '@/components/BookCover'
+import { ClothPicker, CoverDesignPicker, CoverTextSwitch } from '@/components/book/CoverPickers'
 import { Button, Callout, Field, Input, Select, Text } from '@/components/ui'
 import { webUrl } from '@/lib/links'
 import { spaceOptions } from '@/lib/spaces'
 import { colors, fonts, radius } from '@/theme'
 
-export type BookChanges = Partial<Pick<BookWithPages, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'spaceId'> & { theme: BookTheme }>
+export type BookChanges = Partial<Pick<BookWithPages, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'spaceId' | 'coverDesign' | 'coverText'> & { theme: BookTheme }>
 
-const THEMES = Object.keys(COVERS) as BookTheme[]
 const VISIBILITY: [Visibility, string][] = [
   ['private', 'Only me'],
   ['shared', 'Anyone with the link'],
@@ -42,11 +42,14 @@ export function BookSettings({
   const [title, setTitle] = useState(book.title)
   const [description, setDescription] = useState(book.description ?? '')
   const [theme, setTheme] = useState<BookTheme>(book.theme)
+  const [coverDesign, setCoverDesign] = useState<CoverDesign>(book.coverDesign ?? 'classic')
+  const [coverText, setCoverText] = useState<boolean | null>(book.coverText ?? null)
   const [visibility, setVisibility] = useState<Visibility>(book.visibility)
   const [coverPhotoId, setCoverPhotoId] = useState<string | null>(book.coverPhotoId)
   const [spaceId, setSpaceId] = useState(book.spaceId ?? '')
   const [copied, setCopied] = useState(false)
   const coverPhoto = photos.find((photo) => photo.id === coverPhotoId) ?? null
+  const cover = { title: title || 'Untitled', description, theme, coverDesign, coverText, coverPhoto }
   const shareUrl = webUrl(`/books/${book.id}/view`)
 
   const save = () =>
@@ -54,6 +57,8 @@ export function BookSettings({
       title: title.trim(),
       description: description.trim() || null,
       theme,
+      coverDesign,
+      coverText,
       coverPhotoId,
       ...(book.isOwner ? { visibility, spaceId: spaceId || null } : {}),
     })
@@ -76,7 +81,7 @@ export function BookSettings({
 
         <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 24 }]} keyboardShouldPersistTaps="handled">
           <View style={styles.cover}>
-            <BookCover book={{ title: title || 'Untitled', description, theme, coverPhoto }} />
+            <BookCover book={cover} />
           </View>
 
           {error ? <Callout>{error}</Callout> : null}
@@ -87,22 +92,15 @@ export function BookSettings({
             <Input value={description} onChangeText={setDescription} maxLength={2000} multiline />
           </Field>
 
-          <Field label="Cover">
-            <View style={styles.chips}>
-              {THEMES.map((value) => (
-                <Pressable
-                  key={value}
-                  onPress={() => setTheme(value)}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: theme === value }}
-                  style={[styles.chip, theme === value && styles.chipOn]}
-                >
-                  <View style={[styles.dot, { backgroundColor: COVERS[value].cloth }]} />
-                  <Text style={[styles.chipText, theme === value && styles.chipTextOn]}>{COVERS[value].label}</Text>
-                </Pressable>
-              ))}
-            </View>
-          </Field>
+          <CoverDesignPicker
+            book={cover}
+            onChange={(design) => {
+              setCoverDesign(design)
+              setCoverText(null)
+            }}
+          />
+          <CoverTextSwitch design={coverDesign} value={coverText} onChange={setCoverText} />
+          <ClothPicker value={theme} onChange={setTheme} />
 
           <Field label="Cover photo">
             {photos.length ? (
@@ -165,12 +163,6 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.surface200 },
   body: { padding: 20, gap: 18 },
   cover: { alignSelf: 'center', width: 150, height: 200, borderTopRightRadius: 6, borderBottomRightRadius: 6, overflow: 'hidden' },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 7, borderRadius: radius.full, borderWidth: 1, borderColor: colors.surface300 },
-  chipOn: { borderColor: colors.ink900, backgroundColor: colors.ink900 },
-  dot: { width: 12, height: 12, borderRadius: 6, borderWidth: 1, borderColor: 'rgba(0,0,0,0.15)' },
-  chipText: { fontSize: 14, color: colors.ink700 },
-  chipTextOn: { color: colors.white },
   photos: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   thumb: { width: 56, height: 56, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.surface100, borderWidth: 2, borderColor: 'transparent' },
   thumbOn: { borderColor: colors.brand500 },

@@ -1,18 +1,17 @@
 import { useState } from 'react'
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRequest } from 'alova/client'
 import type { BookTheme } from '@photos/types'
-import { BookCover, COVERS } from '@/components/BookCover'
+import { BookCover } from '@/components/BookCover'
+import { ClothPicker } from '@/components/book/CoverPickers'
 import { Button, Callout, Field, Input, Select, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { FormProblem } from '@/lib/forms'
 import { bookLists } from '@/lib/lists'
 import { spaceOptions, useSpaces } from '@/lib/spaces'
-import { colors, fonts, radius } from '@/theme'
-
-const THEMES = Object.entries(COVERS) as [BookTheme, (typeof COVERS)[BookTheme]][]
+import { colors, radius } from '@/theme'
 
 /** Start a book: its title, a line for the title page, its cover and its space. */
 export default function NewBook() {
@@ -55,22 +54,7 @@ export default function NewBook() {
         <Field label="A line for the title page (optional)">
           <Input value={description} onChangeText={setDescription} maxLength={2000} placeholder="Two weeks of sun, family and jollof." multiline />
         </Field>
-        <Field label="Cover">
-          <View style={styles.themes} accessibilityRole="radiogroup">
-            {THEMES.map(([value, look]) => (
-              <Pressable
-                key={value}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: theme === value }}
-                onPress={() => setTheme(value)}
-                style={[styles.theme, theme === value && styles.themeOn]}
-              >
-                <View style={[styles.swatch, { backgroundColor: look.cloth, borderColor: look.foil }]} />
-                <Text style={[styles.themeText, theme === value && styles.themeTextOn]}>{look.label}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </Field>
+        <ClothPicker value={theme} onChange={setTheme} />
         {spaces.length > 0 && (
           <Field label="Space">
             <Select label="Space" options={spaceOptions(spaces)} value={spaceId} onChange={setSpaceId} />
@@ -94,19 +78,4 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   preview: { alignItems: 'center' },
   cover: { width: 168, aspectRatio: 3 / 4, borderRadius: radius.md, overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.2)' },
-  themes: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  theme: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 14,
-    height: 40,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.surface300,
-  },
-  themeOn: { backgroundColor: colors.ink900, borderColor: colors.ink900 },
-  swatch: { width: 16, height: 16, borderRadius: 8, borderWidth: 1 },
-  themeText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.ink700 },
-  themeTextOn: { color: colors.white },
 })

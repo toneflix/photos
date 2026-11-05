@@ -407,10 +407,13 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
               </View>
 
               <FramePicker
-                frame={current.frame}
+                key={`${current.key}:${slot}`}
+                page={current}
+                slot={slot !== null && current.photos[slot] ? slot : null}
                 bookFrame={book.frame ?? 'none'}
                 sample={current.photos[0] ?? photos[0] ?? null}
                 onPick={(frame) => change(draft.update(selected, { frame }))}
+                onPickPhoto={(at, frame) => change(draft.photoFrame(selected, at, frame))}
                 onUseEverywhere={(frame) => {
                   change(draft.followBookFrame())
                   updateBook({ frame }).catch(() => undefined)
