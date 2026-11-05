@@ -42,3 +42,22 @@ export interface PageQuery {
   page?: number
   per_page?: number
 }
+
+export type PhotoOrientation = 'landscape' | 'portrait' | 'square'
+export type ListSort = 'latest' | 'oldest'
+
+/** Search and filters for photo lists. `visibility` applies to your own library only. */
+export interface PhotoQuery extends PageQuery {
+  q?: string
+  orientation?: PhotoOrientation
+  visibility?: 'private' | 'public'
+  sort?: ListSort
+}
+
+/** Search and filters for book lists. `visibility` applies to your own books only. */
+export interface BookQuery extends PageQuery {
+  q?: string
+  theme?: 'classic' | 'linen' | 'midnight'
+  visibility?: 'private' | 'shared' | 'public'
+  sort?: ListSort
+}
