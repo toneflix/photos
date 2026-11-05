@@ -46,18 +46,32 @@ export interface PageQuery {
 export type PhotoOrientation = 'landscape' | 'portrait' | 'square'
 export type ListSort = 'latest' | 'oldest'
 
-/** Search and filters for photo lists. `visibility` applies to your own library only. */
+/**
+ * Search and filters for photo lists. `visibility` applies to your own library only.
+ * `space` is a space id in your library and a space's web address (slug) on Explore.
+ */
 export interface PhotoQuery extends PageQuery {
   q?: string
   orientation?: PhotoOrientation
   visibility?: 'private' | 'public'
   sort?: ListSort
+  space?: string
 }
 
-/** Search and filters for book lists. `visibility` applies to your own books only. */
+/**
+ * Search and filters for book lists. `visibility` applies to your own books only.
+ * `space` is a space id in your library and a space's web address (slug) on Explore.
+ */
 export interface BookQuery extends PageQuery {
   q?: string
   theme?: 'classic' | 'linen' | 'midnight'
   visibility?: 'private' | 'shared' | 'public'
+  sort?: ListSort
+  space?: string
+}
+
+/** Search for public spaces on Explore. */
+export interface SpaceQuery extends PageQuery {
+  q?: string
   sort?: ListSort
 }
