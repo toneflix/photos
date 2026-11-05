@@ -71,6 +71,7 @@ export function CoverTextSwitch({ design, value, onChange }: { design: CoverDesi
         value={printed}
         onValueChange={(next) => onChange(next === fallback ? null : next)}
         trackColor={{ true: colors.ink900, false: colors.surface300 }}
+        thumbColor={colors.white}
         accessibilityLabel="Print the title on the cover"
       />
     </View>
