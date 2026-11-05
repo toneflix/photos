@@ -34,7 +34,7 @@
     "@h3ravel/support": "^2.2.7",
     "@kanun-hq/plugin-file": "^0.1.12",
     "@photos/types": "workspace:*",
-    "@toneflix/flipbook-core": "^0.2.2",
+    "@toneflix/flipbook-core": "^0.2.4",
     "arkormx": "^2.12.8",
     "clear-router": "^2.9.3",
     "cors": "^2.8.6",

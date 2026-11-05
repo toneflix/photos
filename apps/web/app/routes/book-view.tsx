@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { data, Form, Link, redirect, useLocation, useNavigation } from "react-router";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { formError, getServerApi, PhotosApiError } from "~/lib/api.server";
 import { BookCodes } from "~/lib/book-codes.server";
 import { readToken } from "~/lib/session.server";
-import { Flipbook, enterLandscape } from "@toneflix/flipbook-react";
+import { Flipbook } from "@toneflix/flipbook-react";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { AuthFrame } from "~/components/AuthFrame";
 import { Alert, Button, Field, Input, buttonClass } from "~/components/ui";
@@ -108,7 +108,6 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 	const { book, startPage, fullscreen, signedIn, error } = loaderData;
 	const [panel, setPanel] = useState<"add" | "claim" | null>(null);
 	const { pathname } = useLocation();
-	const reader = useRef<HTMLDivElement>(null);
 	const flipbook = useMemo(() => book && FlipbookModel.book(book), [book]);
 
 	if (!book || !flipbook) return <LockedBook error={actionData?.error ?? error} />;
@@ -117,11 +116,12 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 	const can = (permission: string) => book.permissions.includes(permission as never);
 
 	return (
-		<div ref={reader} className="relative h-dvh">
+		<div className="relative h-dvh">
 			<Flipbook
 				book={flipbook}
 				startPage={startPage}
 				keyboard="global"
+				fullscreenPrompt={fullscreen}
 				topLeft={
 					<Link to={back.to} className="rounded-full bg-white/10 p-2 hover:bg-white/20" aria-label={back.label} title={back.label}>
 						<svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -155,8 +155,6 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 				}
 			/>
 
-			{fullscreen && <OpenFullscreen reader={reader} />}
-
 			{panel === "add" && (
 				<Panel title="Add photos" onClose={() => setPanel(null)}>
 					<p className="mb-4 text-sm text-ink-500">Each photo goes on a new page at the end of “{book.title}”. The book's owner keeps them in their library.</p>
@@ -166,43 +164,6 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 
 			{panel === "claim" && !book.isOwner && <ClaimPanel book={book} signedIn={signedIn} error={actionData?.error ?? null} onClose={() => setPanel(null)} />}
 		</div>
-	);
-}
-
-/** Opens the reader full screen on the first tap or key press, since browsers only allow it after one. */
-function OpenFullscreen({ reader }: { reader: RefObject<HTMLDivElement | null> }) {
-	const [waiting, setWaiting] = useState(true);
-
-	const open = () => {
-		const root = reader.current?.querySelector<HTMLElement>(".fb-root");
-
-		setWaiting(false);
-		if (root) enterLandscape(root);
-	};
-
-	useEffect(() => {
-		if (!document.fullscreenEnabled) return setWaiting(false);
-
-		window.addEventListener("keydown", open, { once: true });
-		return () => window.removeEventListener("keydown", open);
-	}, []);
-
-	if (!waiting) return null;
-
-	return (
-		<button
-			type="button"
-			onClick={open}
-			className="absolute inset-0 z-40 flex items-end justify-center bg-black/30 pb-24 text-white"
-			aria-label="Open full screen"
-		>
-			<span className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-ink-900 shadow-lg">
-				<svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-					<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" strokeLinecap="round" strokeLinejoin="round" />
-				</svg>
-				Tap to open full screen
-			</span>
-		</button>
 	);
 }
 
