@@ -36,7 +36,7 @@ export class BookDetailResource extends BookResource {
         photos: (page.photoIds ?? []).flatMap((id) => serialized.get(id) ?? []),
       })),
       canEdit: book.isOwnedBy(this.viewer),
-      owner: { id: book.userId, name: owner?.name ?? '' },
+      owner: { id: book.userId, name: owner && (owner.showOwnerName || book.isOwnedBy(this.viewer)) ? owner.name : '' },
     }
   }
 }

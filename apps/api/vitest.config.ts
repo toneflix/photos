@@ -16,6 +16,7 @@ export default defineConfig({
     env: {
       NODE_ENV: 'test',
       VERBOSITY: '0',
+      MAIL_TRANSPORT: 'file',
     },
   },
 })
