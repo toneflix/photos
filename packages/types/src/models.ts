@@ -92,8 +92,30 @@ export interface Photo {
   size: number
   caption: string | null
   takenAt: string | null
+  /** Public photos show on Explore. */
+  visibility: PhotoVisibility
+  publishedAt: string | null
   createdAt: string
   updatedAt: string
+}
+
+export type PhotoVisibility = 'private' | 'public'
+
+/** Who made a public photo or book. All null when they keep their name off shared work. */
+export interface Owner {
+  id: ID | null
+  name: string | null
+  avatarUrl: string | null
+}
+
+/** A photo on Explore. */
+export interface PublicPhoto extends Photo {
+  owner: Owner
+}
+
+/** A public photo with the owner's public books it appears in, and the page it is first on. */
+export interface PublicPhotoDetail extends PublicPhoto {
+  books: { id: ID; title: string; theme: BookTheme; page: number }[]
 }
 
 /**
@@ -141,8 +163,15 @@ export interface Book {
   theme: BookTheme
   paper: PaperColor
   pageCount: number
+  /** When the book last became public. */
+  publishedAt: string | null
   createdAt: string
   updatedAt: string
+}
+
+/** A book on Explore. */
+export interface PublicBook extends Book {
+  owner: Owner
 }
 
 /** One page of a book, holding one or more photos. */

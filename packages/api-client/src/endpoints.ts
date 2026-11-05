@@ -9,6 +9,10 @@ import type {
   PageQuery,
   PaginatedResponse,
   Photo,
+  PhotoVisibility,
+  PublicBook,
+  PublicPhoto,
+  PublicPhotoDetail,
   Session,
   SignedIn,
   TwoFactorChallenge,
@@ -103,9 +107,16 @@ export function createEndpoints(alova: PhotosAlova) {
         }
         return alova.Post<ApiResponse<Photo>>('/photos', form)
       },
-      update: (id: ID, data: Partial<Pick<Photo, 'caption' | 'takenAt'>>) =>
+      update: (id: ID, data: Partial<Pick<Photo, 'caption' | 'takenAt'> & { visibility: PhotoVisibility }>) =>
         alova.Put<ApiResponse<Photo>>(`/photos/${id}`, data),
       remove: (id: ID) => alova.Delete<ApiResponse<null>>(`/photos/${id}`),
+    },
+
+    /** The public timeline. Works signed out. */
+    explore: {
+      photos: (params: PageQuery = {}) => alova.Get<PaginatedResponse<PublicPhoto>>('/explore/photos', { params }),
+      photo: (id: ID) => alova.Get<ApiResponse<PublicPhotoDetail>>(`/explore/photos/${id}`),
+      books: (params: PageQuery = {}) => alova.Get<PaginatedResponse<PublicBook>>('/explore/books', { params }),
     },
 
     books: {
