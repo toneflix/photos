@@ -1,4 +1,5 @@
 import { Book } from './Book'
+import { ImageFile } from '@app/support/ImageFile'
 import { BookPage } from './BookPage'
 import { Model } from '@arkstack/database'
 import { Space } from './Space'
@@ -62,6 +63,9 @@ export class Photo extends Model {
   static readonly ORIENTATIONS = ['landscape', 'portrait', 'square']
   static readonly LICENSES = ['all-rights-reserved', 'cc-by', 'cc-by-nc', 'cc0']
 
+  /** The largest photo upload, in kilobytes. */
+  static readonly MAX_KILOBYTES = 25_600
+
   /** File extension for each accepted image type. */
   static readonly EXTENSIONS: Record<string, string> = {
     'image/jpeg': 'jpg',
@@ -97,10 +101,12 @@ export class Photo extends Model {
     return String(env('PHOTOS_DISK', '') || (fallback === 'local' ? 'public' : fallback))
   }
 
-  /** Store an upload under the owner's folder and record its path. */
+  /** Store an upload under the owner's folder and record its path. Type and size come from the file's bytes when readable. */
   static async upload(owner: User, file: UploadedPhoto, details: PhotoDetails = {}): Promise<Photo> {
+    const image = ImageFile.read(file.buffer)
+    const mimeType = image?.mimeType ?? file.mimetype
     const disk = Photo.disk()
-    const path = `photos/${owner.id}/${randomUUID()}.${Photo.EXTENSIONS[file.mimetype] ?? 'bin'}`
+    const path = `photos/${owner.id}/${randomUUID()}.${Photo.EXTENSIONS[mimeType] ?? 'bin'}`
 
     await Storage.disk(disk as never).put(path, new Uint8Array(file.buffer))
 
@@ -110,10 +116,10 @@ export class Photo extends Model {
       disk,
       path,
       originalName: file.originalname?.slice(0, 255) || null,
-      mimeType: file.mimetype,
+      mimeType,
       size: file.size,
-      width: details.width ?? null,
-      height: details.height ?? null,
+      width: image?.width ?? details.width ?? null,
+      height: image?.height ?? details.height ?? null,
       caption: details.caption ?? null,
       takenAt: details.takenAt ? new Date(details.takenAt) : null,
       license: details.license || owner.defaultLicense || 'all-rights-reserved',

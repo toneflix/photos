@@ -1,5 +1,5 @@
 import { SORTS } from '@app/support/search'
-import { UUID } from '@app/support/rules'
+import { UUID, photoFile } from '@app/support/rules'
 import { perPage } from '@arkstack/common'
 import { BaseController } from './BaseController'
 import { Photo } from '@app/models/Photo'
@@ -26,7 +26,7 @@ export default class PhotoController extends BaseController {
 
   async create() {
     const data = await this.validate({
-      photo: `required|file|mimetypes:${Object.keys(Photo.EXTENSIONS).join(',')}|max:25600`,
+      photo: photoFile(Photo.MAX_KILOBYTES),
       width: 'nullable|integer|min:1',
       height: 'nullable|integer|min:1',
       caption: 'nullable|string|max:2000',

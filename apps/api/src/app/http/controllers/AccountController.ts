@@ -5,6 +5,8 @@ import { GenericResource } from 'resora'
 import { Photo } from '@app/models/Photo'
 import { UserResource } from '@app/http/resources/UserResource'
 import { abortIf } from '@arkstack/common'
+import { photoFile } from '@app/support/rules'
+import { User } from '@app/models/User'
 
 /**
  * The signed-in user's profile, sign-in details, privacy choices and data.
@@ -20,7 +22,7 @@ export default class AccountController extends BaseController {
 
   async updateAvatar() {
     const data = await this.validate({
-      avatar: `required|file|mimetypes:${Object.keys(Photo.EXTENSIONS).join(',')}|max:10240`,
+      avatar: photoFile(User.AVATAR_MAX_KILOBYTES),
     })
 
     await this.user.setAvatar(data.avatar)

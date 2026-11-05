@@ -10,6 +10,7 @@ import { UserNotification } from './UserNotification'
 import { UserTwoFactor } from './UserTwoFactor'
 import { UserFactory } from 'src/database/factories/UserFactory'
 import { AccountMail } from '@app/notifications/AccountMail'
+import { ImageFile } from '@app/support/ImageFile'
 import { BookPage } from './BookPage'
 import { randomUUID } from 'node:crypto'
 
@@ -31,6 +32,9 @@ export class User extends BaseUser {
   declare defaultLicense: PhotoLicense
   declare createdAt: Date
   declare updatedAt: Date
+
+  /** The largest profile photo upload, in kilobytes. */
+  static readonly AVATAR_MAX_KILOBYTES = 10_240
 
   protected static override factoryClass = UserFactory
 
@@ -145,7 +149,8 @@ export class User extends BaseUser {
 
   async setAvatar(file: UploadedPhoto): Promise<void> {
     const disk = Photo.disk()
-    const path = `avatars/${this.id}/${randomUUID()}.${Photo.EXTENSIONS[file.mimetype] ?? 'bin'}`
+    const mimeType = ImageFile.read(file.buffer)?.mimeType ?? file.mimetype
+    const path = `avatars/${this.id}/${randomUUID()}.${Photo.EXTENSIONS[mimeType] ?? 'bin'}`
 
     await Storage.disk(disk as never).put(path, new Uint8Array(file.buffer))
     await this.removeAvatar()

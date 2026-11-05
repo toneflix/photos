@@ -6,7 +6,7 @@ import { BookCollection } from '@app/http/resources/BookCollection'
 import { BookDetailResource } from '@app/http/resources/BookDetailResource'
 import { Photo } from '@app/models/Photo'
 import { SORTS } from '@app/support/search'
-import { UUID } from '@app/support/rules'
+import { UUID, photoFile } from '@app/support/rules'
 
 const VISIBILITY = `in:${Book.VISIBILITIES.join(',')}`
 const THEME = `in:${Book.THEMES.join(',')}`
@@ -147,7 +147,7 @@ export default class BookController extends BaseController {
     const access = (await this.access()).authorize('add')
     const book = access.book
     const data = await this.validate({
-      photo: `required|file|mimetypes:${Object.keys(Photo.EXTENSIONS).join(',')}|max:25600`,
+      photo: photoFile(Photo.MAX_KILOBYTES),
       width: 'nullable|integer|min:1',
       height: 'nullable|integer|min:1',
       caption: 'nullable|string|max:500',
