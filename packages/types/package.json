@@ -2,7 +2,7 @@
   "name": "@photos/types",
   "version": "0.0.0",
   "private": true,
-  "description": "Shared domain and API types for Toneflix Photos.",
+  "description": "Shared domain and API types, plus small shared rules (licences, auto layout), for Toneflix Photos.",
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
