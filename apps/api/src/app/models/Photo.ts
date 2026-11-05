@@ -10,6 +10,9 @@ import { randomUUID } from 'node:crypto'
 
 export type PhotoVisibility = 'private' | 'public'
 
+/** How others may use a public photo. Only open licences can be downloaded. */
+export type PhotoLicense = 'all-rights-reserved' | 'cc-by' | 'cc-by-nc' | 'cc0'
+
 /** What someone searched for and how they narrowed it. */
 export interface PhotoFilters {
   q?: string | null
@@ -33,6 +36,7 @@ export interface PhotoDetails {
   caption?: string | null
   takenAt?: string | null
   spaceId?: string | null
+  license?: PhotoLicense | null
 }
 
 export class Photo extends Model {
@@ -50,11 +54,13 @@ export class Photo extends Model {
   declare takenAt: Date | null
   declare visibility: PhotoVisibility
   declare publishedAt: Date | null
+  declare license: PhotoLicense
   declare createdAt: Date
   declare updatedAt: Date
 
   static readonly VISIBILITIES = ['private', 'public']
   static readonly ORIENTATIONS = ['landscape', 'portrait', 'square']
+  static readonly LICENSES = ['all-rights-reserved', 'cc-by', 'cc-by-nc', 'cc0']
 
   /** File extension for each accepted image type. */
   static readonly EXTENSIONS: Record<string, string> = {
@@ -110,6 +116,7 @@ export class Photo extends Model {
       height: details.height ?? null,
       caption: details.caption ?? null,
       takenAt: details.takenAt ? new Date(details.takenAt) : null,
+      license: details.license || owner.defaultLicense || 'all-rights-reserved',
     })
   }
 
@@ -204,6 +211,26 @@ export class Photo extends Model {
       .get()
 
     return books.all().map((book) => ({ book, page: firstPage.get(book.id)! }))
+  }
+
+  /** Whether the licence lets anyone download the original. */
+  allowsDownload(): boolean {
+    return this.license !== 'all-rights-reserved'
+  }
+
+  /** The original file as an attachment, named after the caption. */
+  async download(): Promise<Response> {
+    const bytes = await Storage.disk(this.disk as never).getBytes(this.path)
+    const name = (this.caption ?? 'photo').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'photo'
+    const extension = Photo.EXTENSIONS[this.mimeType] ?? 'bin'
+
+    return new Response(bytes as BodyInit, {
+      headers: {
+        'Content-Type': this.mimeType,
+        'Content-Disposition': `attachment; filename="${name}-toneflix-photos.${extension}"`,
+        'Cache-Control': 'no-store',
+      },
+    })
   }
 
   /** Only the path is stored; the URL is signed on every read because bucket URLs expire. */

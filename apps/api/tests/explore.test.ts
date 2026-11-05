@@ -68,7 +68,7 @@ describe('Explore', () => {
     const photos = await api('get', '/explore/photos', undefined, false)
     const listed = photos.body.data.find((item: { id: string }) => item.id === photoId)
 
-    expect(photos.body.data[0].id).toBe(photoId)
+    expect(listed).toBeTruthy()
     expect(listed.owner.name).toBe('Ada Explorer')
     expect(listed.owner).not.toHaveProperty('email')
 

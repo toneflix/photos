@@ -51,6 +51,7 @@ Router.delete('/account/two-factor', [TwoFactorController, 'disable'], [auth, li
 // Explore: public photos and books, open to everyone
 Router.get('/explore/photos', [ExploreController, 'photos'], [limiter(120, 60)])
 Router.get('/explore/photos/:photo', [ExploreController, 'photo'], [limiter(120, 60)])
+Router.get('/explore/photos/:photo/download', [ExploreController, 'download'], [limiter(30, 60)])
 Router.get('/explore/books', [ExploreController, 'books'], [limiter(120, 60)])
 Router.get('/explore/spaces', [ExploreController, 'spaces'], [limiter(120, 60)])
 Router.get('/explore/spaces/:space', [ExploreController, 'space'], [limiter(120, 60)])

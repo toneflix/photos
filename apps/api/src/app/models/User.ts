@@ -1,7 +1,7 @@
 import { Auth, User as BaseUser } from '@arkstack/auth'
 import { Book, type BookVisibility } from './Book'
 import { Hash } from '@arkstack/common'
-import { Photo, type UploadedPhoto } from './Photo'
+import { Photo, type PhotoLicense, type UploadedPhoto } from './Photo'
 import { PasswordReset } from './PasswordReset'
 import { PersonalAccessToken } from './PersonalAccessToken'
 import { Space } from './Space'
@@ -16,6 +16,7 @@ import { randomUUID } from 'node:crypto'
 export interface UserPreferences {
   defaultVisibility?: BookVisibility
   showOwnerName?: boolean
+  defaultLicense?: PhotoLicense
 }
 
 export class User extends BaseUser {
@@ -27,6 +28,7 @@ export class User extends BaseUser {
   declare avatarDisk: string | null
   declare defaultVisibility: BookVisibility
   declare showOwnerName: boolean
+  declare defaultLicense: PhotoLicense
   declare createdAt: Date
   declare updatedAt: Date
 
@@ -38,6 +40,7 @@ export class User extends BaseUser {
     avatarDisk: 'avatar_disk',
     defaultVisibility: 'default_visibility',
     showOwnerName: 'show_owner_name',
+    defaultLicense: 'default_license',
   }
 
   protected override casts = {
