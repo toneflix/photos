@@ -1,22 +1,52 @@
-import { useState } from 'react'
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native'
-import { Image } from 'expo-image'
-import * as Clipboard from 'expo-clipboard'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import type { BookTheme, BookWithPages, CoverDesign, Photo, Space, Visibility } from '@photos/types'
-import { BookCover } from '@/components/BookCover'
-import { ClothPicker, CoverDesignPicker, CoverTextSwitch } from '@/components/book/CoverPickers'
-import { Button, Callout, Field, Input, Select, Text } from '@/components/ui'
-import { webUrl } from '@/lib/links'
-import { spaceOptions } from '@/lib/spaces'
-import { colors, fonts, radius } from '@/theme'
+import { useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
+import { Image } from "expo-image";
+import * as Clipboard from "expo-clipboard";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type {
+  BookTheme,
+  BookWithPages,
+  CoverDesign,
+  Photo,
+  Space,
+  Visibility,
+} from "@photos/types";
+import { BookCover } from "@/components/BookCover";
+import {
+  ClothPicker,
+  CoverDesignPicker,
+  CoverTextSwitch,
+} from "@/components/book/CoverPickers";
+import { Button, Callout, Field, Input, Select, Text } from "@/components/ui";
+import { webUrl } from "@/lib/links";
+import { spaceOptions } from "@/lib/spaces";
+import { colors, fonts, radius } from "@/theme";
 
-export type BookChanges = Partial<Pick<BookWithPages, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'spaceId' | 'coverDesign' | 'coverText'> & { theme: BookTheme }>
+export type BookChanges = Partial<
+  Pick<
+    BookWithPages,
+    | "title"
+    | "description"
+    | "visibility"
+    | "coverPhotoId"
+    | "spaceId"
+    | "coverDesign"
+    | "coverText"
+  > & { theme: BookTheme }
+>;
 
 const VISIBILITY: [Visibility, string][] = [
-  ['private', 'Only me'],
-  ['shared', 'Anyone with the link'],
-]
+  ["private", "Only me"],
+  ["shared", "Anyone with the link"],
+];
 
 /** Title, cover and who can open the book, in a sheet over the editor. */
 export function BookSettings({
@@ -29,28 +59,41 @@ export function BookSettings({
   onDelete,
   onClose,
 }: {
-  book: BookWithPages
-  photos: Photo[]
-  spaces: Space[]
-  saving: boolean
-  error?: string
-  onSave: (changes: BookChanges) => void
-  onDelete: () => void
-  onClose: () => void
+  book: BookWithPages;
+  photos: Photo[];
+  spaces: Space[];
+  saving: boolean;
+  error?: string;
+  onSave: (changes: BookChanges) => void;
+  onDelete: () => void;
+  onClose: () => void;
 }) {
-  const insets = useSafeAreaInsets()
-  const [title, setTitle] = useState(book.title)
-  const [description, setDescription] = useState(book.description ?? '')
-  const [theme, setTheme] = useState<BookTheme>(book.theme)
-  const [coverDesign, setCoverDesign] = useState<CoverDesign>(book.coverDesign ?? 'classic')
-  const [coverText, setCoverText] = useState<boolean | null>(book.coverText ?? null)
-  const [visibility, setVisibility] = useState<Visibility>(book.visibility)
-  const [coverPhotoId, setCoverPhotoId] = useState<string | null>(book.coverPhotoId)
-  const [spaceId, setSpaceId] = useState(book.spaceId ?? '')
-  const [copied, setCopied] = useState(false)
-  const coverPhoto = photos.find((photo) => photo.id === coverPhotoId) ?? null
-  const cover = { title: title || 'Untitled', description, theme, coverDesign, coverText, coverPhoto }
-  const shareUrl = webUrl(`/books/${book.id}/view`)
+  const insets = useSafeAreaInsets();
+  const [title, setTitle] = useState(book.title);
+  const [description, setDescription] = useState(book.description ?? "");
+  const [theme, setTheme] = useState<BookTheme>(book.theme);
+  const [coverDesign, setCoverDesign] = useState<CoverDesign>(
+    book.coverDesign ?? "classic",
+  );
+  const [coverText, setCoverText] = useState<boolean | null>(
+    book.coverText ?? null,
+  );
+  const [visibility, setVisibility] = useState<Visibility>(book.visibility);
+  const [coverPhotoId, setCoverPhotoId] = useState<string | null>(
+    book.coverPhotoId,
+  );
+  const [spaceId, setSpaceId] = useState(book.spaceId ?? "");
+  const [copied, setCopied] = useState(false);
+  const coverPhoto = photos.find((photo) => photo.id === coverPhotoId) ?? null;
+  const cover = {
+    title: title || "Untitled",
+    description,
+    theme,
+    coverDesign,
+    coverText,
+    coverPhoto,
+  };
+  const shareUrl = webUrl(`/books/${book.id}/view`);
 
   const save = () =>
     onSave({
@@ -61,25 +104,44 @@ export function BookSettings({
       coverText,
       coverPhotoId,
       ...(book.isOwner ? { visibility, spaceId: spaceId || null } : {}),
-    })
+    });
 
   const copy = async () => {
-    await Clipboard.setStringAsync(shareUrl)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
-  }
+    await Clipboard.setStringAsync(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
 
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={styles.sheet} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={[styles.head, { paddingTop: Platform.OS === 'ios' ? 16 : insets.top + 12 }]}>
+    <Modal
+      visible
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <KeyboardAvoidingView
+        style={styles.sheet}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <View
+          style={[
+            styles.head,
+            { paddingTop: Platform.OS === "ios" ? 16 : insets.top + 12 },
+          ]}
+        >
           <Text variant="title">Book settings</Text>
           <Text variant="link" accessibilityRole="button" onPress={onClose}>
             Close
           </Text>
         </View>
 
-        <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 24 }]} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerStyle={[
+            styles.body,
+            { paddingBottom: insets.bottom + 24 },
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.cover}>
             <BookCover book={cover} />
           </View>
@@ -89,39 +151,75 @@ export function BookSettings({
             <Input value={title} onChangeText={setTitle} maxLength={160} />
           </Field>
           <Field label="Title page text">
-            <Input value={description} onChangeText={setDescription} maxLength={2000} multiline />
+            <Input
+              value={description}
+              onChangeText={setDescription}
+              maxLength={2000}
+              multiline
+            />
           </Field>
 
           <CoverDesignPicker
             book={cover}
             onChange={(design) => {
-              setCoverDesign(design)
-              setCoverText(null)
+              setCoverDesign(design);
+              setCoverText(null);
             }}
           />
-          <CoverTextSwitch design={coverDesign} value={coverText} onChange={setCoverText} />
+          <CoverTextSwitch
+            design={coverDesign}
+            value={coverText}
+            onChange={setCoverText}
+          />
           <ClothPicker value={theme} onChange={setTheme} />
 
           <Field label="Cover photo">
             {photos.length ? (
               <View style={styles.photos}>
-                <Pressable onPress={() => setCoverPhotoId(null)} style={[styles.thumb, styles.none, coverPhotoId === null && styles.thumbOn]} accessibilityLabel="No cover photo">
+                <Pressable
+                  onPress={() => setCoverPhotoId(null)}
+                  style={[
+                    styles.thumb,
+                    styles.none,
+                    coverPhotoId === null && styles.thumbOn,
+                  ]}
+                  accessibilityLabel="No cover photo"
+                >
                   <Text variant="muted">None</Text>
                 </Pressable>
                 {photos.map((photo) => (
-                  <Pressable key={photo.id} onPress={() => setCoverPhotoId(photo.id)} style={[styles.thumb, coverPhotoId === photo.id && styles.thumbOn]} accessibilityLabel={photo.caption ?? 'Photo'}>
-                    <Image source={{ uri: photo.thumbnailUrl ?? photo.url }} style={StyleSheet.absoluteFill} contentFit="cover" />
+                  <Pressable
+                    key={photo.id}
+                    onPress={() => setCoverPhotoId(photo.id)}
+                    style={[
+                      styles.thumb,
+                      coverPhotoId === photo.id && styles.thumbOn,
+                    ]}
+                    accessibilityLabel={photo.caption ?? "Photo"}
+                  >
+                    <Image
+                      source={{ uri: photo.thumbnailUrl ?? photo.url }}
+                      style={StyleSheet.absoluteFill}
+                      contentFit="cover"
+                    />
                   </Pressable>
                 ))}
               </View>
             ) : (
-              <Text variant="muted">Add photos to your pages to choose a cover photo.</Text>
+              <Text variant="muted">
+                Add photos to your pages to choose a cover photo.
+              </Text>
             )}
           </Field>
 
           {book.isOwner && spaces.length > 0 && (
             <Field label="Space">
-              <Select label="Space" options={spaceOptions(spaces)} value={spaceId} onChange={setSpaceId} />
+              <Select
+                label="Space"
+                options={spaceOptions(spaces)}
+                value={spaceId}
+                onChange={setSpaceId}
+              />
             </Field>
           )}
 
@@ -129,49 +227,119 @@ export function BookSettings({
             <Field label="Who can open it">
               <View style={styles.options}>
                 {VISIBILITY.map(([value, label]) => {
-                  const checked = visibility === value || (value === 'shared' && visibility === 'public')
+                  const checked =
+                    visibility === value ||
+                    (value === "shared" && visibility === "public");
 
                   return (
-                    <Pressable key={value} onPress={() => setVisibility(value)} accessibilityRole="radio" accessibilityState={{ checked }} style={[styles.option, checked && styles.optionOn]}>
+                    <Pressable
+                      key={value}
+                      onPress={() => setVisibility(value)}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked }}
+                      style={[styles.option, checked && styles.optionOn]}
+                    >
                       <View style={[styles.radio, checked && styles.radioOn]} />
                       <Text>{label}</Text>
                     </Pressable>
-                  )
+                  );
                 })}
               </View>
-              {visibility !== 'private' && (
+              {visibility !== "private" && (
                 <View style={styles.share}>
                   <Text selectable numberOfLines={1} style={styles.url}>
                     {shareUrl}
                   </Text>
-                  <Button title={copied ? 'Copied' : 'Copy'} variant="secondary" onPress={copy} />
+                  <Button
+                    title={copied ? "Copied" : "Copy"}
+                    variant="secondary"
+                    onPress={copy}
+                  />
                 </View>
               )}
             </Field>
           )}
 
-          <Button title={saving ? 'Saving…' : 'Save'} size="lg" loading={saving} disabled={!title.trim()} onPress={save} />
-          {book.isOwner && <Button title="Delete book" variant="danger" onPress={onDelete} />}
+          <Button
+            title={saving ? "Saving…" : "Save"}
+            size="lg"
+            loading={saving}
+            disabled={!title.trim()}
+            onPress={save}
+          />
+          {book.isOwner && (
+            <Button title="Delete book" variant="danger" onPress={onDelete} />
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </Modal>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   sheet: { flex: 1, backgroundColor: colors.white },
-  head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.surface200 },
+  head: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surface200,
+  },
   body: { padding: 20, gap: 18 },
-  cover: { alignSelf: 'center', width: 150, height: 200, borderTopRightRadius: 6, borderBottomRightRadius: 6, overflow: 'hidden' },
-  photos: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  thumb: { width: 56, height: 56, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.surface100, borderWidth: 2, borderColor: 'transparent' },
+  cover: {
+    alignSelf: "center",
+    width: 150,
+    height: 200,
+    borderTopRightRadius: 6,
+    borderBottomRightRadius: 6,
+    overflow: "hidden",
+  },
+  photos: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  thumb: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.md,
+    overflow: "hidden",
+    backgroundColor: colors.surface100,
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
   thumbOn: { borderColor: colors.brand500 },
-  none: { alignItems: 'center', justifyContent: 'center', borderColor: colors.surface200 },
+  none: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderColor: colors.surface200,
+  },
   options: { gap: 8 },
-  option: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.surface300 },
+  option: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.surface300,
+  },
   optionOn: { borderColor: colors.ink900 },
-  radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.surface300 },
+  radio: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: colors.surface300,
+  },
   radioOn: { borderWidth: 6, borderColor: colors.ink900 },
-  share: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
-  url: { flex: 1, fontFamily: fonts.medium, fontSize: 13, color: colors.ink700, padding: 10, borderRadius: radius.md, backgroundColor: colors.surface100 },
-})
+  share: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 },
+  url: {
+    flex: 1,
+    fontFamily: fonts.medium,
+    fontSize: 13,
+    color: colors.ink700,
+    padding: 10,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface100,
+  },
+});
