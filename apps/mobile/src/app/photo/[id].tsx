@@ -90,6 +90,11 @@ export default function PhotoDetail() {
           <View style={styles.flex}>
             <Text variant="label">Show on Explore</Text>
             <Text variant="muted">{isPublic ? 'Anyone can see this photo.' : 'Only you can see this photo.'}</Text>
+            {isPublic && (
+              <Text variant="link" accessibilityRole="button" onPress={() => router.push({ pathname: '/explore/photos/[id]', params: { id: photo.id } })}>
+                View on Explore
+              </Text>
+            )}
           </View>
           <Switch
             value={isPublic}
@@ -122,6 +127,9 @@ export default function PhotoDetail() {
             onChange={(value) => save({ license: value })}
           />
         </Field>
+        <Text variant="link" accessibilityRole="button" onPress={() => router.push('/licenses')}>
+          About licences
+        </Text>
 
         <Field label="Caption">
           <Input value={caption} onChangeText={setCaption} placeholder="Add a caption" multiline maxLength={2000} style={styles.caption} />

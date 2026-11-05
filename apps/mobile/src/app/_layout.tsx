@@ -49,11 +49,15 @@ export default function RootLayout() {
           <Stack.Screen name="signin" />
           <Stack.Screen name="signup" />
           <Stack.Screen name="forgot-password" />
+          <Stack.Screen name="discover" />
         </Stack.Protected>
         <Stack.Protected guard={!!user}>
           <Stack.Screen name="photo/[id]" options={{ presentation: 'modal' }} />
           <Stack.Screen name="books/new" options={{ presentation: 'modal' }} />
         </Stack.Protected>
+        <Stack.Screen name="explore/photos/[id]" />
+        <Stack.Screen name="spaces/[slug]" />
+        <Stack.Screen name="licenses" />
         <Stack.Screen name="reset-password" />
         <Stack.Screen name="verify-email" />
       </Stack>

@@ -28,6 +28,9 @@ export default function Welcome() {
         <View style={styles.actions}>
           <Button title="Create your first book" size="lg" onPress={() => router.push('/signup')} />
           <Button title="I have an account" size="lg" variant="glass" onPress={() => router.push('/signin')} />
+          <Text variant="link" accessibilityRole="button" style={styles.browse} onPress={() => router.push('/discover')}>
+            Browse photos on Explore
+          </Text>
         </View>
       </View>
     </View>
@@ -41,4 +44,5 @@ const styles = StyleSheet.create({
   headline: { fontFamily: fonts.displayHeavy, fontSize: 34, lineHeight: 40, letterSpacing: -0.8, color: colors.white },
   lede: { fontSize: 16, lineHeight: 24, color: 'rgba(255,255,255,0.8)' },
   actions: { gap: 12, marginTop: 12 },
+  browse: { alignSelf: 'center', marginTop: 4, color: colors.white },
 })
