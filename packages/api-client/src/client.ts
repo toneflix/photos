@@ -24,6 +24,8 @@ export interface PhotosClientOptions {
   cacheFor?: null | { GET?: number }
   /** Custom fetch, e.g. to forward cookies during SSR. */
   fetch?: typeof fetch
+  /** Extra headers on every request, e.g. the visitor's user agent and IP when calling from SSR. */
+  headers?: Record<string, string>
   timeout?: number
 }
 
@@ -49,6 +51,7 @@ export function createPhotosAlova(options: PhotosClientOptions) {
     async beforeRequest(method) {
       method.config.headers = {
         Accept: 'application/json',
+        ...options.headers,
         ...method.config.headers,
       }
 

@@ -1,6 +1,5 @@
 import type {
   ApiResponse,
-  AuthToken,
   Book,
   BookPageInput,
   BookTheme,
@@ -10,7 +9,13 @@ import type {
   PageQuery,
   PaginatedResponse,
   Photo,
+  Session,
+  SignedIn,
+  TwoFactorChallenge,
+  TwoFactorSetup,
+  TwoFactorStatus,
   User,
+  Visibility,
 } from '@photos/types'
 import type { PhotosAlova } from './client'
 
@@ -24,12 +29,58 @@ import type { PhotosAlova } from './client'
 export function createEndpoints(alova: PhotosAlova) {
   return {
     auth: {
+      /** Signs in, or asks for a two-factor code when the account has it on. */
       login: (data: { email: string; password: string }) =>
-        alova.Post<ApiResponse<{ user: User } & AuthToken>>('/auth/login', data),
+        alova.Post<ApiResponse<SignedIn | TwoFactorChallenge>>('/auth/login', data),
+      /** Finish a two-factor sign-in with an authenticator `code` or a `recoveryCode`. */
+      twoFactor: (data: { challengeToken: string; code?: string; recoveryCode?: string }) =>
+        alova.Post<ApiResponse<SignedIn>>('/auth/two-factor', data),
       register: (data: { name: string; email: string; password: string }) =>
-        alova.Post<ApiResponse<{ user: User } & AuthToken>>('/auth/register', data),
+        alova.Post<ApiResponse<SignedIn>>('/auth/register', data),
       logout: () => alova.Post<ApiResponse<null>>('/auth/logout'),
       me: () => alova.Get<ApiResponse<User>>('/auth/me', { cacheFor: null }),
+      forgotPassword: (data: { email: string }) => alova.Post<ApiResponse<{ email: string }>>('/auth/forgot-password', data),
+      resetPassword: (data: { token: string; password: string; password_confirmation: string }) =>
+        alova.Post<ApiResponse<User>>('/auth/reset-password', data),
+      verifyEmail: (data: { token: string; email: string }) => alova.Post<ApiResponse<User>>('/auth/verify-email', data),
+    },
+
+    account: {
+      updateProfile: (data: { name: string }) => alova.Put<ApiResponse<User>>('/account/profile', data),
+      /** `file` is a File/Blob on web, or an RN `{ uri, name, type }` object. */
+      updateAvatar: (file: Blob | { uri: string; name: string; type: string }) => {
+        const form = new FormData()
+        const name = (file as { name?: string }).name
+        if (name) form.append('avatar', file as Blob, name)
+        else form.append('avatar', file as Blob)
+        return alova.Post<ApiResponse<User>>('/account/avatar', form)
+      },
+      removeAvatar: () => alova.Delete<ApiResponse<User>>('/account/avatar'),
+      updateEmail: (data: { email: string; password: string }) => alova.Put<ApiResponse<User>>('/account/email', data),
+      sendVerification: () => alova.Post<ApiResponse<User>>('/account/email/verification'),
+      updatePassword: (data: { currentPassword: string; password: string; password_confirmation: string }) =>
+        alova.Put<ApiResponse<User>>('/account/password', data),
+      updatePrivacy: (data: { defaultVisibility?: Visibility; showOwnerName?: boolean }) =>
+        alova.Put<ApiResponse<User>>('/account/privacy', data),
+      /** Make every book private. */
+      lockBooks: () => alova.Post<ApiResponse<{ updated: number }>>('/account/privacy/lock-books'),
+      /** Delete the account and everything in it. */
+      remove: (data: { password: string }) => alova.Delete<ApiResponse<{ deleted: true }>>('/account', data),
+      /** Path of the zip download with every photo, book and account detail. Needs the bearer token. */
+      exportPath: '/account/export',
+
+      sessions: () => alova.Get<ApiResponse<Session[]>>('/account/sessions', { cacheFor: null }),
+      revokeSession: (id: ID) => alova.Delete<ApiResponse<Session>>(`/account/sessions/${id}`),
+      revokeOtherSessions: () => alova.Delete<ApiResponse<{ revoked: number }>>('/account/sessions'),
+
+      twoFactor: () => alova.Get<ApiResponse<TwoFactorStatus>>('/account/two-factor', { cacheFor: null }),
+      setupTwoFactor: () => alova.Post<ApiResponse<TwoFactorSetup>>('/account/two-factor/setup'),
+      /** Confirm setup with a code from the app. Returns recovery codes, shown once. */
+      enableTwoFactor: (data: { code: string }) =>
+        alova.Post<ApiResponse<TwoFactorStatus & { recoveryCodes: string[] }>>('/account/two-factor', data),
+      regenerateRecoveryCodes: () =>
+        alova.Post<ApiResponse<TwoFactorStatus & { recoveryCodes: string[] }>>('/account/two-factor/recovery-codes'),
+      disableTwoFactor: (data: { password: string }) => alova.Delete<ApiResponse<TwoFactorStatus>>('/account/two-factor', data),
     },
 
     photos: {
