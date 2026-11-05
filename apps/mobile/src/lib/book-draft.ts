@@ -1,12 +1,15 @@
 import { PAGE_LAYOUTS, type BookPageInput, type BookWithPages, type FrameStyle, type PageLayout, type Photo } from '@photos/types'
 
+/** A photo on a page, with its own frame once one is picked. Null or missing follows the page's. */
+export type DraftPhoto = Photo & { frame?: FrameStyle | null }
+
 export interface DraftPage {
   key: string
   layout: PageLayout
   /** Null follows the book's frame. */
   frame: FrameStyle | null
   caption: string
-  photos: Photo[]
+  photos: DraftPhoto[]
 }
 
 let sequence = 0
@@ -44,7 +47,7 @@ export class BookDraft {
       frame: page.frame,
       caption: page.caption || null,
       photoIds: page.photos.map((photo) => photo.id),
-      photoFrames: page.photos.map((photo) => ('frame' in photo ? (photo.frame as FrameStyle | null) : null)),
+      photoFrames: page.photos.map((photo) => photo.frame ?? null),
     }))
   }
 
@@ -102,6 +105,13 @@ export class BookDraft {
     const page = this.pages[index]
 
     return page ? this.update(index, { photos: page.photos.filter((_, i) => i !== slot) }) : this
+  }
+
+  /** Give the photo in a slot its own frame, or null to follow the page's. */
+  photoFrame(index: number, slot: number, frame: FrameStyle | null) {
+    const page = this.pages[index]
+
+    return page ? this.update(index, { photos: page.photos.map((photo, i) => (i === slot ? { ...photo, frame } : photo)) }) : this
   }
 
   /** Make every page follow the book's frame. */
