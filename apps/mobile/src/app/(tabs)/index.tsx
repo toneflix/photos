@@ -1,5 +1,5 @@
 import { ActivityIndicator, FlatList, StyleSheet, View, useWindowDimensions } from 'react-native'
-import { router } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import { usePagination } from 'alova/client'
 import type { Book } from '@photos/types'
 import { BookCover } from '@/components/BookCover'
@@ -19,7 +19,8 @@ const PADDING = 16
 /** Your shelf of photo books, with search and filters, and a way to start a new one. */
 export default function Books() {
   const { width } = useWindowDimensions()
-  const filters = useFilters()
+  const params = useLocalSearchParams<{ space?: string }>()
+  const filters = useFilters(params.space ? { space: params.space } : undefined)
   const spaces = useSpaces()
   const cover = (width - PADDING * 2 - GAP * (COLUMNS - 1)) / COLUMNS
 

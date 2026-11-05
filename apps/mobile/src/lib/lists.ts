@@ -1,5 +1,5 @@
 import { accessAction, actionDelegationMiddleware } from 'alova/client'
-import type { Book, Photo } from '@photos/types'
+import type { Book, Photo, Space } from '@photos/types'
 
 /**
  * Keeps every paginated list of one kind in step when an item changes on another screen,
@@ -44,3 +44,4 @@ export class SharedList<T extends { id: string }> {
 
 export const photoLists = new SharedList<Photo>('photo-lists')
 export const bookLists = new SharedList<Book>('book-lists')
+export const spaceLists = new SharedList<Space>('space-lists')

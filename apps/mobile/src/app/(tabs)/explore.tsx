@@ -1,5 +1,3 @@
-import { EmptyState } from '@/components/EmptyState'
+import { ExploreScreen } from '@/components/explore/ExploreScreen'
 
-export default function Explore() {
-  return <EmptyState icon="compass-outline" title="Explore" text="Public photos, books and spaces from everyone on Toneflix Photos will show here." />
-}
+export default ExploreScreen

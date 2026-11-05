@@ -12,7 +12,7 @@ const icon =
     <Ionicons name={focused ? focusedName : name} color={color as string} size={size} />
   )
 
-/** The signed-in app: books, photos, Explore and the account, under the shared header. */
+/** The signed-in app: books, photos, spaces, Explore and the account, under the shared header. */
 export default function TabsLayout() {
   return (
     <Tabs
@@ -26,6 +26,7 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="index" options={{ title: 'Books', tabBarIcon: icon('book-outline', 'book') }} />
       <Tabs.Screen name="photos" options={{ title: 'Photos', tabBarIcon: icon('images-outline', 'images') }} />
+      <Tabs.Screen name="spaces" options={{ title: 'Spaces', tabBarIcon: icon('albums-outline', 'albums') }} />
       <Tabs.Screen name="explore" options={{ title: 'Explore', tabBarIcon: icon('compass-outline', 'compass') }} />
       <Tabs.Screen name="account" options={{ title: 'Account', tabBarIcon: icon('person-circle-outline', 'person-circle') }} />
     </Tabs>
