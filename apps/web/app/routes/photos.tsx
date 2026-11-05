@@ -90,7 +90,7 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 						{selecting && (
 							<button
 								type="button"
-								className="text-sm font-medium text-brand-600 hover:underline"
+								className="text-sm font-medium text-brand-700 hover:underline"
 								onClick={() => {
 									const ids = group.photos.map((p) => p.id);
 									const all = ids.every((id) => picked.includes(id));
@@ -131,7 +131,7 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 										{selecting && (
 											<span
 												className={`absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full border-2 text-xs font-semibold ${
-													order >= 0 ? "border-brand-500 bg-brand-500 text-white" : "border-white bg-black/20"
+													order >= 0 ? "border-brand-700 bg-brand-700 text-white" : "border-white bg-black/20"
 												}`}
 											>
 												{order >= 0 ? order + 1 : ""}
@@ -177,7 +177,7 @@ function SelectionBar({ picked, onClear }: { picked: string[]; onClear: () => vo
 				<button
 					type="submit"
 					disabled={!picked.length || busy}
-					className="shrink-0 rounded-full bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-40"
+					className="shrink-0 rounded-full bg-gold-400 px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-gold-300 disabled:opacity-40"
 				>
 					{busy ? "Making your book…" : "Make a book"}
 				</button>

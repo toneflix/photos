@@ -41,7 +41,7 @@ export default function SignUp({ actionData }: Route.ComponentProps) {
 			subtitle={
 				<>
 					Already have an account?{" "}
-					<Link to="/signin" className="font-medium text-brand-600 hover:underline">
+					<Link to="/signin" className="font-medium text-brand-700 hover:underline">
 						Sign in
 					</Link>
 				</>

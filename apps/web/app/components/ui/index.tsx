@@ -1,10 +1,11 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
 import { Link } from "react-router";
 
-type Variant = "primary" | "dark" | "secondary" | "ghost" | "danger";
+type Variant = "primary" | "brand" | "dark" | "secondary" | "ghost" | "danger";
 
 const variants: Record<Variant, string> = {
-	primary: "bg-brand-500 text-white hover:bg-brand-600",
+	primary: "bg-gold-400 text-ink-900 hover:bg-gold-300",
+	brand: "bg-brand-700 text-white hover:bg-brand-800",
 	dark: "bg-ink-900 text-white hover:bg-ink-700",
 	secondary: "border border-surface-300 bg-white text-ink-900 hover:border-ink-500",
 	ghost: "text-ink-700 hover:bg-surface-100",
@@ -58,15 +59,10 @@ export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
 	return <textarea {...props} className={`${inputClass} ${props.className ?? ""}`} />;
 }
 
-export function Logo({ to = "/", light = false, compact = false }: { to?: string; light?: boolean; compact?: boolean }) {
+export function Logo({ to = "/", compact = false }: { to?: string; compact?: boolean }) {
 	return (
-		<Link to={to} className={`flex items-center gap-2 ${light ? "text-surface-50" : "text-ink-900"}`}>
-			<span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-500 text-white">
-				<svg viewBox="0 0 32 32" className="h-5 w-5" aria-hidden>
-					<rect x="4" y="6" width="11" height="20" rx="1.5" fill="currentColor" />
-					<rect x="17" y="6" width="11" height="20" rx="1.5" fill="currentColor" opacity="0.6" />
-				</svg>
-			</span>
+		<Link to={to} className="flex items-center gap-2.5 text-ink-900">
+			<img src="/brand/toneflix-mark.png" alt="" width="18" height="32" className="h-8 w-auto" />
 			<span className={`whitespace-nowrap font-display text-lg font-bold tracking-tight sm:text-xl ${compact ? "hidden sm:inline" : ""}`}>Toneflix Photos</span>
 		</Link>
 	);

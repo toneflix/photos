@@ -16,9 +16,27 @@
 	--color-ink-500: #7f7f7f;
 	--color-ink-700: #4a4d52;
 	--color-ink-900: #2c343e;
-	--color-brand-500: #05a081;
-	--color-brand-600: #048a6f;
-	--color-brand-700: #037058;
+
+	/* Toneflix blue, from the logo's #00afff → #00eaff gradient. */
+	--color-brand-50: #e6f7ff;
+	--color-brand-100: #c6edff;
+	--color-brand-200: #8fdcff;
+	--color-brand-300: #4ccbff;
+	--color-brand-400: #00eaff;
+	--color-brand-500: #00afff;
+	--color-brand-600: #008cd1;
+	--color-brand-700: #006ea6;
+	--color-brand-800: #00537d;
+
+	/* Toneflix gold, from the banner's #f6c101 → #bb8c01 glow. */
+	--color-gold-50: #fff9e1;
+	--color-gold-100: #fff0b0;
+	--color-gold-200: #ffe373;
+	--color-gold-300: #fdd236;
+	--color-gold-400: #f6c101;
+	--color-gold-500: #dba901;
+	--color-gold-600: #bb8c01;
+	--color-gold-700: #8c6901;
 }
 
 html,
@@ -29,6 +47,15 @@ body {
 :focus-visible {
 	outline: 2px solid var(--color-brand-500);
 	outline-offset: 2px;
+}
+
+/* The logo's blue sweep and the banner's gold glow. */
+.bg-brand-sweep {
+	background-image: linear-gradient(120deg, var(--color-brand-500), var(--color-brand-400));
+}
+.bg-gold-glow {
+	background-color: var(--color-gold-500);
+	background-image: radial-gradient(circle at 22% 85%, var(--color-gold-400), var(--color-gold-600) 95%);
 }
 
 /* ---------------------------------------------------------------- Flipbook */

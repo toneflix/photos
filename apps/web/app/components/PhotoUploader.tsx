@@ -89,7 +89,7 @@ export function PhotoUploader({ action = "/photos", compact = false }: { action?
 			/>
 			<div className={`flex items-center gap-4 ${compact ? "flex-row" : "flex-col text-center"}`}>
 				{!compact && (
-					<div className="flex h-14 w-14 items-center justify-center rounded-full bg-surface-100 text-brand-600">
+					<div className="flex h-14 w-14 items-center justify-center rounded-full bg-surface-100 text-brand-700">
 						<svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
 							<path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" strokeLinecap="round" strokeLinejoin="round" />
 						</svg>
@@ -104,7 +104,7 @@ export function PhotoUploader({ action = "/photos", compact = false }: { action?
 						<p className={`font-medium text-ink-900 ${compact ? "" : "text-lg"}`}>
 							{compact ? "Drop photos here or" : "Drop your photos here"}
 							{compact && (
-								<button type="button" onClick={() => input.current?.click()} className="ml-1 text-brand-600 underline underline-offset-2">
+								<button type="button" onClick={() => input.current?.click()} className="ml-1 text-brand-700 underline underline-offset-2">
 									choose files
 								</button>
 							)}
@@ -113,7 +113,7 @@ export function PhotoUploader({ action = "/photos", compact = false }: { action?
 					{!compact && !busy && <p className="mt-1 text-sm text-ink-500">JPEG, PNG, WebP, GIF, AVIF or HEIC, up to 25 MB each.</p>}
 					{busy && (
 						<div className="mt-3 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-surface-200">
-							<div className="h-full bg-brand-500 transition-all" style={{ width: `${(progress!.done / progress!.total) * 100}%` }} />
+							<div className="h-full bg-brand-sweep transition-all" style={{ width: `${(progress!.done / progress!.total) * 100}%` }} />
 						</div>
 					)}
 				</div>

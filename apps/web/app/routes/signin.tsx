@@ -60,7 +60,7 @@ export default function SignIn({ loaderData, actionData }: Route.ComponentProps)
 			subtitle={
 				<>
 					New here?{" "}
-					<Link to="/signup" className="font-medium text-brand-600 hover:underline">
+					<Link to="/signup" className="font-medium text-brand-700 hover:underline">
 						Create an account
 					</Link>
 				</>
@@ -77,7 +77,7 @@ export default function SignIn({ loaderData, actionData }: Route.ComponentProps)
 					<Input name="password" type="password" autoComplete="current-password" required />
 				</Field>
 				<div className="-mt-2 text-right">
-					<Link to="/forgot-password" className="text-sm text-ink-500 hover:text-brand-600 hover:underline">
+					<Link to="/forgot-password" className="text-sm text-ink-500 hover:text-brand-700 hover:underline">
 						Forgot your password?
 					</Link>
 				</div>
@@ -141,7 +141,7 @@ function TwoStepForm({
 				<button
 					type="button"
 					onClick={() => setRecovery(!recovery)}
-					className="block w-full text-center text-sm text-ink-500 hover:text-brand-600 hover:underline"
+					className="block w-full text-center text-sm text-ink-500 hover:text-brand-700 hover:underline"
 				>
 					{recovery ? "Use your authenticator app instead" : "Can't use your app? Use a recovery code"}
 				</button>

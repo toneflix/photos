@@ -13,7 +13,7 @@ export default function SettingsLayout() {
 		<main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
 			<div className="gap-10 md:grid md:grid-cols-[15rem_1fr]">
 				<aside className="hidden md:block">
-					<Link to="/settings" className="font-display font-bold tracking-tight text-3xl text-ink-900 hover:text-brand-700">
+					<Link to="/settings" className="font-display font-bold tracking-tight text-3xl text-ink-900 hover:text-brand-800">
 						Settings
 					</Link>
 					<nav className="mt-8 space-y-7" aria-label="Settings">

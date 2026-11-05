@@ -12,7 +12,7 @@ export function Avatar({ user, size = "sm" }: { user: Pick<User, "name" | "avata
 	}
 
 	return (
-		<span className={`${sizes[size]} flex shrink-0 items-center justify-center rounded-full bg-brand-500 font-semibold text-white`}>
+		<span className={`${sizes[size]} flex shrink-0 items-center justify-center rounded-full bg-brand-700 font-semibold text-white`}>
 			{initials(user.name)}
 		</span>
 	);

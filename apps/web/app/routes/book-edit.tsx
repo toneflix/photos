@@ -233,7 +233,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 				<button
 					type="button"
 					onClick={() => addPage()}
-					className="paper flex h-full w-full flex-col items-center justify-center gap-2 text-ink-500 transition hover:text-brand-600"
+					className="paper flex h-full w-full flex-col items-center justify-center gap-2 text-ink-500 transition hover:text-brand-700"
 				>
 					<span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-dashed border-current text-2xl">+</span>
 					<span className="text-sm font-medium">Add a page</span>
@@ -328,7 +328,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 					<aside className="shrink-0 border-surface-300/70 bg-surface-50 lg:w-52 lg:border-r">
 						<div className="flex items-center justify-between px-4 pt-3 pb-2">
 							<h2 className="text-xs font-semibold tracking-wide text-ink-500 uppercase">Pages · {pages.length}</h2>
-							<button type="button" onClick={() => addPage()} className="text-sm font-medium text-brand-600 hover:underline">
+							<button type="button" onClick={() => addPage()} className="text-sm font-medium text-brand-700 hover:underline">
 								+ Add
 							</button>
 						</div>
@@ -497,7 +497,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 						<div className="flex items-center justify-between px-4 pt-3 pb-2">
 							<h2 className="text-xs font-semibold tracking-wide text-ink-500 uppercase">Your photos</h2>
 							{photos.some((p) => !usedIds.has(p.id)) && (
-								<button type="button" onClick={addUnused} className="text-sm font-medium text-brand-600 hover:underline">
+								<button type="button" onClick={addUnused} className="text-sm font-medium text-brand-700 hover:underline">
 									Add unused as pages
 								</button>
 							)}
