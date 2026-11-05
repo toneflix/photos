@@ -3,7 +3,7 @@ import { data, Form, Link, redirect, useNavigation } from "react-router";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { formError, getServerApi } from "~/lib/api.server";
 import { commitToken, optionalUser, safeRedirect } from "~/lib/session.server";
-import { Alert, Button, Field, Input, Notice } from "~/components/ui";
+import { Alert, Button, Field, Input, Notice, OtpInput } from "~/components/ui";
 import { AuthFrame } from "~/components/AuthFrame";
 import type { Route } from "./+types/signin";
 
@@ -121,18 +121,7 @@ function TwoStepForm({
 					</Field>
 				) : (
 					<Field label="Code">
-						<Input
-							key="code"
-							name="code"
-							inputMode="numeric"
-							autoComplete="one-time-code"
-							pattern="[0-9 ]{6,7}"
-							maxLength={7}
-							placeholder="123 456"
-							className="text-center font-mono text-2xl tracking-[0.3em]"
-							required
-							autoFocus
-						/>
+						<OtpInput key="code" name="code" invalid={!!error} disabled={busy} autoFocus />
 					</Field>
 				)}
 				<Button type="submit" className="w-full py-3" disabled={busy}>
