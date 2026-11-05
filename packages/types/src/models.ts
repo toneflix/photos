@@ -20,11 +20,20 @@ export interface AuthToken {
   expiresAt: string | null
 }
 
-/** A single uploaded photo. The file itself lives on the API's storage disk. */
+/**
+ * A single uploaded photo. The file itself lives on the API's storage disk.
+ *
+ * The database stores only the file's storage path, never a URL, because S3
+ * URLs expire. `url` and `thumbnailUrl` are signed URLs the API creates with
+ * `getSignedUrl()` on every response, so they are short-lived: don't persist
+ * or cache them on the client.
+ */
 export interface Photo {
   id: ID
   userId: ID
+  /** Signed URL, generated per response. */
   url: string
+  /** Signed URL, generated per response. */
   thumbnailUrl: string | null
   width: number | null
   height: number | null

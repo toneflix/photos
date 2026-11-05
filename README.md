@@ -34,7 +34,7 @@ Useful root scripts: `pnpm typecheck`, `pnpm build`, `pnpm test`, `pnpm lint`.
 
 ## Configuration
 
-- **API** (`apps/api/.env`): database, app key, mail and storage. `FILESYSTEM_DISK=local` stores photos under `apps/api/storage/app`; set it to `s3` with the `AWS_*` variables for any S3-compatible bucket (for example Cloudflare R2) in production. Disks are defined in `apps/api/src/config/filesystem.ts`.
+- **API** (`apps/api/.env`): database, app key, mail and storage. `FILESYSTEM_DISK=local` stores photos under `apps/api/storage/app`; set it to `s3` with the `AWS_*` variables for any S3-compatible bucket (for example Cloudflare R2) in production. Disks are defined in `apps/api/src/config/filesystem.ts`. Never store file URLs in the database (S3 URLs expire): store the storage path and return a URL from `getSignedUrl()` in API responses.
 - **Web** (`apps/web/wrangler.jsonc`): `API_URL` points the web app at the API. Run `pnpm --filter @photos/web cf-typegen` after changing bindings.
 - **Mobile** (`apps/mobile/.env`): `EXPO_PUBLIC_API_URL`.
 
