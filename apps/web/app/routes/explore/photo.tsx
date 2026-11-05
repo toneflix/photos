@@ -40,9 +40,16 @@ export default function ExplorePhoto({ loaderData }: Route.ComponentProps) {
 	return (
 		<main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
 			<div className="flex flex-wrap items-center justify-between gap-3">
-				<Owner owner={photo.owner} />
-				<Link to="/explore" className="text-sm font-medium text-ink-500 hover:text-ink-900">
-					Back to Explore
+				<div className="flex min-w-0 items-center gap-2">
+					<Owner owner={photo.owner} />
+					{photo.space && (
+						<Link to={`/spaces/${photo.space.slug}`} className="truncate text-sm text-ink-500 hover:text-ink-900">
+							in <span className="font-semibold text-brand-700">{photo.space.name}</span>
+						</Link>
+					)}
+				</div>
+				<Link to={photo.space ? `/spaces/${photo.space.slug}` : "/explore"} className="text-sm font-medium text-ink-500 hover:text-ink-900">
+					{photo.space ? `Back to ${photo.space.name}` : "Back to Explore"}
 				</Link>
 			</div>
 
