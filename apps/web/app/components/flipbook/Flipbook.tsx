@@ -70,8 +70,11 @@ export function Flipbook({
 	book,
 	topLeft,
 	topRight,
+	startPage,
 }: {
 	book: BookWithPages;
+	/** Open at this page (1-based) instead of the cover, e.g. from a photo on Explore. */
+	startPage?: number;
 	/** Extra controls for the top bar, e.g. a close link or an edit button. */
 	topLeft?: ReactNode;
 	topRight?: ReactNode;
@@ -96,7 +99,9 @@ export function Flipbook({
 
 	const faces = useMemo(() => buildFaces(book.pages.length, spread), [book.pages.length, spread]);
 	const leaves = useMemo(() => buildLeaves(faces, spread), [faces, spread]);
-	const [flipped, setFlipped] = useState(0);
+	const [flipped, setFlipped] = useState(() =>
+		startPage && startPage <= book.pages.length ? flippedForFace(startPage + 1, spread) : 0,
+	);
 	const [turning, setTurning] = useState<{ leaf: number; until: number } | null>(null);
 	const [drag, setDrag] = useState<Drag | null>(null);
 

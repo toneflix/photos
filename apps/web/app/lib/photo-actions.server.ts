@@ -31,6 +31,13 @@ export async function handlePhotoIntent(api: PhotosEndpoints, form: FormData) {
 			return { ok: true as const, photo };
 		}
 
+		if (intent === "visibility") {
+			const { data: photo } = await api.photos.update(String(form.get("photoId")), {
+				visibility: form.get("visibility") === "public" ? "public" : "private",
+			});
+			return { ok: true as const, photo };
+		}
+
 		if (intent === "make-book") {
 			const ids = form.getAll("photoIds").map(String).filter(Boolean);
 			if (!ids.length) return data({ ok: false as const, error: "Choose some photos first" }, { status: 422 });

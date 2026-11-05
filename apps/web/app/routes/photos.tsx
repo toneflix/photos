@@ -128,6 +128,11 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 												{photo.caption}
 											</span>
 										)}
+										{photo.visibility === "public" && !selecting && (
+											<span className="absolute top-2 left-2 rounded-md bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur">
+												On Explore
+											</span>
+										)}
 										{selecting && (
 											<span
 												className={`absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full border-2 text-xs font-semibold ${
@@ -189,8 +194,13 @@ function SelectionBar({ picked, onClear }: { picked: string[]; onClear: () => vo
 	);
 }
 
-function PhotoDialog({ photo, onClose }: { photo: Photo; onClose: () => void }) {
+function PhotoDialog({ photo: initial, onClose }: { photo: Photo; onClose: () => void }) {
 	const fetcher = useFetcher<typeof action>();
+	const visibility = useFetcher<typeof action>();
+	const updated = visibility.data && "photo" in visibility.data ? visibility.data.photo : undefined;
+	const pending = visibility.formData?.get("visibility");
+	const photo = updated ?? initial;
+	const isPublic = pending ? pending === "public" : photo.visibility === "public";
 	const deleting = fetcher.state !== "idle" && fetcher.formData?.get("intent") === "delete";
 	const saving = fetcher.state !== "idle" && fetcher.formData?.get("intent") === "caption";
 
@@ -225,6 +235,29 @@ function PhotoDialog({ photo, onClose }: { photo: Photo; onClose: () => void }) 
 						)}
 						{photo.takenAt && <div>{new Date(photo.takenAt).toLocaleDateString(undefined, { dateStyle: "long" })}</div>}
 					</dl>
+					<visibility.Form method="post" className="flex items-start justify-between gap-4 rounded-lg bg-surface-100 p-3">
+						<input type="hidden" name="intent" value="visibility" />
+						<input type="hidden" name="photoId" value={photo.id} />
+						<input type="hidden" name="visibility" value={isPublic ? "private" : "public"} />
+						<span className="text-sm">
+							<span className="block font-semibold text-ink-900">Show on Explore</span>
+							<span className="text-ink-500">{isPublic ? "Anyone can see this photo." : "Only you can see this photo."}</span>
+							{isPublic && (
+								<Link to={`/explore/photos/${photo.id}`} className="mt-1 block font-medium text-brand-700 hover:underline">
+									View on Explore
+								</Link>
+							)}
+						</span>
+						<button
+							type="submit"
+							role="switch"
+							aria-checked={isPublic}
+							aria-label="Show on Explore"
+							className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition ${isPublic ? "bg-brand-700" : "bg-surface-300"}`}
+						>
+							<span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition ${isPublic ? "translate-x-5" : ""}`} />
+						</button>
+					</visibility.Form>
 					<fetcher.Form method="post" className="space-y-3">
 						<input type="hidden" name="intent" value="caption" />
 						<input type="hidden" name="photoId" value={photo.id} />

@@ -18,10 +18,11 @@ export function meta({ loaderData }: Route.MetaArgs) {
 export async function loader({ request, params, context }: Route.LoaderArgs) {
 	const { env } = context.get(cloudflareContext);
 	const api = await getServerApi(request, env);
+	const startPage = Number(new URL(request.url).searchParams.get("page")) || undefined;
 
 	try {
 		const { data: book } = await api.books.get(params.id);
-		return { book };
+		return { book, startPage };
 	} catch (error) {
 		if (error instanceof PhotosApiError && (error.code === 404 || error.code === 422)) {
 			throw data("Book not found", { status: 404 });
@@ -31,17 +32,19 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 }
 
 export default function BookView({ loaderData }: Route.ComponentProps) {
-	const { book } = loaderData;
+	const { book, startPage } = loaderData;
+	const back = book.canEdit ? { to: "/books", label: "Back to your books" } : { to: "/explore/books", label: "Back to Explore" };
 
 	return (
 		<Flipbook
 			book={book}
+			startPage={startPage}
 			topLeft={
 				<Link
-					to={book.canEdit ? "/books" : "/"}
+					to={back.to}
 					className="rounded-full bg-white/10 p-2 hover:bg-white/20"
-					aria-label={book.canEdit ? "Back to your books" : "Toneflix Photos"}
-					title={book.canEdit ? "Back to your books" : "Toneflix Photos"}
+					aria-label={back.label}
+					title={back.label}
 				>
 					<svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
 						<path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
