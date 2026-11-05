@@ -13,11 +13,6 @@ export class User extends BaseUser {
 
   protected static override factoryClass = UserFactory
 
-  protected static override columns = {
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
-  }
-
   protected override hidden = ['password']
 
   personalAccessTokens() {

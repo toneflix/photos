@@ -7,8 +7,6 @@ export class UserNotification extends BaseUserNotification {
     actionText: 'action_text',
     actionLink: 'action_link',
     readAt: 'read_at',
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
   }
 
   user() {

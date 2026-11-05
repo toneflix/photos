@@ -5,6 +5,8 @@ import cors from 'cors'
 import { localeMiddleware } from '@arkstack/lang'
 import corsConfig from './cors'
 import express from 'express'
+import { Arkstack } from '@arkstack/contract'
+import path from 'node:path'
 import { useExpressUploadContext } from '@kanun-hq/plugin-file'
 
 export default (): MiddlewareConfig => {
@@ -23,7 +25,19 @@ export default (): MiddlewareConfig => {
         origin: cConf.allowed_origins.length > 0 ? cConf.allowed_origins : true,
         credentials: true,
       }),
-      formdata.any(),
+      formdata.any({ limits: { fileSize: 25 * 1024 * 1024, files: 1 } }),
+      // Photos stored on the local `public` disk are served from /media.
+      // Production uses an S3-compatible bucket (PHOTOS_DISK=s3) and its own URLs.
+      express
+        .Router()
+        .use(
+          '/media',
+          express.static(path.join(Arkstack.rootDir(), 'storage/app/public'), {
+            immutable: true,
+            maxAge: '365d',
+            fallthrough: false,
+          }),
+        ),
     ],
     before: [
       resora(),
