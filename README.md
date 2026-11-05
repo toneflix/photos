@@ -48,7 +48,3 @@ const photos = await api.photos.list({ page: 1 })
 ```
 
 In React components, pass `statesHook: ReactHook` (from `alova/react`) and use alova's `useRequest` / `usePagination` hooks. On the server (React Router loaders), create a client per request with `cacheFor: null`; see `apps/web/app/lib/api.server.ts`.
-
-## Notes
-
-- `resora` is pinned to 1.3.34 in `pnpm-workspace.yaml`: 1.3.35 breaks `@arkstack/console` 0.21.0.

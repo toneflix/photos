@@ -9,8 +9,3 @@ onlyBuiltDependencies:
   - esbuild
   - sharp
   - workerd
-
-overrides:
-  # resora 1.3.35 moved CliApp to `resora/cli`, which breaks @arkstack/console 0.21.0
-  # (`ark build` / `ark dev` fail). Remove once arkstack ships a fix.
-  resora: 1.3.34
