@@ -1,6 +1,7 @@
-import { Form, NavLink, Outlet } from "react-router";
+import { Form, Link, NavLink, Outlet, useLocation } from "react-router";
 import { requireUser } from "~/lib/session.server";
 import { Logo } from "~/components/ui";
+import { Avatar } from "~/components/Avatar";
 import type { Route } from "./+types/app-layout";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -10,6 +11,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export default function AppLayout({ loaderData }: Route.ComponentProps) {
 	const { user } = loaderData;
+	const { pathname } = useLocation();
 	const tab = ({ isActive }: { isActive: boolean }) =>
 		`rounded-full px-4 py-2 text-sm font-medium transition ${
 			isActive ? "bg-ink-900 text-paper-50" : "text-ink-700 hover:bg-paper-200/70"
@@ -29,9 +31,9 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
 						</NavLink>
 					</nav>
 					<div className="flex items-center gap-3">
-						<span className="hidden h-9 w-9 items-center sm:flex justify-center rounded-full bg-ember-500 text-sm font-semibold text-white" title={user.email}>
-							{initials(user.name)}
-						</span>
+						<Link to="/settings" title="Settings" aria-label="Settings" className="rounded-full ring-ember-500/40 transition hover:ring-4">
+							<Avatar user={user} />
+						</Link>
 						<Form method="post" action="/signout">
 							<button type="submit" className="text-sm text-ink-500 hover:text-ink-900">
 								Sign out
@@ -40,16 +42,17 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
 					</div>
 				</div>
 			</header>
+			{!user.emailVerified && !pathname.startsWith("/settings/profile") && (
+				<div className="border-b border-amber-200 bg-amber-50">
+					<p className="mx-auto max-w-7xl px-4 py-2.5 text-sm text-amber-900 sm:px-6">
+						Confirm your email so you can always get back into your account.{" "}
+						<Link to="/settings/profile" className="font-medium underline">
+							Resend the link
+						</Link>
+					</p>
+				</div>
+			)}
 			<Outlet />
 		</div>
 	);
-}
-
-function initials(name: string) {
-	return name
-		.split(/\s+/)
-		.filter(Boolean)
-		.slice(0, 2)
-		.map((part) => part[0]?.toUpperCase())
-		.join("");
 }

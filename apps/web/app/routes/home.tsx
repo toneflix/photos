@@ -15,12 +15,17 @@ export function meta(_: Route.MetaArgs) {
 
 export async function loader({ request, context }: Route.LoaderArgs) {
 	if (await optionalUser(request, context)) throw redirect("/books");
-	return null;
+	return { deleted: new URL(request.url).searchParams.has("deleted") };
 }
 
-export default function Home() {
+export default function Home({ loaderData }: Route.ComponentProps) {
 	return (
 		<div className="min-h-dvh bg-paper-50">
+			{loaderData.deleted && (
+				<p className="bg-ink-900 px-6 py-3 text-center text-sm text-paper-50">
+					Your account and everything in it was deleted. Thank you for keeping your memories with us.
+				</p>
+			)}
 			<header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
 				<Logo />
 				<nav className="flex items-center gap-2">
