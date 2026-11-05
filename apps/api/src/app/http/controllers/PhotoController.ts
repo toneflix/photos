@@ -37,11 +37,13 @@ export default class PhotoController extends BaseController {
   }
 
   async show() {
-    return new PhotoResource(await this.findOwned()).additional({ status: 'success', message: 'OK', code: 200 })
+    const photo = await this.user.photos().findOrFail(String(this.params.photo))
+
+    return new PhotoResource(photo).additional({ status: 'success', message: 'OK', code: 200 })
   }
 
   async update() {
-    const photo = await this.findOwned()
+    const photo = await this.user.photos().findOrFail(String(this.params.photo))
     const data = await this.validate({
       caption: 'nullable|string|max:2000',
       takenAt: 'nullable|date',
@@ -56,14 +58,10 @@ export default class PhotoController extends BaseController {
   }
 
   async destroy() {
-    const photo = await this.findOwned()
+    const photo = await this.user.photos().findOrFail(String(this.params.photo))
 
     await photo.remove()
 
     return new PhotoResource(photo).additional({ status: 'success', message: 'Photo deleted', code: 200 })
-  }
-
-  private findOwned(): Promise<Photo> {
-    return this.user.photos().findOrFail(String(this.params.photo))
   }
 }

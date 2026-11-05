@@ -58,7 +58,7 @@ export default class BookController extends BaseController {
   }
 
   async update() {
-    const book = await this.findOwned()
+    const book = await this.user.books().findOrFail(String(this.params.book))
     const data = await this.validate({
       title: 'nullable|string|max:160',
       description: 'nullable|string|max:2000',
@@ -83,7 +83,7 @@ export default class BookController extends BaseController {
   }
 
   async destroy() {
-    const book = await this.findOwned()
+    const book = await this.user.books().findOrFail(String(this.params.book))
 
     await book.remove()
 
@@ -92,7 +92,7 @@ export default class BookController extends BaseController {
 
   /** Replace every page of a book at once. The editor always sends the whole book. */
   async savePages() {
-    const book = await this.findOwned()
+    const book = await this.user.books().findOrFail(String(this.params.book))
     const data = await this.validate({
       pages: `present|array|max:${Book.MAX_PAGES}`,
       'pages.*.layout': `nullable|in:${Object.keys(Book.LAYOUTS).join(',')}`,
@@ -104,10 +104,6 @@ export default class BookController extends BaseController {
     await book.replacePages(data.pages)
 
     return new BookDetailResource(book).for(this.user).additional({ status: 'success', message: 'Book saved', code: 200 })
-  }
-
-  private findOwned(): Promise<Book> {
-    return this.user.books().findOrFail(String(this.params.book))
   }
 
   /** The signed-in viewer on a route without the `auth` middleware, if any. */
