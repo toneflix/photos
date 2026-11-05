@@ -147,6 +147,204 @@ body {
 	filter: saturate(0.92) contrast(0.94) brightness(0.9);
 }
 
+/*
+ * Photo frames. Everything is ink or a press on the paper: translucent tints, printed rules and a blind
+ * plate mark, so the page grain shows through and nothing stands off the page. Sizes are in em, which
+ * PrintedPhoto sets to 1% of the page width.
+ */
+.print-frame-box {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	container-type: size;
+}
+.print-frame {
+	--frame-pad: 0em;
+	--frame-line: 0px;
+	--frame-edge: calc(var(--frame-pad) + var(--frame-line));
+	position: relative;
+	width: 100%;
+	height: 100%;
+	border: var(--frame-line) solid transparent;
+}
+.print-frame.is-contained {
+	--frame-width: min(100cqw, (100cqh - 2 * var(--frame-edge)) * var(--ratio) + 2 * var(--frame-edge));
+	width: var(--frame-width);
+	height: calc((var(--frame-width) - 2 * var(--frame-edge)) / var(--ratio) + 2 * var(--frame-edge));
+}
+.print-frame-photo {
+	position: absolute;
+	inset: var(--frame-pad);
+	width: calc(100% - 2 * var(--frame-pad));
+	height: calc(100% - 2 * var(--frame-pad));
+	object-fit: cover;
+}
+
+.frame-hairline {
+	--frame-pad: 1.6em;
+	--frame-line: max(1px, 0.22em);
+	border-color: color-mix(in srgb, currentColor 70%, transparent);
+}
+.frame-double {
+	--frame-pad: 1.4em;
+	--frame-line: max(3px, 0.7em);
+	border-style: double;
+	border-color: color-mix(in srgb, currentColor 75%, transparent);
+}
+.frame-mat {
+	--frame-pad: 4.5em;
+	--frame-line: max(1px, 0.7em);
+	border-color: color-mix(in srgb, currentColor 85%, transparent);
+	background: var(--frame-tint);
+}
+.frame-mat .print-frame-photo {
+	outline: max(1px, 0.25em) solid color-mix(in srgb, currentColor 18%, transparent);
+}
+.frame-corners {
+	--frame-pad: 0.7em;
+}
+.print-frame-corner {
+	position: absolute;
+	width: 5.5em;
+	height: 5.5em;
+	background: color-mix(in srgb, currentColor 82%, transparent);
+}
+.print-frame-corner.is-tl {
+	top: 0;
+	left: 0;
+	clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+.print-frame-corner.is-tr {
+	top: 0;
+	right: 0;
+	clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+.print-frame-corner.is-bl {
+	bottom: 0;
+	left: 0;
+	clip-path: polygon(0 0, 100% 100%, 0 100%);
+}
+.print-frame-corner.is-br {
+	bottom: 0;
+	right: 0;
+	clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+.frame-deckle {
+	--frame-pad: 2.6em;
+	--scallop: 1.6em;
+	background: color-mix(in srgb, currentColor 11%, transparent);
+	mask:
+		linear-gradient(#000 0 0) center / calc(100% - var(--scallop)) calc(100% - var(--scallop)) no-repeat,
+		radial-gradient(closest-side, #000 97%, transparent) top left / var(--scallop) var(--scallop) repeat-x,
+		radial-gradient(closest-side, #000 97%, transparent) bottom left / var(--scallop) var(--scallop) repeat-x,
+		radial-gradient(closest-side, #000 97%, transparent) top left / var(--scallop) var(--scallop) repeat-y,
+		radial-gradient(closest-side, #000 97%, transparent) top right / var(--scallop) var(--scallop) repeat-y;
+}
+.frame-plate {
+	--frame-pad: 3.2em;
+	background: var(--plate-tint);
+	box-shadow:
+		inset 0.2em 0.2em 0 var(--plate-low),
+		inset -0.2em -0.2em 0 var(--plate-high);
+}
+.frame-feather .print-frame-photo {
+	mask:
+		linear-gradient(to right, transparent, #000 8%, #000 92%, transparent),
+		linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
+	mask-composite: intersect;
+}
+
+.frame-oval {
+	--frame-pad: 1.5em;
+	--frame-line: max(1px, 0.22em);
+	border-color: color-mix(in srgb, currentColor 70%, transparent);
+	border-radius: 50%;
+}
+.frame-oval .print-frame-photo {
+	border-radius: 50%;
+}
+.frame-botanical {
+	--frame-pad: 5em;
+}
+.frame-botanical .print-frame-photo {
+	outline: max(1px, 0.18em) solid color-mix(in srgb, currentColor 60%, transparent);
+	outline-offset: 1.6em;
+}
+.print-frame-sprig {
+	position: absolute;
+	width: 26em;
+	height: 10.4em;
+	color: color-mix(in srgb, currentColor 80%, transparent);
+}
+.print-frame-sprig.is-tl {
+	top: -1.8em;
+	left: 1.4em;
+}
+.print-frame-sprig.is-br {
+	right: 1.4em;
+	bottom: -1.8em;
+	transform: rotate(180deg);
+}
+
+/* A patterned band printed around a mat. The mask keeps the pattern to the band. */
+.print-frame-band {
+	position: absolute;
+	inset: 0;
+	padding: var(--band);
+	mix-blend-mode: var(--ink-blend);
+	mask:
+		linear-gradient(#000 0 0) content-box exclude,
+		linear-gradient(#000 0 0);
+}
+.frame-watercolor,
+.frame-arcs,
+.frame-gilt,
+.frame-woodgrain {
+	--band: 3em;
+	--frame-pad: calc(var(--band) + 2.6em);
+	background: var(--frame-tint);
+}
+.frame-watercolor .print-frame-band {
+	background: linear-gradient(135deg, #f0a993, #f3d27c 30%, #9fd3bf 62%, #8fb6e2);
+	opacity: 0.7;
+}
+.frame-arcs .print-frame-band {
+	background:
+		radial-gradient(circle at 50% 100%, #e9967a 0 0.3em, #f2c95c 0.3em 0.6em, #79c2a2 0.6em 0.9em, #7ea7d8 0.9em 1.2em, transparent 1.2em) 0 0 / 2.4em
+		1.3em;
+	opacity: 0.8;
+}
+.frame-gilt {
+	--band: 2.6em;
+}
+.frame-gilt .print-frame-band {
+	border: max(1px, 0.35em) solid #b48a32;
+	background:
+		repeating-linear-gradient(45deg, rgb(180 138 50 / 0.75) 0 0.22em, transparent 0.22em 0.8em),
+		repeating-linear-gradient(-45deg, rgb(180 138 50 / 0.75) 0 0.22em, transparent 0.22em 0.8em),
+		rgb(214 178 92 / 0.45);
+}
+.frame-gilt .print-frame-photo,
+.frame-watercolor .print-frame-photo,
+.frame-arcs .print-frame-photo,
+.frame-woodgrain .print-frame-photo {
+	outline: max(1px, 0.2em) solid color-mix(in srgb, currentColor 22%, transparent);
+}
+.frame-woodgrain .print-frame-band {
+	background:
+		repeating-linear-gradient(
+			8deg,
+			rgb(110 70 30 / 0.4) 0 0.12em,
+			transparent 0.12em 0.55em,
+			rgb(110 70 30 / 0.22) 0.55em 0.8em,
+			transparent 0.75em 1.5em
+		),
+		#cfa874;
+	opacity: 0.85;
+}
+
 /* Lighting over a whole page, photos included: grain, the curve into the spine and a soft sheen where the page rises. */
 .page-surface,
 .page-surface > * {
@@ -193,6 +391,11 @@ body {
 .paper {
 	--paper-texture: url("/textures/paper-fine.webp");
 	--paper-grain: url("/textures/grain-fine.webp");
+	--frame-tint: rgb(255 255 255 / 0.4);
+	--ink-blend: multiply;
+	--plate-tint: rgb(90 70 40 / 0.03);
+	--plate-low: rgb(90 70 40 / 0.12);
+	--plate-high: rgb(255 255 255 / 0.6);
 	color: #3d372f;
 	background-color: #fdf9f0;
 	background-image:
@@ -204,11 +407,15 @@ body {
 }
 
 .paper-white {
+	--frame-tint: rgb(150 125 90 / 0.08);
 	background-color: #ffffff;
 }
 .paper-kraft {
 	--paper-texture: url("/textures/paper-kraft.webp");
 	--paper-grain: url("/textures/grain-kraft.webp");
+	--frame-tint: rgb(255 248 235 / 0.35);
+	--plate-low: rgb(80 50 20 / 0.16);
+	--plate-high: rgb(255 245 225 / 0.35);
 	background-color: #d8c4a2;
 	background-image:
 		radial-gradient(ellipse at 30% 20%, rgb(255 255 255 / 0.18), transparent 55%),
@@ -219,6 +426,11 @@ body {
 .paper-charcoal {
 	--paper-texture: url("/textures/paper-charcoal.webp");
 	--paper-grain: url("/textures/grain-charcoal.webp");
+	--frame-tint: rgb(255 255 255 / 0.07);
+	--ink-blend: screen;
+	--plate-tint: rgb(0 0 0 / 0.08);
+	--plate-low: rgb(0 0 0 / 0.35);
+	--plate-high: rgb(255 255 255 / 0.07);
 	background-color: #2a2826;
 	background-image:
 		radial-gradient(ellipse at 30% 20%, rgb(255 255 255 / 0.05), transparent 55%),

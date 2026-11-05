@@ -21,6 +21,7 @@ export interface BookFilters {
 
 export interface PageInput {
   layout?: string | null
+  frame?: string | null
   caption?: string | null
   photoIds?: string[] | null
 }
@@ -35,6 +36,7 @@ export class Book extends Model {
   declare visibility: BookVisibility
   declare theme: string
   declare paper: string
+  declare frame: string
   declare publishedAt: Date | null
   declare createdAt: Date
   declare updatedAt: Date
@@ -42,6 +44,7 @@ export class Book extends Model {
   static readonly VISIBILITIES = ['private', 'shared', 'public']
   static readonly THEMES = ['classic', 'linen', 'midnight']
   static readonly PAPERS = ['ivory', 'white', 'kraft', 'charcoal']
+  static readonly FRAMES = ['none', 'hairline', 'double', 'mat', 'corners', 'deckle', 'plate', 'feather', 'oval', 'botanical', 'watercolor', 'arcs', 'gilt', 'woodgrain']
   static readonly MAX_PAGES = 500
 
   /** How many photos each page layout holds. */
@@ -210,6 +213,7 @@ export class Book extends Model {
         bookId: this.id,
         position: index + 1,
         layout,
+        frame: page.frame && Book.FRAMES.includes(page.frame) ? page.frame : null,
         caption: page.caption?.trim() || null,
         photoIds: (page.photoIds ?? []).filter((id) => owned.has(id)).slice(0, Book.LAYOUTS[layout]),
       }
