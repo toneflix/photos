@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { BookTheme, BookWithPages } from "@photos/types";
 import {
 	BackCoverView,
@@ -17,6 +17,10 @@ const PAGE_ASPECT = 3 / 4;
 const TURN_MS = 900;
 /** How far (0–1) a dragged page must travel before letting go finishes the turn. */
 const COMMIT_AT = 0.3;
+/** Hinged strips in a leaf that can turn; more strips make a smoother bend. */
+const BEND_STRIPS = 6;
+/** How far (degrees) a page's free edge bends away from its spine half-way through a turn. */
+const BEND_MAX = 38;
 
 type Face =
 	| { kind: "cover" }
@@ -65,6 +69,8 @@ const flippedForFace = (face: number, spread: boolean) => (spread ? Math.ceil(fa
 
 /** `progress` runs 0→1 in the direction of the turn. */
 type Drag = { leaf: number; dir: 1 | -1; progress: number };
+/** A leaf finishing its turn. `fromDrag` turns settle from the drag's bend instead of bending afresh. */
+type Turn = { leaf: number; until: number; dir: 1 | -1; fromDrag: boolean };
 
 export function Flipbook({
 	book,
@@ -102,7 +108,7 @@ export function Flipbook({
 	const [flipped, setFlipped] = useState(() =>
 		startPage && startPage <= book.pages.length ? flippedForFace(startPage + 1, spread) : 0,
 	);
-	const [turning, setTurning] = useState<{ leaf: number; until: number } | null>(null);
+	const [turning, setTurning] = useState<Turn | null>(null);
 	const [drag, setDrag] = useState<Drag | null>(null);
 
 	useEffect(() => {
@@ -137,7 +143,9 @@ export function Flipbook({
 			const next = Math.max(0, Math.min(leaves.length, target));
 			if (next === flipped) return;
 			// Turning one leaf animates it; a jump just swaps the view.
-			if (Math.abs(next - flipped) === 1) setTurning({ leaf: Math.min(next, flipped), until: Date.now() + TURN_MS });
+			if (Math.abs(next - flipped) === 1) {
+				setTurning({ leaf: Math.min(next, flipped), until: Date.now() + TURN_MS, dir: next > flipped ? 1 : -1, fromDrag: false });
+			}
 			if (sound) playPageTurn();
 			setFlipped(next);
 		},
@@ -245,7 +253,7 @@ export function Flipbook({
 
 		if (drag) {
 			const done = drag.progress >= COMMIT_AT;
-			setTurning({ leaf: drag.leaf, until: Date.now() + TURN_MS });
+			setTurning({ leaf: drag.leaf, until: Date.now() + TURN_MS, dir: done ? drag.dir : drag.dir === 1 ? -1 : 1, fromDrag: true });
 			setDrag(null);
 			if (done) {
 				if (sound) playPageTurn();
@@ -274,11 +282,11 @@ export function Flipbook({
 			case "back":
 				return <BackCoverView theme={book.theme} />;
 			case "title":
-				return <TitlePageView book={book} />;
+				return <TitlePageView book={book} side={side} />;
 			case "colophon":
-				return <ColophonView />;
+				return <ColophonView side={side} />;
 			case "blank":
-				return <BlankPageView />;
+				return <BlankPageView side={side} />;
 			case "page":
 				return <PageView page={book.pages[face.index]} number={face.index + 1} side={side} showImages={nearby} />;
 		}
@@ -364,8 +372,6 @@ export function Flipbook({
 						{(open || (spread && atStart)) && rightEdge > 0 && (
 							<div className="flipbook-edge absolute top-[3px] bottom-[3px]" style={{ right: -rightEdge, width: rightEdge }} />
 						)}
-						{/* Spine crease */}
-						{open && <div className="pointer-events-none absolute inset-y-0 left-1/2 z-[999] w-6 -translate-x-1/2 bg-gradient-to-r from-transparent via-black/15 to-transparent" />}
 
 						{leaves.map((leaf, k) => {
 							const isDragged = drag?.leaf === k;
@@ -376,6 +382,11 @@ export function Flipbook({
 							let angle = isFlipped ? -180 : 0;
 							if (isDragged) angle = drag.dir === 1 ? -180 * drag.progress : -180 + 180 * drag.progress;
 							const lift = isDragged ? Math.sin(Math.PI * drag.progress) : 0;
+							// Leaves either side of the spine can turn next, so they are built from strips that bend.
+							const canTurn = isDragged || isTurning || k === flipped || k === flipped - 1;
+							// The free edge trails the rest of the page, so it bows as it turns.
+							const bend = isDragged ? BEND_MAX * lift * drag.dir : isTurning ? BEND_MAX * turning.dir : 0;
+							const bending = isTurning && !turning.fromDrag;
 							const z = isDragged || isTurning ? leaves.length + 2 : isFlipped ? k + 1 : leaves.length - k;
 							// Hide leaves that can't be seen so large books stay fast.
 							const hidden =
@@ -397,24 +408,37 @@ export function Flipbook({
 									}}
 									aria-hidden={!(k === flipped || k === flipped - 1)}
 								>
-									<div className={`flipbook-face ${leaf.front.kind === "cover" ? "" : "is-right"}`}>
-										{renderFace(leaf.front, "right", nearby)}
-										{lift > 0 && (
-											<div
-												className="pointer-events-none absolute inset-0 z-10"
-												style={{ background: `linear-gradient(to left, rgb(0 0 0 / ${0.35 * lift}), transparent 70%)` }}
-											/>
-										)}
-									</div>
-									<div className={`flipbook-face is-back ${leaf.back.kind === "back" || !spread ? "" : "is-left"}`}>
-										{renderFace(leaf.back, "left", nearby)}
-										{lift > 0 && (
-											<div
-												className="pointer-events-none absolute inset-0 z-10"
-												style={{ background: `linear-gradient(to right, rgb(0 0 0 / ${0.3 * lift}), rgb(255 255 255 / ${0.06 * lift}) 50%, transparent)` }}
-											/>
-										)}
-									</div>
+									<LeafFaces
+										strips={canTurn ? BEND_STRIPS : 1}
+										flat={!isDragged && !isTurning}
+										bend={bend}
+										bending={bending}
+										dragging={isDragged}
+										front={
+											<>
+												{renderFace(leaf.front, "right", nearby)}
+												{lift > 0 && (
+													<div
+														className="pointer-events-none absolute inset-0 z-10"
+														style={{ background: `linear-gradient(to left, rgb(0 0 0 / ${0.35 * lift}), transparent 70%)` }}
+													/>
+												)}
+											</>
+										}
+										back={
+											<>
+												{renderFace(leaf.back, "left", nearby)}
+												{lift > 0 && (
+													<div
+														className="pointer-events-none absolute inset-0 z-10"
+														style={{
+															background: `linear-gradient(to right, rgb(0 0 0 / ${0.3 * lift}), rgb(255 255 255 / ${0.06 * lift}) 50%, transparent)`,
+														}}
+													/>
+												)}
+											</>
+										}
+									/>
 								</div>
 							);
 						})}
@@ -471,6 +495,65 @@ export function Flipbook({
 		</div>
 		</PaperContext.Provider>
 	);
+}
+
+/**
+ * Both faces of a leaf, cut into a chain of vertical strips. Each strip hinges
+ * on the one before it, so rotating them by `bend` (spread across the chain)
+ * curves the page. `bending` plays the bend once as the leaf turns.
+ */
+function LeafFaces({
+	front,
+	back,
+	strips,
+	flat,
+	bend,
+	bending,
+	dragging,
+}: {
+	front: ReactNode;
+	back: ReactNode;
+	strips: number;
+	flat: boolean;
+	bend: number;
+	bending: boolean;
+	dragging: boolean;
+}) {
+	const step = strips > 1 ? bend / (strips - 1) : 0;
+	// Slices are a pixel wider than their strip, so size the page from the strip width.
+	const page = (offset: number): CSSProperties =>
+		flat ? { left: 0, width: "100%" } : { left: `calc((100% - 1px) * ${-offset})`, width: `calc((100% - 1px) * ${strips})` };
+
+	// At rest the first strip shows the whole page and the rest stay mounted but hidden, so a turn starts without seams or reloads.
+	const strip = (i: number): ReactNode => (
+		<div
+			className={`flipbook-strip ${flat ? "is-flat" : ""} ${bending && i > 0 ? "is-bending" : ""}`}
+			style={
+				{
+					left: i === 0 ? 0 : "100%",
+					width: i === 0 && !flat ? `${100 / strips}%` : "100%",
+					display: flat && i > 0 ? "none" : undefined,
+					transform: i === 0 || bending ? undefined : `rotateY(${step}deg)`,
+					transition: dragging ? "none" : undefined,
+					"--bend": `${step}deg`,
+				} as CSSProperties
+			}
+		>
+			<div className="flipbook-slice">
+				<div className="flipbook-page" style={page(i)}>
+					{front}
+				</div>
+			</div>
+			<div className="flipbook-slice is-back">
+				<div className="flipbook-page" style={page(strips - 1 - i)}>
+					{back}
+				</div>
+			</div>
+			{i < strips - 1 && strip(i + 1)}
+		</div>
+	);
+
+	return strip(0);
 }
 
 /** A strip of every spread (or page) to jump around the book. */
