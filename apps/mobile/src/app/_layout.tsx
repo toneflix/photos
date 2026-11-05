@@ -8,6 +8,8 @@ import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold'
 import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold'
 import { PlusJakartaSans_700Bold } from '@expo-google-fonts/plus-jakarta-sans/700Bold'
 import { PlusJakartaSans_800ExtraBold } from '@expo-google-fonts/plus-jakarta-sans/800ExtraBold'
+import { Fraunces_500Medium } from '@expo-google-fonts/fraunces/500Medium'
+import { Fraunces_400Regular_Italic } from '@expo-google-fonts/fraunces/400Regular_Italic'
 import { api } from '@/lib/api'
 import { session, useSession } from '@/lib/session'
 import { colors } from '@/theme'
@@ -24,6 +26,8 @@ export default function RootLayout() {
     Inter_700Bold,
     PlusJakartaSans_700Bold,
     PlusJakartaSans_800ExtraBold,
+    Fraunces_500Medium,
+    Fraunces_400Regular_Italic,
   })
   const ready = status === 'ready' && (fontsLoaded || !!fontError)
 
@@ -45,6 +49,10 @@ export default function RootLayout() {
           <Stack.Screen name="signin" />
           <Stack.Screen name="signup" />
           <Stack.Screen name="forgot-password" />
+        </Stack.Protected>
+        <Stack.Protected guard={!!user}>
+          <Stack.Screen name="photo/[id]" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="books/new" options={{ presentation: 'modal' }} />
         </Stack.Protected>
         <Stack.Screen name="reset-password" />
         <Stack.Screen name="verify-email" />

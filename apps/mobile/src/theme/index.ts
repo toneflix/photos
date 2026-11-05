@@ -45,6 +45,8 @@ export const fonts = {
   bold: 'Inter_700Bold',
   display: 'PlusJakartaSans_700Bold',
   displayHeavy: 'PlusJakartaSans_800ExtraBold',
+  serif: 'Fraunces_500Medium',
+  serifItalic: 'Fraunces_400Regular_Italic',
 } as const
 
 export const radius = {
