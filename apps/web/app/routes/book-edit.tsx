@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { data, Link, redirect, useFetcher, type ShouldRevalidateFunctionArgs } from "react-router";
 import type { BookPageInput, BookTheme, BookWithPages, PageLayout, PaperColor, Photo, Space, Visibility } from "@photos/types";
 import { PAGE_LAYOUTS, PAPER_COLORS } from "@photos/types";
-import { formError } from "~/lib/api.server";
-import { requireUser } from "~/lib/session.server";
+import { cloudflareContext } from "~/lib/cloudflare";
+import { formError, getServerApi } from "~/lib/api.server";
+import { BookCodes } from "~/lib/book-codes.server";
+import { readToken } from "~/lib/session.server";
 import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { CoverView, PageView, PaperContext, PHOTO_DRAG_TYPE, TitlePageView } from "~/components/flipbook/PageView";
 import { PhotoUploader } from "~/components/PhotoUploader";
@@ -16,20 +18,28 @@ export function meta({ loaderData }: Route.MetaArgs) {
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
-	const { api } = await requireUser(request, context);
-	const [{ data: book }, photos, spaces] = await Promise.all([
-		api.books.get(params.id).catch(() => {
+	const { api, code, token } = await editorApi(request, context, params.id);
+	const book = await api.books.get(params.id, code).then(
+		(response) => response.data,
+		() => {
+			if (!token) throw redirect(`/signin?next=${encodeURIComponent(new URL(request.url).pathname)}`);
 			throw data("Book not found", { status: 404 });
-		}),
-		api.photos.list({ per_page: 200 }),
-		api.spaces.list({ per_page: 100 }),
-	]);
+		},
+	);
+
 	if (!book.canEdit) throw redirect(`/books/${book.id}`);
-	return { book, photos: photos.data, spaces: spaces.data };
+
+	// Owners pick from their whole library; code holders from the photos already in the book.
+	const photos = book.isOwner
+		? (await api.photos.list({ per_page: 200 })).data
+		: [...new Map(book.pages.flatMap((page) => page.photos).map((photo) => [photo.id, photo])).values()];
+	const spaces = book.isOwner ? (await api.spaces.list({ per_page: 100 })).data : [];
+
+	return { book, photos, spaces };
 }
 
 export async function action({ request, params, context }: Route.ActionArgs) {
-	const { api } = await requireUser(request, context);
+	const { api, code } = await editorApi(request, context, params.id);
 
 	// Photo uploads come in as multipart forms.
 	if (!request.headers.get("content-type")?.includes("application/json")) {
@@ -43,11 +53,11 @@ export async function action({ request, params, context }: Route.ActionArgs) {
 
 	try {
 		if (body.intent === "pages") {
-			await api.books.savePages(params.id, body.pages);
+			await api.books.savePages(params.id, body.pages, code);
 			return { ok: true as const, skipRevalidate: true };
 		}
 		if (body.intent === "update") {
-			const { data: book } = await api.books.update(params.id, body.changes as never);
+			const { data: book } = await api.books.update(params.id, body.changes as never, code);
 			return { ok: true as const, book };
 		}
 		if (body.intent === "delete") {
@@ -61,6 +71,15 @@ export async function action({ request, params, context }: Route.ActionArgs) {
 	return null;
 }
 
+/** The editor works for the book's owner and for anyone holding an access code that allows editing. */
+async function editorApi(request: Request, context: Route.LoaderArgs["context"], bookId: string) {
+	const { env } = context.get(cloudflareContext);
+	const token = await readToken(request);
+	const code = (await BookCodes.from(request)).for(bookId);
+
+	return { api: await getServerApi(request, env, token), code, token };
+}
+
 export function shouldRevalidate({ actionResult, defaultShouldRevalidate }: ShouldRevalidateFunctionArgs) {
 	if (actionResult && typeof actionResult === "object" && "skipRevalidate" in actionResult) return false;
 	return defaultShouldRevalidate;
@@ -71,8 +90,7 @@ type DraftPage = { key: string; layout: PageLayout; caption: string; photos: Pho
 let keySeq = 0;
 const newKey = () => `p${Date.now().toString(36)}${(keySeq++).toString(36)}`;
 
-const toDraft = (book: BookWithPages): DraftPage[] =>
-	book.pages.map((p) => ({ key: p.id, layout: p.layout, caption: p.caption ?? "", photos: p.photos }));
+const toDraft = (book: BookWithPages): DraftPage[] => book.pages.map((p) => ({ key: p.id, layout: p.layout, caption: p.caption ?? "", photos: p.photos }));
 
 export default function BookEditor({ loaderData }: Route.ComponentProps) {
 	const { book, photos } = loaderData;
@@ -163,9 +181,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 	};
 
 	const setLayout = (layout: PageLayout) => {
-		change((prev) =>
-			prev.map((p, i) => (i === selected ? { ...p, layout, photos: p.photos.slice(0, PAGE_LAYOUTS[layout].maxPhotos) } : p)),
-		);
+		change((prev) => prev.map((p, i) => (i === selected ? { ...p, layout, photos: p.photos.slice(0, PAGE_LAYOUTS[layout].maxPhotos) } : p)));
 		setSlot(0);
 	};
 
@@ -299,7 +315,11 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 			<div className="flex h-dvh flex-col bg-[#ece6da]">
 				{/* Header */}
 				<header className="flex items-center gap-3 border-b border-surface-300/70 bg-surface-50 px-3 py-2.5 sm:px-5">
-					<Link to="/books" className="rounded-full p-2 text-ink-700 hover:bg-surface-200" aria-label="Back to your books">
+					<Link
+						to={book.isOwner ? "/books" : `/books/${book.id}`}
+						className="rounded-full p-2 text-ink-700 hover:bg-surface-200"
+						aria-label={book.isOwner ? "Back to your books" : "Back to the book"}
+					>
 						<svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
 							<path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
 						</svg>
@@ -484,7 +504,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 								<p className="mt-2 text-ink-500">Drag photos from the right onto a page, or fill the book with everything you've uploaded.</p>
 								<div className="mt-5 flex justify-center gap-2">
 									<Button onClick={() => addPage()}>Add a page</Button>
-									{photos.length > 0 && (
+									{book.isOwner && photos.length > 0 && (
 										<Button variant="secondary" onClick={addUnused}>
 											Fill with my photos
 										</Button>
@@ -497,16 +517,20 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 					{/* Photo tray: click or drag onto a page */}
 					<aside className="flex min-h-0 shrink-0 flex-col border-surface-300/70 bg-surface-50 lg:w-80 lg:border-l">
 						<div className="flex items-center justify-between px-4 pt-3 pb-2">
-							<h2 className="text-xs font-semibold tracking-wide text-ink-500 uppercase">Your photos</h2>
+							<h2 className="text-xs font-semibold tracking-wide text-ink-500 uppercase">{book.isOwner ? "Your photos" : "Photos in this book"}</h2>
 							{photos.some((p) => !usedIds.has(p.id)) && (
 								<button type="button" onClick={addUnused} className="text-sm font-medium text-brand-700 hover:underline">
 									Add unused as pages
 								</button>
 							)}
 						</div>
-						<div className="px-4 pb-3">
-							<PhotoUploader action={`/books/${book.id}/edit`} compact />
-						</div>
+						{book.isOwner ? (
+							<div className="px-4 pb-3">
+								<PhotoUploader action={`/books/${book.id}/edit`} compact />
+							</div>
+						) : (
+							book.permissions.includes("add") && <p className="px-4 pb-3 text-xs text-ink-500">To add new photos, open the book and choose Add photos.</p>
+						)}
 						<p className="hidden px-4 pb-2 text-xs text-ink-500 lg:block">Drag a photo onto a page, or click to place it in the selected spot.</p>
 						<ul className="grid min-h-0 flex-1 grid-cols-4 content-start gap-2 overflow-y-auto px-4 pb-4 sm:grid-cols-6 lg:grid-cols-3">
 							{photos.map((photo) => (
@@ -522,9 +546,18 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 										className="group relative block aspect-square w-full cursor-grab overflow-hidden rounded-lg bg-surface-200 shadow-sm active:cursor-grabbing"
 										title={current ? "Drag onto a page, or click to place it" : "Start a page with this photo"}
 									>
-										<img src={photo.url} alt={photo.caption ?? ""} loading="lazy" draggable={false} className="h-full w-full object-cover transition group-hover:scale-105" />
+										<img
+											src={photo.url}
+											alt={photo.caption ?? ""}
+											loading="lazy"
+											draggable={false}
+											className="h-full w-full object-cover transition group-hover:scale-105"
+										/>
 										{usedIds.has(photo.id) && (
-											<span className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-ink-900/80 text-white" title="Already in this book">
+											<span
+												className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-ink-900/80 text-white"
+												title="Already in this book"
+											>
 												<svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden>
 													<path d="M5 12l5 5 9-10" strokeLinecap="round" strokeLinejoin="round" />
 												</svg>
@@ -538,7 +571,12 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 				</div>
 
 				{settingsOpen && (
-					<SettingsDrawer book={{ ...book, paper }} spaces={loaderData.spaces} onClose={() => setSettingsOpen(false)} bookPhotos={pages.flatMap((p) => p.photos)} />
+					<SettingsDrawer
+						book={{ ...book, paper }}
+						spaces={loaderData.spaces}
+						onClose={() => setSettingsOpen(false)}
+						bookPhotos={pages.flatMap((p) => p.photos)}
+					/>
 				)}
 			</div>
 		</PaperContext.Provider>
@@ -570,7 +608,10 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 	const save = () => {
 		submitted.current = true;
 		fetcher.submit(
-			{ intent: "update", changes: { title, description: description || null, theme, visibility, coverPhotoId, spaceId: spaceId || null } },
+			{
+				intent: "update",
+				changes: { title, description: description || null, theme, coverPhotoId, ...(book.isOwner ? { visibility, spaceId: spaceId || null } : {}) },
+			},
 			{ method: "post", encType: "application/json" },
 		);
 	};
@@ -579,11 +620,19 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 
 	return (
 		<div className="fixed inset-0 z-50 flex justify-end bg-ink-900/40" onClick={onClose}>
-			<div className="flex h-full w-full max-w-md flex-col overflow-y-auto bg-white shadow-2xl" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal aria-label="Book settings">
+			<div
+				className="flex h-full w-full max-w-md flex-col overflow-y-auto bg-white shadow-2xl"
+				onClick={(e) => e.stopPropagation()}
+				role="dialog"
+				aria-modal
+				aria-label="Book settings"
+			>
 				<div className="flex items-center justify-between border-b border-surface-200 px-6 py-4">
 					<h2 className="font-serif text-2xl">Book settings</h2>
 					<button type="button" onClick={onClose} className="rounded-full p-1 text-ink-500 hover:bg-surface-100" aria-label="Close">
-						<svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" /></svg>
+						<svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+							<path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
+						</svg>
 					</button>
 				</div>
 				<div className="flex-1 space-y-6 px-6 py-6">
@@ -602,7 +651,12 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 						<legend className="mb-1.5 text-sm font-medium text-ink-700">Cover</legend>
 						<div className="flex flex-wrap gap-2">
 							{(["classic", "linen", "midnight"] as BookTheme[]).map((t) => (
-								<button key={t} type="button" onClick={() => setTheme(t)} className={`rounded-full border px-3.5 py-1.5 text-sm capitalize ${theme === t ? "border-ink-900 bg-ink-900 text-surface-50" : "border-surface-300 hover:bg-surface-100"}`}>
+								<button
+									key={t}
+									type="button"
+									onClick={() => setTheme(t)}
+									className={`rounded-full border px-3.5 py-1.5 text-sm capitalize ${theme === t ? "border-ink-900 bg-ink-900 text-surface-50" : "border-surface-300 hover:bg-surface-100"}`}
+								>
 									{t}
 								</button>
 							))}
@@ -612,11 +666,20 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 						<legend className="mb-1.5 text-sm font-medium text-ink-700">Cover photo</legend>
 						{uniquePhotos.length ? (
 							<div className="grid grid-cols-5 gap-2">
-								<button type="button" onClick={() => setCoverPhotoId(null)} className={`flex aspect-square items-center justify-center rounded-md border text-xs text-ink-500 ${coverPhotoId === null ? "border-brand-500 ring-2 ring-brand-500" : "border-surface-300"}`}>
+								<button
+									type="button"
+									onClick={() => setCoverPhotoId(null)}
+									className={`flex aspect-square items-center justify-center rounded-md border text-xs text-ink-500 ${coverPhotoId === null ? "border-brand-500 ring-2 ring-brand-500" : "border-surface-300"}`}
+								>
 									None
 								</button>
 								{uniquePhotos.map((p) => (
-									<button key={p.id} type="button" onClick={() => setCoverPhotoId(p.id)} className={`aspect-square overflow-hidden rounded-md ${coverPhotoId === p.id ? "ring-2 ring-brand-500 ring-offset-1" : ""}`}>
+									<button
+										key={p.id}
+										type="button"
+										onClick={() => setCoverPhotoId(p.id)}
+										className={`aspect-square overflow-hidden rounded-md ${coverPhotoId === p.id ? "ring-2 ring-brand-500 ring-offset-1" : ""}`}
+									>
 										<img src={p.url} alt="" className="h-full w-full object-cover" loading="lazy" />
 									</button>
 								))}
@@ -625,55 +688,76 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 							<p className="text-sm text-ink-500">Add photos to your pages to choose a cover photo.</p>
 						)}
 					</fieldset>
-					{spaces.length > 0 && (
+					{book.isOwner && spaces.length > 0 && (
 						<Field label="Space">
 							<SpacePicker spaces={spaces} value={spaceId} onChange={(e) => setSpaceId(e.target.value)} />
 						</Field>
 					)}
-					<fieldset>
-						<legend className="mb-1.5 text-sm font-medium text-ink-700">Who can open it</legend>
-						<div className="space-y-2">
-							{(
-								[
-									["private", "Only me"],
-									["shared", "Anyone with the link"],
-								] as [Visibility, string][]
-							).map(([value, label]) => (
-								<label key={value} className="flex cursor-pointer items-center gap-3 rounded-xl border border-surface-300 px-4 py-3 text-sm has-[:checked]:border-ink-900">
-									<input type="radio" name="visibility" checked={visibility === value || (value === "shared" && visibility === "public")} onChange={() => setVisibility(value)} className="accent-ink-900" />
-									{label}
-								</label>
-							))}
-						</div>
-						{visibility !== "private" && (
-							<div className="mt-3 flex gap-2">
-								<Input readOnly value={shareUrl} className="text-xs" onFocus={(e) => e.target.select()} />
-								<Button
-									variant="secondary"
-									onClick={async () => {
-										await navigator.clipboard?.writeText(shareUrl).catch(() => {});
-										setCopied(true);
-										setTimeout(() => setCopied(false), 1500);
-									}}
-								>
-									{copied ? "Copied" : "Copy"}
-								</Button>
+					{book.isOwner && (
+						<fieldset>
+							<legend className="mb-1.5 text-sm font-medium text-ink-700">Who can open it</legend>
+							<div className="space-y-2">
+								{(
+									[
+										["private", "Only me"],
+										["shared", "Anyone with the link"],
+									] as [Visibility, string][]
+								).map(([value, label]) => (
+									<label
+										key={value}
+										className="flex cursor-pointer items-center gap-3 rounded-xl border border-surface-300 px-4 py-3 text-sm has-[:checked]:border-ink-900"
+									>
+										<input
+											type="radio"
+											name="visibility"
+											checked={visibility === value || (value === "shared" && visibility === "public")}
+											onChange={() => setVisibility(value)}
+											className="accent-ink-900"
+										/>
+										{label}
+									</label>
+								))}
 							</div>
-						)}
-					</fieldset>
+							{visibility !== "private" && (
+								<div className="mt-3 flex gap-2">
+									<Input readOnly value={shareUrl} className="text-xs" onFocus={(e) => e.target.select()} />
+									<Button
+										variant="secondary"
+										onClick={async () => {
+											await navigator.clipboard?.writeText(shareUrl).catch(() => {});
+											setCopied(true);
+											setTimeout(() => setCopied(false), 1500);
+										}}
+									>
+										{copied ? "Copied" : "Copy"}
+									</Button>
+								</div>
+							)}
+							<p className="mt-3 text-sm text-ink-500">
+								Give people an access code to open it while it's private, or to let them add photos, edit it or claim it.{" "}
+								<Link to={`/books/${book.id}/access`} className="font-medium text-brand-700 hover:underline">
+									Access codes
+								</Link>
+							</p>
+						</fieldset>
+					)}
 					{fetcher.data && "ok" in fetcher.data && !fetcher.data.ok && <p className="text-sm text-red-700">{fetcher.data.error}</p>}
 				</div>
 				<div className="flex items-center justify-between gap-3 border-t border-surface-200 px-6 py-4">
-					<Button
-						variant="danger"
-						onClick={() => {
-							if (confirm(`Delete “${book.title}”? Your photos stay in your library.`)) {
-								fetcher.submit({ intent: "delete" }, { method: "post", encType: "application/json" });
-							}
-						}}
-					>
-						Delete book
-					</Button>
+					{book.isOwner ? (
+						<Button
+							variant="danger"
+							onClick={() => {
+								if (confirm(`Delete “${book.title}”? Your photos stay in your library.`)) {
+									fetcher.submit({ intent: "delete" }, { method: "post", encType: "application/json" });
+								}
+							}}
+						>
+							Delete book
+						</Button>
+					) : (
+						<span />
+					)}
 					<Button onClick={save} disabled={saving || !title.trim()}>
 						{saving ? "Saving…" : "Save"}
 					</Button>
@@ -685,7 +769,14 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 
 function IconButton({ label, path, onClick, disabled }: { label: string; path: string; onClick: () => void; disabled?: boolean }) {
 	return (
-		<button type="button" onClick={onClick} disabled={disabled} className="rounded p-0.5 hover:bg-surface-200 hover:text-ink-900 disabled:opacity-30" aria-label={label} title={label}>
+		<button
+			type="button"
+			onClick={onClick}
+			disabled={disabled}
+			className="rounded p-0.5 hover:bg-surface-200 hover:text-ink-900 disabled:opacity-30"
+			aria-label={label}
+			title={label}
+		>
 			<svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
 				<path d={path} strokeLinecap="round" strokeLinejoin="round" />
 			</svg>

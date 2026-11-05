@@ -1,15 +1,16 @@
 import type { Book } from '@app/models/Book'
+import type { BookAccess } from '@app/policies/BookAccess'
 import { BookResource } from './BookResource'
 import { Photo } from '@app/models/Photo'
 import { PhotoResource } from './PhotoResource'
-import type { User } from '@app/models/User'
 
 /** A book with every page and its photos, as the viewer and editor open it. */
 export class BookDetailResource extends BookResource {
-  private viewer: User | null = null
+  private access: BookAccess | null = null
 
-  for(viewer: User | null) {
-    this.viewer = viewer
+  /** Shape the book for one visitor's access. */
+  for(access: BookAccess) {
+    this.access = access
 
     return this
   }
@@ -35,8 +36,10 @@ export class BookDetailResource extends BookResource {
         caption: page.caption,
         photos: (page.photoIds ?? []).flatMap((id) => serialized.get(id) ?? []),
       })),
-      canEdit: book.isOwnedBy(this.viewer),
-      owner: { id: book.userId, name: owner && (owner.showOwnerName || book.isOwnedBy(this.viewer)) ? owner.name : '' },
+      canEdit: !!this.access?.can('edit'),
+      isOwner: !!this.access?.isOwner,
+      permissions: this.access?.permissions() ?? ['view'],
+      owner: { id: book.userId, name: owner && (owner.showOwnerName || this.access?.isOwner) ? owner.name : '' },
     }
   }
 }

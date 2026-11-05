@@ -1,4 +1,5 @@
 import AccountController from 'src/app/http/controllers/AccountController'
+import BookAccessCodeController from 'src/app/http/controllers/BookAccessCodeController'
 import AuthController from 'src/app/http/controllers/AuthController'
 import BookController from 'src/app/http/controllers/BookController'
 import ExploreController from 'src/app/http/controllers/ExploreController'
@@ -60,8 +61,17 @@ Router.apiResource('/spaces', SpaceController, { middlewares: auth })
 // Photo library
 Router.apiResource('/photos', PhotoController, { middlewares: auth })
 
-// Books. Opening a book works without signing in when it is shared or public.
+// Books. Opening, editing and adding to a book also work signed out with an access code that allows it.
 Router.apiResource('/books', BookController, {
-  middlewares: { index: auth, create: auth, update: auth, destroy: auth },
+  middlewares: { index: auth, create: auth, destroy: auth },
 })
-Router.put('/books/:book/pages', [BookController, 'savePages'], [auth])
+Router.put('/books/:book/pages', [BookController, 'savePages'])
+Router.post('/books/:book/photos', [BookController, 'addPhoto'], [limiter(120, 60)])
+
+// Access codes that unlock a book
+Router.get('/books/:book/access-codes', [BookAccessCodeController, 'index'], [auth])
+Router.post('/books/:book/access-codes', [BookAccessCodeController, 'create'], [auth])
+Router.put('/books/:book/access-codes/:code', [BookAccessCodeController, 'update'], [auth])
+Router.delete('/books/:book/access-codes/:code', [BookAccessCodeController, 'destroy'], [auth])
+Router.post('/access-codes/redeem', [BookAccessCodeController, 'redeem'], [limiter(10, 60)])
+Router.post('/access-codes/claim', [BookAccessCodeController, 'claim'], [auth, limiter(10, 60)])

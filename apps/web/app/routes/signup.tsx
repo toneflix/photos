@@ -1,7 +1,7 @@
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { formError, getServerApi } from "~/lib/api.server";
-import { commitToken, optionalUser } from "~/lib/session.server";
+import { commitToken, optionalUser, safeRedirect } from "~/lib/session.server";
 import { Alert, Button, Field, Input } from "~/components/ui";
 import { AuthFrame } from "~/components/AuthFrame";
 import type { Route } from "./+types/signup";
@@ -9,8 +9,10 @@ import type { Route } from "./+types/signup";
 export const meta = () => [{ title: "Create an account · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	if (await optionalUser(request, context)) throw redirect("/books");
-	return null;
+	const next = new URL(request.url).searchParams.get("next");
+
+	if (await optionalUser(request, context)) throw redirect(safeRedirect(next));
+	return { next: next ? safeRedirect(next) : null };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
@@ -23,7 +25,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 	try {
 		const api = await getServerApi(request, env, null);
 		const { data: session } = await api.auth.register({ name, email, password });
-		return redirect("/photos?welcome=1", {
+		return redirect(safeRedirect(form.get("next"), "/photos?welcome=1"), {
 			headers: { "Set-Cookie": await commitToken(request, session.token) },
 		});
 	} catch (error) {
@@ -32,7 +34,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 	}
 }
 
-export default function SignUp({ actionData }: Route.ComponentProps) {
+export default function SignUp({ loaderData, actionData }: Route.ComponentProps) {
 	const busy = useNavigation().state !== "idle";
 
 	return (
@@ -41,13 +43,17 @@ export default function SignUp({ actionData }: Route.ComponentProps) {
 			subtitle={
 				<>
 					Already have an account?{" "}
-					<Link to="/signin" className="font-medium text-brand-700 hover:underline">
+					<Link
+						to={loaderData?.next ? `/signin?next=${encodeURIComponent(loaderData.next)}` : "/signin"}
+						className="font-medium text-brand-700 hover:underline"
+					>
 						Sign in
 					</Link>
 				</>
 			}
 		>
 			<Form method="post" className="space-y-5">
+				{loaderData?.next && <input type="hidden" name="next" value={loaderData.next} />}
 				{actionData?.error && !Object.keys(actionData.fieldErrors).length && <Alert>{actionData.error}</Alert>}
 				<Field label="Your name" error={actionData?.fieldErrors.name}>
 					<Input name="name" autoComplete="name" required defaultValue={actionData?.name} autoFocus />

@@ -1,3 +1,4 @@
+import { BookAccessCode } from './BookAccessCode'
 import { BookPage } from './BookPage'
 import { Model } from '@arkstack/database'
 import { Photo } from './Photo'
@@ -121,11 +122,6 @@ export class Book extends Model {
     this.publishedAt = visibility === 'public' ? new Date() : null
   }
 
-  /** Owners always see their books; anyone with the link sees shared and public ones. */
-  isVisibleTo(viewer: User | null): boolean {
-    return this.visibility !== 'private' || this.isOwnedBy(viewer)
-  }
-
   isOwnedBy(viewer: User | null): boolean {
     return viewer?.id === this.userId
   }
@@ -151,6 +147,42 @@ export class Book extends Model {
     const photoId = first?.photoIds?.[0]
 
     return photoId ? Photo.query().find(photoId) : null
+  }
+
+  /** Put a photo on a new page at the end of the book. */
+  async appendPhoto(photo: Photo, caption?: string | null): Promise<BookPage> {
+    const last = await BookPage.query().where({ bookId: this.id }).latest('position').first()
+    const page = await BookPage.query().create({
+      bookId: this.id,
+      position: (last?.position ?? 0) + 1,
+      layout: 'single',
+      caption: caption?.trim() || null,
+      photoIds: [photo.id],
+    } as never)
+
+    await this.update({ updatedAt: new Date() })
+
+    return page
+  }
+
+  /**
+   * Hand the book to a new owner. They get their own copies of its photos, so the
+   * previous owner's library stays as it was. It leaves the previous owner's space and every access code stops working.
+   */
+  async transferTo(owner: User): Promise<void> {
+    const pages = await this.orderedPages()
+    const ids = [...new Set([...pages.flatMap((page) => page.photoIds ?? []), ...(this.coverPhotoId ? [this.coverPhotoId] : [])])]
+    const photos = ids.length ? (await Photo.query().whereIn('id', ids as never).get()).all() : []
+    const copies = new Map<string, string>()
+
+    for (const photo of photos) copies.set(photo.id, (await photo.copyTo(owner)).id)
+
+    await Book.transaction(async () => {
+      for (const page of pages) await page.update({ photoIds: (page.photoIds ?? []).flatMap((id) => copies.get(id) ?? []) })
+
+      await BookAccessCode.query().where({ bookId: this.id }).delete()
+      await this.update({ userId: owner.id, spaceId: null, coverPhotoId: this.coverPhotoId ? (copies.get(this.coverPhotoId) ?? null) : null })
+    })
   }
 
   /** Keep only ids of photos the book's owner has. */

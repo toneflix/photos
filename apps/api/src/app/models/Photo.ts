@@ -113,6 +113,27 @@ export class Photo extends Model {
     })
   }
 
+  /** A private copy of this photo, file included, in another person's library. */
+  async copyTo(owner: User): Promise<Photo> {
+    const path = `photos/${owner.id}/${randomUUID()}.${Photo.EXTENSIONS[this.mimeType] ?? 'bin'}`
+
+    await Storage.disk(this.disk as never).copy(this.path, path)
+
+    return Photo.query().create({
+      userId: owner.id,
+      disk: this.disk,
+      path,
+      originalName: this.originalName,
+      mimeType: this.mimeType,
+      size: this.size,
+      width: this.width,
+      height: this.height,
+      caption: this.caption,
+      takenAt: this.takenAt,
+      spaceId: null,
+    })
+  }
+
   /**
    * Public photos for Explore, or for one space's page when `filters.space` is its id.
    * Words match captions and the names of owners who show their name.

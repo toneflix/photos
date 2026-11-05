@@ -1,6 +1,9 @@
 import type {
   ApiResponse,
   Book,
+  BookAccessCode,
+  BookAccessCodeInput,
+  BookAccessGrant,
   BookPageInput,
   BookTheme,
   BookWithPages,
@@ -37,6 +40,9 @@ import type { PhotosAlova } from './client'
  * Routes match apps/api/src/routes/api.ts.
  */
 export function createEndpoints(alova: PhotosAlova) {
+  /** Send a book's access code, when the visitor has one. */
+  const withCode = (code?: string | null) => (code ? { headers: { 'X-Access-Code': code } } : {})
+
   return {
     auth: {
       /** Signs in, or asks for a two-factor code when the account has it on. */
@@ -142,18 +148,49 @@ export function createEndpoints(alova: PhotosAlova) {
 
     books: {
       list: (params: BookQuery = {}) => alova.Get<PaginatedResponse<Book>>('/books', { params }),
-      /** A book with every page. Works signed out for shared and public books. */
-      get: (id: ID) => alova.Get<ApiResponse<BookWithPages>>(`/books/${id}`),
+      /** A book with every page. Works signed out for shared and public books, and for private ones with an access `code`. */
+      get: (id: ID, code?: string | null) => alova.Get<ApiResponse<BookWithPages>>(`/books/${id}`, withCode(code)),
       create: (data: Pick<Book, 'title'> & Partial<Pick<Book, 'description' | 'visibility' | 'theme' | 'paper' | 'spaceId'>>) =>
         alova.Post<ApiResponse<Book>>('/books', data),
       update: (
         id: ID,
         data: Partial<Pick<Book, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'spaceId'> & { theme: BookTheme; paper: PaperColor }>,
-      ) => alova.Put<ApiResponse<BookWithPages>>(`/books/${id}`, data),
+        code?: string | null,
+      ) => alova.Put<ApiResponse<BookWithPages>>(`/books/${id}`, data, withCode(code)),
       /** Replace every page of the book, in order. */
-      savePages: (id: ID, pages: BookPageInput[]) =>
-        alova.Put<ApiResponse<BookWithPages>>(`/books/${id}/pages`, { pages }),
+      savePages: (id: ID, pages: BookPageInput[], code?: string | null) =>
+        alova.Put<ApiResponse<BookWithPages>>(`/books/${id}/pages`, { pages }, withCode(code)),
+      /** Upload a photo onto a new last page. It joins the book owner's library. */
+      addPhoto: (
+        id: ID,
+        file: Blob | { uri: string; name: string; type: string },
+        meta: { caption?: string; width?: number; height?: number } = {},
+        code?: string | null,
+      ) => {
+        const form = new FormData()
+        const name = (file as { name?: string }).name
+        if (name) form.append('photo', file as Blob, name)
+        else form.append('photo', file as Blob)
+        for (const [key, value] of Object.entries(meta)) {
+          if (value !== undefined && value !== null && value !== '') form.append(key, String(value))
+        }
+        return alova.Post<ApiResponse<BookWithPages>>(`/books/${id}/photos`, form, withCode(code))
+      },
       remove: (id: ID) => alova.Delete<ApiResponse<null>>(`/books/${id}`),
+
+      /** Codes that unlock a book. Owner only. */
+      accessCodes: (id: ID) => alova.Get<ApiResponse<BookAccessCode[]>>(`/books/${id}/access-codes`, { cacheFor: null }),
+      createAccessCode: (id: ID, data: BookAccessCodeInput) => alova.Post<ApiResponse<BookAccessCode>>(`/books/${id}/access-codes`, data),
+      updateAccessCode: (id: ID, codeId: ID, data: BookAccessCodeInput) =>
+        alova.Put<ApiResponse<BookAccessCode>>(`/books/${id}/access-codes/${codeId}`, data),
+      revokeAccessCode: (id: ID, codeId: ID) => alova.Delete<ApiResponse<BookAccessCode>>(`/books/${id}/access-codes/${codeId}`),
+    },
+
+    accessCodes: {
+      /** Find the book a code opens. Works signed out, and counts as a visit. */
+      redeem: (code: string) => alova.Post<ApiResponse<BookAccessGrant>>('/access-codes/redeem', { code }),
+      /** Take ownership of a book with a code that allows `transfer`. */
+      claim: (code: string) => alova.Post<ApiResponse<BookWithPages>>('/access-codes/claim', { code }),
     },
   }
 }
