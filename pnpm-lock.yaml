@@ -177,8 +177,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/types
       '@toneflix/flipbook-native':
-        specifier: ^0.2.1
-        version: 0.2.1(expo-screen-orientation@58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)))(react-native-svg@15.16.0(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
+        specifier: ^0.2.2
+        version: 0.2.2(expo-screen-orientation@58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)))(react-native-svg@15.16.0(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
       alova:
         specifier: ^3.5.5
         version: 3.5.5
@@ -2631,11 +2631,11 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
 
-  '@toneflix/flipbook-core@0.2.1':
-    resolution: {integrity: sha512-6WHffo3jQsT08qpouYTT8pRtxK2b+fuRYg8yUVejxmBBx+DPRrflJOKDHWsriYfZdJ3XNNrNZICkXahsiqcMcg==}
+  '@toneflix/flipbook-core@0.2.2':
+    resolution: {integrity: sha512-YiXlF7KNoJinvYsp0BrXOuTNGGi5y39r7HXjRx80nSKKVWOIEigDI3aLB6I5mzOgHYiDruo1wa9ehrckCelHPw==}
 
-  '@toneflix/flipbook-native@0.2.1':
-    resolution: {integrity: sha512-Ib6NGESnasAiddp4isNljGbY8kRt28hznel25B/9eUZg92TjoaTTn99ke+jH51DQwhNqn8vSFuSxjZbQsd9Orw==}
+  '@toneflix/flipbook-native@0.2.2':
+    resolution: {integrity: sha512-SCo4sN+8n2hLK8NMCANgdqCm2X1c5cqo+f9uQAcRp4lqW2RyMTs0OIey6U9kApDzz86l77Sp0egcvIQB5YDqKA==}
     peerDependencies:
       expo-screen-orientation: '*'
       react: '>=18'
@@ -9316,11 +9316,11 @@ snapshots:
       tailwindcss: 4.3.4
       vite: 8.3.5(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)
 
-  '@toneflix/flipbook-core@0.2.1': {}
+  '@toneflix/flipbook-core@0.2.2': {}
 
-  '@toneflix/flipbook-native@0.2.1(expo-screen-orientation@58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)))(react-native-svg@15.16.0(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)':
+  '@toneflix/flipbook-native@0.2.2(expo-screen-orientation@58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)))(react-native-svg@15.16.0(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)':
     dependencies:
-      '@toneflix/flipbook-core': 0.2.1
+      '@toneflix/flipbook-core': 0.2.2
       react: 19.3.0
       react-native: 0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)
       react-native-svg: 15.16.0(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
