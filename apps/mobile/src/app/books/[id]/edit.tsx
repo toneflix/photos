@@ -176,7 +176,7 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
 
     if (placed.slot === null) return
 
-    const max = PAGE_LAYOUTS[current.layout].maxPhotos
+    const max = PAGE_LAYOUTS[current.layout].slots
 
     change(placed.draft)
     setSlot(placed.slot + 1 < max ? placed.slot + 1 : placed.slot)

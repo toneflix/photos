@@ -70,4 +70,56 @@ describe('Photo frames', () => {
 
     expect(unknown.status).toBe(422)
   })
+
+  it('lets each photo keep its own frame or use the page one', async () => {
+    const saved = await api('put', `/books/${bookId}/pages`, {
+      pages: [{ layout: 'triptych', frame: 'hairline', photoIds: [photoId, photoId], photoFrames: ['oval', null] }],
+    })
+
+    expect(saved.status).toBe(200)
+    expect(saved.body.data.pages[0].layout).toBe('triptych')
+    expect(saved.body.data.pages[0].photos.map((photo: { frame: string | null }) => photo.frame)).toEqual(['oval', null])
+
+    const unknown = await api('put', `/books/${bookId}/pages`, { pages: [{ layout: 'framed', photoIds: [photoId], photoFrames: ['neon'] }] })
+
+    expect(unknown.status).toBe(422)
+  })
+
+  it('keeps a page to as many photos as its layout holds', async () => {
+    const saved = await api('put', `/books/${bookId}/pages`, {
+      pages: [{ layout: 'story', photoIds: [photoId, photoId], photoFrames: ['mat', 'gilt'] }],
+    })
+
+    expect(saved.body.data.pages[0].photos.map((photo: { frame: string | null }) => photo.frame)).toEqual(['mat'])
+  })
+})
+
+describe('Cover designs', () => {
+  it('gives new books the classic design with the default cover text', async () => {
+    const book = await api('post', '/books', { title: 'Plain cover' })
+
+    expect(book.body.data.coverDesign).toBe('classic')
+    expect(book.body.data.coverText).toBeNull()
+  })
+
+  it('changes the design, cloth and cover text, and rejects unknown designs', async () => {
+    const book = await api('post', '/books', { title: 'Wedding', coverDesign: 'image', theme: 'sage' })
+    const id = book.body.data.id
+
+    expect(book.body.data.coverDesign).toBe('image')
+    expect(book.body.data.theme).toBe('sage')
+
+    const titled = await api('put', `/books/${id}`, { coverText: true })
+
+    expect(titled.body.data.coverText).toBe(true)
+
+    const reset = await api('put', `/books/${id}`, { coverDesign: 'deco', coverText: null })
+
+    expect(reset.body.data.coverDesign).toBe('deco')
+    expect(reset.body.data.coverText).toBeNull()
+
+    const unknown = await api('put', `/books/${id}`, { coverDesign: 'pop-up' })
+
+    expect(unknown.status).toBe(422)
+  })
 })

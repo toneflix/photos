@@ -2,16 +2,14 @@ import { useState } from 'react'
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
-import type { Book, BookTheme, Photo } from '@photos/types'
+import { COVER_THEMES, type Book, type BookTheme, type Photo } from '@photos/types'
 import { Text } from '@/components/ui'
 import { fonts } from '@/theme'
 
-/** Cover cloth and foil for each theme, matching the web's .cover-* styles. */
-export const COVERS: Record<BookTheme, { cloth: string; foil: string; label: string }> = {
-  classic: { cloth: '#5a1d22', foil: '#e2c58f', label: 'Classic leather' },
-  linen: { cloth: '#e6dcc6', foil: '#3d3226', label: 'Linen' },
-  midnight: { cloth: '#141b2e', foil: '#d5dbe8', label: 'Midnight' },
-}
+/** Cover cloth and foil for each theme, from the flipbook library's cloths. */
+export const COVERS = Object.fromEntries(
+  Object.entries(COVER_THEMES).map(([theme, { cloth, ink, label }]) => [theme, { cloth, foil: ink, label }]),
+) as Record<BookTheme, { cloth: string; foil: string; label: string }>
 
 /** A book's front cover, laid out in proportion to its width like the web's CoverView. */
 export function BookCover({ book }: { book: Pick<Book, 'title' | 'description' | 'theme'> & { coverPhoto?: Photo | null } }) {

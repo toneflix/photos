@@ -1,3 +1,5 @@
+import type { CoverDesign, CoverTheme, FrameStyle, PageLayout, PaperColor } from '@toneflix/flipbook-core'
+
 /**
  * Core domain models, as the API returns them (camelCase keys, ISO dates).
  */
@@ -134,72 +136,8 @@ export interface PublicPhotoDetail extends PublicPhoto {
   books: { id: ID; title: string; theme: BookTheme; page: number }[]
 }
 
-/**
- * How the photos on a page are arranged.
- * - single: one photo, full bleed.
- * - framed: one photo on a matte with its caption below.
- * - pair: two photos side by side (or stacked on tall pages).
- * - grid: up to four photos in a 2×2 grid.
- * - collage: one large photo over two smaller ones.
- * - text: no photos, just the caption set as a page of writing.
- */
-export type PageLayout = 'single' | 'framed' | 'pair' | 'grid' | 'collage' | 'text'
-
-export const PAGE_LAYOUTS: Record<PageLayout, { label: string; maxPhotos: number }> = {
-  single: { label: 'Full bleed', maxPhotos: 1 },
-  framed: { label: 'Framed', maxPhotos: 1 },
-  pair: { label: 'Pair', maxPhotos: 2 },
-  grid: { label: 'Grid', maxPhotos: 4 },
-  collage: { label: 'Collage', maxPhotos: 3 },
-  text: { label: 'Words', maxPhotos: 0 },
-}
-
-/** The look of a book's cover and paper. */
-export type BookTheme = 'classic' | 'linen' | 'midnight'
-
-/** The colour of the pages inside a book. */
-export type PaperColor = 'ivory' | 'white' | 'kraft' | 'charcoal'
-
-export const PAPER_COLORS: Record<PaperColor, { label: string; swatch: string }> = {
-  ivory: { label: 'Ivory', swatch: '#fbf8f1' },
-  white: { label: 'White', swatch: '#ffffff' },
-  kraft: { label: 'Kraft', swatch: '#d8c4a2' },
-  charcoal: { label: 'Charcoal', swatch: '#2a2826' },
-}
-
-/** How a photo is set on its page. Every style is printed into the paper, never raised off it. */
-export type FrameStyle =
-  | 'none'
-  | 'hairline'
-  | 'double'
-  | 'mat'
-  | 'corners'
-  | 'deckle'
-  | 'plate'
-  | 'feather'
-  | 'oval'
-  | 'botanical'
-  | 'watercolor'
-  | 'arcs'
-  | 'gilt'
-  | 'woodgrain'
-
-export const FRAME_STYLES: Record<FrameStyle, { label: string; description: string }> = {
-  none: { label: 'Plain', description: 'The photo printed straight onto the page' },
-  hairline: { label: 'Hairline', description: 'A fine printed rule around the photo' },
-  double: { label: 'Double rule', description: 'Two printed rules, like a classic album keyline' },
-  mat: { label: 'Gallery mat', description: 'A wide printed mat with a thin frame line' },
-  corners: { label: 'Photo corners', description: 'Printed album corners holding the photo' },
-  deckle: { label: 'Deckled edge', description: 'A vintage print with a scalloped border' },
-  plate: { label: 'Plate mark', description: 'The photo sits in a plate pressed into the paper' },
-  feather: { label: 'Soft edge', description: 'The photo fades into the paper at its edges' },
-  oval: { label: 'Oval', description: 'An oval cameo inside a fine printed ring' },
-  botanical: { label: 'Botanical', description: 'Line-drawn sprigs of leaves around a fine rule' },
-  watercolor: { label: 'Watercolour', description: 'A wash of soft colour printed around a mat' },
-  arcs: { label: 'Rainbow arcs', description: 'A printed border of little rainbow arcs around a mat' },
-  gilt: { label: 'Gilt', description: 'An engraved border printed in gold ink' },
-  woodgrain: { label: 'Woodgrain', description: 'A printed woodgrain border around a mat' },
-}
+/** The cloth of a book's cover. */
+export type BookTheme = CoverTheme
 
 /** A photo book: an ordered collection of photos laid out on pages. */
 export interface Book {
@@ -213,6 +151,10 @@ export interface Book {
   coverPhoto?: Photo | null
   visibility: Visibility
   theme: BookTheme
+  /** How the front cover is laid out. */
+  coverDesign: CoverDesign
+  /** Print the title on the cover, or null for the design's default (on, except for `image`). */
+  coverText: boolean | null
   paper: PaperColor
   /** How photos are set on pages that don't choose their own frame. */
   frame: FrameStyle
@@ -273,7 +215,13 @@ export interface BookPage {
   /** This page's frame, or null to use the book's. */
   frame: FrameStyle | null
   caption: string | null
-  photos: Photo[]
+  photos: BookPagePhoto[]
+}
+
+/** A photo as placed on a page. */
+export interface BookPagePhoto extends Photo {
+  /** This photo's frame, or null to use the page's. */
+  frame: FrameStyle | null
 }
 
 /**
@@ -341,4 +289,6 @@ export interface BookPageInput {
   frame?: FrameStyle | null
   caption?: string | null
   photoIds: ID[]
+  /** Each photo's own frame, in `photoIds` order. Null uses the page's. */
+  photoFrames?: (FrameStyle | null)[]
 }

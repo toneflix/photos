@@ -109,6 +109,8 @@ export class AccountArchive {
         description: book.description,
         visibility: book.visibility,
         theme: book.theme,
+        coverDesign: book.coverDesign,
+        coverText: book.coverText,
         paper: book.paper,
         frame: book.frame,
         cover: book.coverPhotoId ? (files.get(book.coverPhotoId) ?? null) : null,
@@ -118,7 +120,7 @@ export class AccountArchive {
           layout: page.layout,
           frame: page.frame,
           caption: page.caption,
-          photos: (page.photoIds ?? []).flatMap((id) => files.get(id) ?? []),
+          photos: page.placements().flatMap(({ id, frame }) => (files.has(id) ? [{ file: files.get(id), frame }] : [])),
         })),
       })
     }
