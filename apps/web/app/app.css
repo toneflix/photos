@@ -96,29 +96,39 @@ body {
 	100% { background: transparent; }
 }
 
+/* Page paper: a texture tile multiplied over the paper colour, plus soft light and vignetting. */
 .paper {
+	--paper-texture: url("/textures/paper-fine.webp");
 	color: var(--color-ink-700);
-	background-color: #fbf8f1;
+	background-color: #fdf9f0;
 	background-image:
-		radial-gradient(circle at 20% 10%, rgb(255 255 255 / 0.6), transparent 40%),
-		radial-gradient(circle at 80% 90%, rgb(120 100 70 / 0.06), transparent 50%);
+		radial-gradient(ellipse at 30% 20%, rgb(255 255 255 / 0.5), transparent 55%),
+		radial-gradient(ellipse at 50% 50%, transparent 60%, rgb(110 90 60 / 0.08)),
+		var(--paper-texture);
+	background-size: 100% 100%, 100% 100%, 256px 256px;
+	background-blend-mode: normal, normal, multiply;
 }
 
 .paper-white {
 	background-color: #ffffff;
 }
 .paper-kraft {
+	--paper-texture: url("/textures/paper-kraft.webp");
 	background-color: #d8c4a2;
 	background-image:
-		radial-gradient(circle at 30% 20%, rgb(255 255 255 / 0.25), transparent 45%),
-		radial-gradient(circle at 75% 85%, rgb(90 60 20 / 0.12), transparent 55%);
+		radial-gradient(ellipse at 30% 20%, rgb(255 255 255 / 0.18), transparent 55%),
+		radial-gradient(ellipse at 50% 50%, transparent 60%, rgb(80 50 20 / 0.12)),
+		var(--paper-texture);
 	color: #3d2f1d;
 }
 .paper-charcoal {
+	--paper-texture: url("/textures/paper-charcoal.webp");
 	background-color: #2a2826;
 	background-image:
-		radial-gradient(circle at 25% 15%, rgb(255 255 255 / 0.06), transparent 45%),
-		radial-gradient(circle at 80% 90%, rgb(0 0 0 / 0.25), transparent 50%);
+		radial-gradient(ellipse at 30% 20%, rgb(255 255 255 / 0.05), transparent 55%),
+		radial-gradient(ellipse at 50% 50%, transparent 55%, rgb(0 0 0 / 0.25)),
+		var(--paper-texture);
+	background-blend-mode: normal, normal, soft-light;
 	color: #e8e2d6;
 }
 
