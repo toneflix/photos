@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { ActivityIndicator, SectionList, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native'
-import { router } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import { usePagination } from 'alova/client'
 import { autoLayout, type Photo } from '@photos/types'
@@ -44,7 +44,8 @@ function groupByMonth(photos: Photo[], oldest: boolean) {
 /** Your photo library: upload from the camera roll, search, open a photo, or pick some for a new book. */
 export default function Photos() {
   const { width } = useWindowDimensions()
-  const filters = useFilters()
+  const params = useLocalSearchParams<{ space?: string }>()
+  const filters = useFilters(params.space ? { space: params.space } : undefined)
   const spaces = useSpaces()
   const { items: uploading } = useUploads()
   const [selecting, setSelecting] = useState(false)

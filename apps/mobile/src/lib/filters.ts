@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Space } from '@photos/types'
 import type { Option } from '@/components/ui'
 
@@ -71,9 +71,17 @@ export function spaceFilter(spaces: Space[]): FilterField {
 
 export type FilterValues = Record<string, string>
 
-/** Search text plus filter values. Empty values mean "any" and are left out of the query. */
-export function useFilters() {
-  const [values, setValues] = useState<FilterValues>({})
+/**
+ * Search text plus filter values. Empty values mean "any" and are left out of the query.
+ * `seed` sets values from outside, such as a link that opens the library on one space.
+ */
+export function useFilters(seed: FilterValues = {}) {
+  const [values, setValues] = useState<FilterValues>(seed)
+  const seedKey = JSON.stringify(seed)
+
+  useEffect(() => {
+    setValues((current) => ({ ...current, ...JSON.parse(seedKey) }))
+  }, [seedKey])
   const query = Object.fromEntries(Object.entries(values).filter(([, value]) => value.trim())) as FilterValues
 
   return {
