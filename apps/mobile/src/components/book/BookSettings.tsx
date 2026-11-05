@@ -47,7 +47,7 @@ export function BookSettings({
   const [spaceId, setSpaceId] = useState(book.spaceId ?? '')
   const [copied, setCopied] = useState(false)
   const coverPhoto = photos.find((photo) => photo.id === coverPhotoId) ?? null
-  const shareUrl = webUrl(`/books/${book.id}`)
+  const shareUrl = webUrl(`/books/${book.id}/view`)
 
   const save = () =>
     onSave({

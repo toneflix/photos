@@ -710,7 +710,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 		);
 	};
 
-	const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/books/${book.id}` : "";
+	const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/books/${book.id}/view` : "";
 
 	return (
 		<div className="fixed inset-0 z-50 flex justify-end bg-ink-900/40" onClick={onClose}>

@@ -81,10 +81,13 @@ export function Flipbook({
 	topLeft,
 	topRight,
 	startPage,
+	fullscreenOnOpen,
 }: {
 	book: BookWithPages;
 	/** Open at this page (1-based) instead of the cover, e.g. from a photo on Explore. */
 	startPage?: number;
+	/** Go full screen on the reader's first tap or key press. */
+	fullscreenOnOpen?: boolean;
 	/** Extra controls for the top bar, e.g. a close link or an edit button. */
 	topLeft?: ReactNode;
 	topRight?: ReactNode;
@@ -96,6 +99,7 @@ export function Flipbook({
 
 	const [portraitChoice, setPortraitChoice] = useState<"ask" | "single">("ask");
 	const [fullscreen, setFullscreen] = useState(false);
+	const [awaitingFullscreen, setAwaitingFullscreen] = useState(!!fullscreenOnOpen);
 	const [chromeVisible, setChromeVisible] = useState(true);
 	const [showPages, setShowPages] = useState(false);
 	const [sound, setSound] = useState(false);
@@ -332,6 +336,23 @@ export function Flipbook({
 		document.addEventListener("fullscreenchange", onChange);
 		return () => document.removeEventListener("fullscreenchange", onChange);
 	}, []);
+
+	// Browsers only allow full screen after a tap or key press, so the first one opens it.
+	useEffect(() => {
+		if (!awaitingFullscreen) return;
+		if (!document.fullscreenEnabled) {
+			setAwaitingFullscreen(false);
+			return;
+		}
+
+		const open = () => {
+			setAwaitingFullscreen(false);
+			if (rootRef.current) enterLandscape(rootRef.current);
+		};
+
+		window.addEventListener("keydown", open, { once: true });
+		return () => window.removeEventListener("keydown", open);
+	}, [awaitingFullscreen]);
 
 	const toggleFullscreen = async () => {
 		if (document.fullscreenElement) await document.exitFullscreen().catch(() => {});
@@ -715,6 +736,15 @@ export function Flipbook({
 				</RoundButton>
 			</div>
 
+			{awaitingFullscreen && !fullscreen && !showRotatePrompt && (
+				<OpenPrompt
+					onOpen={async () => {
+						setAwaitingFullscreen(false);
+						if (rootRef.current) await enterLandscape(rootRef.current);
+					}}
+				/>
+			)}
+
 			{showRotatePrompt && (
 				<RotatePrompt
 					onFullscreen={async () => {
@@ -816,6 +846,23 @@ function pageLabel(flipped: number, leaves: Leaf[], spread: boolean, pageCount: 
 	if (numbers.length === 0) return visible.some((f) => f.kind === "title") ? "Title page" : "The end";
 	if (numbers.length === 1) return `Page ${numbers[0]} of ${pageCount}`;
 	return `Pages ${numbers[0]}–${numbers[1]} of ${pageCount}`;
+}
+
+/** Covers the book until the first tap, which takes it full screen. */
+function OpenPrompt({ onOpen }: { onOpen: () => void }) {
+	return (
+		<button
+			type="button"
+			onClick={onOpen}
+			className="absolute inset-0 z-40 flex items-end justify-center bg-black/30 pb-24 text-white"
+			aria-label="Open full screen"
+		>
+			<span className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-ink-900 shadow-lg">
+				<IconExpand />
+				Tap to open full screen
+			</span>
+		</button>
+	);
 }
 
 /** Shown on phones held upright: books are read sideways. */

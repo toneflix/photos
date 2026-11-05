@@ -22,10 +22,16 @@ export function meta({ loaderData }: Route.MetaArgs) {
 	];
 }
 
+/** `/books/:id/view` is the share link: the same book, opening full screen. */
+const opensFullscreen = (request: Request) => new URL(request.url).pathname.endsWith("/view");
+
+const bookPath = (id: string, fullscreen: boolean) => `/books/${id}${fullscreen ? "/view" : ""}`;
+
 export async function loader({ request, params, context }: Route.LoaderArgs) {
 	const { env } = context.get(cloudflareContext);
 	const api = await getServerApi(request, env);
 	const url = new URL(request.url);
+	const fullscreen = opensFullscreen(request);
 	const startPage = Number(url.searchParams.get("page")) || undefined;
 	const codes = await BookCodes.from(request);
 	const shared = url.searchParams.get("code");
@@ -34,10 +40,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 	if (shared) {
 		const grant = await api.accessCodes.redeem(shared).catch(() => null);
 
-		if (!grant) return { book: null, startPage, signedIn: false, error: "That access code is not valid or has expired." };
+		if (!grant) return { book: null, startPage, fullscreen, signedIn: false, error: "That access code is not valid or has expired." };
 
 		url.searchParams.delete("code");
-		throw redirect(`/books/${grant.data.book.id}${url.search}`, {
+		throw redirect(`${bookPath(grant.data.book.id, fullscreen)}${url.search}`, {
 			headers: { "Set-Cookie": await codes.remember(grant.data.book.id, grant.data.code) },
 		});
 	}
@@ -47,13 +53,13 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 
 	try {
 		const { data: book } = await api.books.get(params.id, code);
-		return { book, startPage, signedIn, error: null };
+		return { book, startPage, fullscreen, signedIn, error: null };
 	} catch (error) {
 		if (!(error instanceof PhotosApiError) || (error.code !== 404 && error.code !== 422)) throw error;
-		if (!code) return { book: null, startPage, signedIn, error: null };
+		if (!code) return { book: null, startPage, fullscreen, signedIn, error: null };
 
 		return data(
-			{ book: null, startPage, signedIn, error: "The access code you used no longer opens this book." },
+			{ book: null, startPage, fullscreen, signedIn, error: "The access code you used no longer opens this book." },
 			{ headers: { "Set-Cookie": await codes.forget(params.id) } },
 		);
 	}
@@ -65,18 +71,19 @@ export async function action({ request, params, context }: Route.ActionArgs) {
 	const codes = await BookCodes.from(request);
 	const form = await request.formData();
 	const intent = form.get("intent");
+	const fullscreen = opensFullscreen(request);
 
 	try {
 		if (intent === "unlock") {
 			const { data: grant } = await api.accessCodes.redeem(String(form.get("code") ?? ""));
-			return redirect(`/books/${grant.book.id}`, { headers: { "Set-Cookie": await codes.remember(grant.book.id, grant.code) } });
+			return redirect(bookPath(grant.book.id, fullscreen), { headers: { "Set-Cookie": await codes.remember(grant.book.id, grant.code) } });
 		}
 
 		if (intent === "claim") {
-			if (!(await readToken(request))) return redirect(`/signin?next=${encodeURIComponent(`/books/${params.id}`)}`);
+			if (!(await readToken(request))) return redirect(`/signin?next=${encodeURIComponent(bookPath(params.id, fullscreen))}`);
 
 			await api.accessCodes.claim(codes.for(params.id) ?? "");
-			return redirect(`/books/${params.id}`, { headers: { "Set-Cookie": await codes.forget(params.id) } });
+			return redirect(bookPath(params.id, fullscreen), { headers: { "Set-Cookie": await codes.forget(params.id) } });
 		}
 
 		if (intent === "upload") {
@@ -98,8 +105,9 @@ export async function action({ request, params, context }: Route.ActionArgs) {
 const chip = "rounded-full bg-white/10 px-4 py-2 text-sm font-medium hover:bg-white/20";
 
 export default function BookView({ loaderData, actionData }: Route.ComponentProps) {
-	const { book, startPage, signedIn, error } = loaderData;
+	const { book, startPage, fullscreen, signedIn, error } = loaderData;
 	const [panel, setPanel] = useState<"add" | "claim" | null>(null);
+	const { pathname } = useLocation();
 
 	if (!book) return <LockedBook error={actionData?.error ?? error} />;
 
@@ -111,6 +119,7 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 			<Flipbook
 				book={book}
 				startPage={startPage}
+				fullscreenOnOpen={fullscreen}
 				topLeft={
 					<Link to={back.to} className="rounded-full bg-white/10 p-2 hover:bg-white/20" aria-label={back.label} title={back.label}>
 						<svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -147,7 +156,7 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 			{panel === "add" && (
 				<Panel title="Add photos" onClose={() => setPanel(null)}>
 					<p className="mb-4 text-sm text-ink-500">Each photo goes on a new page at the end of “{book.title}”. The book's owner keeps them in their library.</p>
-					<PhotoUploader action={`/books/${book.id}`} compact />
+					<PhotoUploader action={pathname} compact />
 				</Panel>
 			)}
 
@@ -159,7 +168,7 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 function ClaimPanel({ book, signedIn, error, onClose }: { book: BookWithPages; signedIn: boolean; error: string | null; onClose: () => void }) {
 	const busy = useNavigation().state !== "idle";
 	const owner = book.owner.name;
-	const next = encodeURIComponent(`/books/${book.id}`);
+	const next = encodeURIComponent(useLocation().pathname);
 
 	return (
 		<Panel title="Make this book yours" onClose={onClose}>

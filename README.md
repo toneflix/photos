@@ -39,6 +39,7 @@ Useful root scripts: `pnpm typecheck`, `pnpm build`, `pnpm test`, `pnpm lint`.
 - **Books** (`/books`): a shelf of covers; create a book with a cover style (classic, linen, midnight).
 - **Book editor** (`/books/:id/edit`): add, reorder and delete pages, pick a layout and a printed photo frame per page (full bleed, framed, pair, grid), place photos, write captions, choose a cover photo and share by link. Changes save automatically.
 - **Flipbook viewer** (`/books/:id`): a two-page spread with 3D page turns (click, swipe, or arrow keys). On phones held upright it asks the reader to turn the phone sideways and offers full screen, which also locks landscape where the browser allows it (Chrome on Android). Readers can choose single pages instead. Shared books open without signing in.
+- **Full-screen link** (`/books/:id/view`): the same viewer, made for sharing. The first tap or key press takes it full screen. Book settings and access-code share links use it.
 
 ### API
 
