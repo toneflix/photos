@@ -47,8 +47,10 @@ export default class PhotoController extends BaseController {
     const data = await this.validate({
       caption: 'nullable|string|max:2000',
       takenAt: 'nullable|date',
+      visibility: `nullable|in:${Photo.VISIBILITIES.join(',')}`,
     })
 
+    if (data.visibility) photo.setVisibility(data.visibility)
     if ('caption' in data) photo.caption = data.caption || null
     if ('takenAt' in data) photo.takenAt = data.takenAt ? new Date(data.takenAt) : null
 

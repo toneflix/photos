@@ -5,6 +5,8 @@ import { Storage } from '@arkstack/filesystem'
 import { User } from './User'
 import { randomUUID } from 'node:crypto'
 
+export type PhotoVisibility = 'private' | 'public'
+
 export interface UploadedPhoto {
   buffer: Buffer
   mimetype: string
@@ -31,8 +33,12 @@ export class Photo extends Model {
   declare height: number | null
   declare caption: string | null
   declare takenAt: Date | null
+  declare visibility: PhotoVisibility
+  declare publishedAt: Date | null
   declare createdAt: Date
   declare updatedAt: Date
+
+  static readonly VISIBILITIES = ['private', 'public']
 
   /** File extension for each accepted image type. */
   static readonly EXTENSIONS: Record<string, string> = {
@@ -52,6 +58,7 @@ export class Photo extends Model {
     originalName: 'original_name',
     mimeType: 'mime_type',
     takenAt: 'taken_at',
+    publishedAt: 'published_at',
   }
 
   protected override casts = {
@@ -86,6 +93,41 @@ export class Photo extends Model {
       caption: details.caption ?? null,
       takenAt: details.takenAt ? new Date(details.takenAt) : null,
     })
+  }
+
+  /** Public photos for the Explore timeline, most recently published first. */
+  static published() {
+    return Photo.query().where({ visibility: 'public' }).latest('publishedAt')
+  }
+
+  /** Show or hide the photo on Explore. Publishing again moves it back to the top. */
+  setVisibility(visibility: PhotoVisibility): void {
+    if (visibility === this.visibility) return
+
+    this.visibility = visibility
+    this.publishedAt = visibility === 'public' ? new Date() : null
+  }
+
+  /** The owner's public books that use this photo, with the first page it is on. */
+  async publicBooks(): Promise<{ book: Book; page: number }[]> {
+    const pages = await BookPage.query()
+      .whereJsonContains('photoIds', [this.id])
+      .whereHas('book', (query) => query.where({ userId: this.userId, visibility: 'public' }))
+      .oldest('position')
+      .get()
+
+    const firstPage = new Map<string, number>()
+
+    for (const page of pages.all()) if (!firstPage.has(page.bookId)) firstPage.set(page.bookId, page.position)
+
+    if (!firstPage.size) return []
+
+    const books = await Book.query()
+      .whereIn('id', [...firstPage.keys()] as never)
+      .latest('publishedAt')
+      .get()
+
+    return books.all().map((book) => ({ book, page: firstPage.get(book.id)! }))
   }
 
   /** Only the path is stored; the URL is signed on every read because bucket URLs expire. */

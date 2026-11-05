@@ -31,11 +31,13 @@ export default class BookController extends BaseController {
       paper: `nullable|${PAPER}`,
     })
 
+    const visibility = data.visibility || this.user.defaultVisibility || 'private'
     const book = await Book.query().create({
       userId: this.user.id,
       title: String(data.title).trim(),
       description: data.description || null,
-      visibility: data.visibility || this.user.defaultVisibility || 'private',
+      visibility,
+      publishedAt: visibility === 'public' ? new Date() : null,
       theme: data.theme || 'classic',
       paper: data.paper || 'ivory',
     })
@@ -70,7 +72,7 @@ export default class BookController extends BaseController {
 
     if (data.title) book.title = String(data.title).trim()
     if ('description' in data) book.description = data.description || null
-    if (data.visibility) book.visibility = data.visibility
+    if (data.visibility) book.setVisibility(data.visibility)
     if (data.theme) book.theme = data.theme
     if (data.paper) book.paper = data.paper
     if ('coverPhotoId' in data) {

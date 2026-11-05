@@ -20,6 +20,7 @@ export class Book extends Model {
   declare visibility: BookVisibility
   declare theme: string
   declare paper: string
+  declare publishedAt: Date | null
   declare createdAt: Date
   declare updatedAt: Date
 
@@ -36,6 +37,7 @@ export class Book extends Model {
   protected static override columns = {
     userId: 'user_id',
     coverPhotoId: 'cover_photo_id',
+    publishedAt: 'published_at',
   }
 
   user() {
@@ -48,6 +50,19 @@ export class Book extends Model {
 
   cover() {
     return this.belongsTo(Photo, 'coverPhotoId')
+  }
+
+  /** Public books with at least one page, for the Explore timeline, most recently published first. */
+  static published() {
+    return Book.query().where({ visibility: 'public' }).has('pages').latest('publishedAt')
+  }
+
+  /** Change who can open the book. Making it public puts it at the top of Explore. */
+  setVisibility(visibility: BookVisibility): void {
+    if (visibility === this.visibility) return
+
+    this.visibility = visibility
+    this.publishedAt = visibility === 'public' ? new Date() : null
   }
 
   /** Owners always see their books; anyone with the link sees shared and public ones. */

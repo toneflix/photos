@@ -92,7 +92,7 @@ export default class AccountController extends BaseController {
   async lockBooks() {
     const books = (await Book.query().where({ userId: this.user.id }).whereIn('visibility', ['shared', 'public'] as never).get()).all()
 
-    for (const book of books) await book.update({ visibility: 'private' })
+    for (const book of books) await book.update({ visibility: 'private', publishedAt: null })
 
     return new GenericResource({ updated: books.length }).additional({
       status: 'success',
