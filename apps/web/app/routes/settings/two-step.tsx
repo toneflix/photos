@@ -4,7 +4,7 @@ import QRCode from "qrcode";
 import type { TwoFactorStatus } from "@photos/types";
 import { requireUser } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
-import { Button, Field, Input, Notice } from "~/components/ui";
+import { Button, Field, Input, Notice, OtpInput } from "~/components/ui";
 import { PageHeader, Section, resultFor, type SettingsResult } from "~/components/settings/Section";
 import type { Route } from "./+types/two-step";
 
@@ -164,22 +164,11 @@ function SetupSteps({ setup, result, busy }: { setup: NonNullable<Result["setup"
 					</li>
 					<li>Type the 6-digit code the app shows.</li>
 				</ol>
-				<div className="flex flex-wrap items-end gap-3">
-					<div className="w-44">
-						<Field label="Code" error={result?.fieldErrors.code}>
-							<Input
-								name="code"
-								inputMode="numeric"
-								autoComplete="one-time-code"
-								maxLength={7}
-								placeholder="123 456"
-								className="text-center font-mono text-lg tracking-[0.25em]"
-								required
-								autoFocus
-							/>
-						</Field>
-					</div>
-					<Button type="submit" disabled={busy}>
+				<div className="max-w-xs space-y-3">
+					<Field label="Code" error={result?.fieldErrors.code}>
+						<OtpInput name="code" invalid={!!result?.fieldErrors.code} disabled={busy} autoFocus />
+					</Field>
+					<Button type="submit" disabled={busy} className="w-full">
 						{busy ? "Checking…" : "Turn on"}
 					</Button>
 				</div>
