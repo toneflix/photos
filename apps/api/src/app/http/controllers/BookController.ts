@@ -173,6 +173,6 @@ export default class BookController extends BaseController {
     const book = await Book.query().findOrFail(String(this.params.book))
     const code = this.ctx.req.headers['x-access-code'] ?? this.query.code
 
-    return BookAccess.resolve(book, await this.viewer(), typeof code === 'string' ? code : null)
+    return BookAccess.resolve(book, await this.viewer(), String(this.ctx.req.ip), typeof code === 'string' ? code : null)
   }
 }

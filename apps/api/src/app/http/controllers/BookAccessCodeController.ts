@@ -65,7 +65,11 @@ export default class BookAccessCodeController extends BaseController {
   /** Find the book a typed code opens and count the visit. Works signed out. */
   async redeem() {
     const data = await this.validate({ code: 'required|string|max:32' })
-    const code = await BookAccessCode.findUsable(data.code)
+    const visitor = String(this.ctx.req.ip)
+
+    await BookAccessCode.guesses(visitor).ensureAllowed('Too many wrong access codes.')
+
+    const code = await BookAccessCode.attempt(data.code, visitor)
 
     assertFound(code, 'That access code is not valid or has expired.', 404)
 
@@ -79,7 +83,11 @@ export default class BookAccessCodeController extends BaseController {
   /** Take ownership of the book a `transfer` code was made for. */
   async claim() {
     const data = await this.validate({ code: 'required|string|max:32' })
-    const code = await BookAccessCode.findUsable(data.code)
+    const visitor = String(this.ctx.req.ip)
+
+    await BookAccessCode.guesses(visitor).ensureAllowed('Too many wrong access codes.')
+
+    const code = await BookAccessCode.attempt(data.code, visitor)
 
     assertFound(code, 'That access code is not valid or has expired.', 404)
     abortIf(!code.allows('transfer'), 'This access code does not let you claim the book.', 403)

@@ -4,8 +4,9 @@ import { AccessTokenResource } from '@app/http/resources/AccessTokenResource'
 import { AccountMail } from '@app/notifications/AccountMail'
 import { BaseController } from './BaseController'
 import { GenericResource } from 'resora'
-import { Hash, abortIf, assertFound } from '@arkstack/common'
+import { Hash, assertFound } from '@arkstack/common'
 import { PasswordReset } from '@app/models/PasswordReset'
+import { SignIn } from '@app/services/SignIn'
 import { TwoFactorChallengeResource } from '@app/http/resources/TwoFactorChallengeResource'
 import { User } from '@app/models/User'
 import { UserResource } from '@app/http/resources/UserResource'
@@ -47,12 +48,12 @@ export default class AuthController extends BaseController {
       password: 'required|string',
     })
 
-    const auth = Auth.make().setRequest(this.ctx.req as never)
-    const user = (await auth.attempt(String(data.email).trim().toLowerCase(), String(data.password))) as User
+    const signIn = new SignIn(this.ctx.req as never)
+    const user = await signIn.attempt(String(data.email).trim().toLowerCase(), String(data.password))
     const status = await TwoFactor.readStatus(user.id)
 
     if (status.enabled) {
-      const challengeToken = await auth.createTemporaryToken(user as never, 'two-factor-login')
+      const challengeToken = await signIn.auth.createTemporaryToken(user as never, 'two-factor-login')
 
       return new TwoFactorChallengeResource({ challengeToken }).additional({
         status: 'success',
@@ -61,7 +62,7 @@ export default class AuthController extends BaseController {
       })
     }
 
-    const token = await auth.create(user as never)
+    const token = await signIn.auth.create(user as never)
 
     return new AccessTokenResource({ user, token }).additional({ status: 'success', message: 'Signed in', code: 200 })
   }
@@ -74,17 +75,9 @@ export default class AuthController extends BaseController {
       recoveryCode: 'nullable|string|max:64',
     })
 
-    const auth = Auth.make().setRequest(this.ctx.req as never)
-    const user = (await auth.authorizeTemporaryToken(String(data.challengeToken), 'two-factor-login')) as User
-    const secret = await TwoFactor.getSecret(user.id)
-
-    const passed = data.recoveryCode
-      ? await TwoFactor.consumeRecoveryCode(user.id, String(data.recoveryCode).trim())
-      : !!secret && !!data.code && TwoFactor.verifyCode(user as never, secret, String(data.code).replace(/\s/g, ''))
-
-    abortIf(!passed, 'That code is not right. Try again.', 422)
-
-    const token = await auth.create(user as never)
+    const signIn = new SignIn(this.ctx.req as never)
+    const user = await signIn.completeTwoFactor(String(data.challengeToken), data)
+    const token = await signIn.auth.create(user as never)
 
     return new AccessTokenResource({ user, token }).additional({ status: 'success', message: 'Signed in', code: 200 })
   }

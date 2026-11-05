@@ -14,9 +14,9 @@ export class BookAccess {
     readonly code: BookAccessCode | null = null,
   ) {}
 
-  /** Resolve a visitor's access, looking up the code they sent if any. */
-  static async resolve(book: Book, viewer: User | null, code?: string | null): Promise<BookAccess> {
-    return new BookAccess(book, viewer, await BookAccessCode.findUsable(code, book.id))
+  /** Resolve a visitor's access, looking up the code they sent if any. `visitor` (their IP) is who wrong codes count against. */
+  static async resolve(book: Book, viewer: User | null, visitor: string, code?: string | null): Promise<BookAccess> {
+    return new BookAccess(book, viewer, await BookAccessCode.attempt(code, visitor, book.id))
   }
 
   get isOwner(): boolean {
