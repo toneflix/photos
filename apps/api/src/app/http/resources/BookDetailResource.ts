@@ -33,6 +33,7 @@ export class BookDetailResource extends BookResource {
         bookId: page.bookId,
         position: page.position,
         layout: page.layout,
+        frame: page.frame,
         caption: page.caption,
         photos: (page.photoIds ?? []).flatMap((id) => serialized.get(id) ?? []),
       })),

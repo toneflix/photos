@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
 import type { BookPage, BookTheme, BookWithPages, PaperColor, Photo } from "@photos/types";
+import { FrameContext, PrintedPhoto } from "./PrintedPhoto";
 
 /** The paper colour of the book being shown. Set it once around the pages. */
 export const PaperContext = createContext<PaperColor>("ivory");
@@ -22,7 +23,7 @@ export function PageView({
 	onSlotDrop,
 	activeSlot,
 }: {
-	page: Pick<BookPage, "layout" | "caption" | "photos">;
+	page: Pick<BookPage, "layout" | "caption" | "photos"> & Partial<Pick<BookPage, "frame">>;
 	number?: number;
 	side?: "left" | "right";
 	showImages?: boolean;
@@ -34,6 +35,8 @@ export function PageView({
 }) {
 	const { layout, caption, photos } = page;
 	const paper = usePaper();
+	const bookFrame = useContext(FrameContext);
+	const frame = layout === "single" ? "none" : (page.frame ?? bookFrame);
 	const slots = layout === "grid" ? 4 : layout === "pair" ? 2 : 1;
 
 	const slot = (index: number, className: string, fit: "cover" | "framed" = "cover") => {
@@ -74,24 +77,8 @@ export function PageView({
 				role={editable ? "button" : undefined}
 				aria-label={editable ? `Photo slot ${index + 1}` : undefined}
 			>
-				{photo && fit === "framed" ? (
-					<div className="flex h-full w-full items-center justify-center">
-						{showImages ? (
-							<img
-								src={photo.url}
-								alt={photo.caption ?? ""}
-								draggable={false}
-								decoding="async"
-								width={photo.width ?? undefined}
-								height={photo.height ?? undefined}
-								className="print-photo h-auto max-h-full w-auto max-w-full object-contain select-none"
-							/>
-						) : (
-							<div className="aspect-[4/3] w-full bg-surface-200" />
-						)}
-					</div>
-				) : photo ? (
-					<PhotoImage photo={photo} show={showImages} className="print-photo" />
+				{photo ? (
+					<PrintedPhoto photo={photo} frame={frame} fit={fit === "framed" ? "contain" : "cover"} show={showImages} />
 				) : (
 					<div
 						className={`flex h-full w-full items-center justify-center bg-current/10 opacity-80 ${

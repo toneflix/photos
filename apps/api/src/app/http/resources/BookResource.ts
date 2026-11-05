@@ -19,6 +19,7 @@ export class BookResource extends Resource {
       publishedAt: book.publishedAt,
       theme: book.theme,
       paper: book.paper,
+      frame: book.frame,
       pageCount: await book.pages().count(),
       createdAt: book.createdAt,
       updatedAt: book.updatedAt,

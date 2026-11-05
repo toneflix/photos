@@ -8,6 +8,7 @@ import type {
   BookTheme,
   BookWithPages,
   PaperColor,
+  FrameStyle,
   ID,
   BookQuery,
   PhotoQuery,
@@ -151,11 +152,11 @@ export function createEndpoints(alova: PhotosAlova) {
       list: (params: BookQuery = {}) => alova.Get<PaginatedResponse<Book>>('/books', { params }),
       /** A book with every page. Works signed out for shared and public books, and for private ones with an access `code`. */
       get: (id: ID, code?: string | null) => alova.Get<ApiResponse<BookWithPages>>(`/books/${id}`, withCode(code)),
-      create: (data: Pick<Book, 'title'> & Partial<Pick<Book, 'description' | 'visibility' | 'theme' | 'paper' | 'spaceId'>>) =>
+      create: (data: Pick<Book, 'title'> & Partial<Pick<Book, 'description' | 'visibility' | 'theme' | 'paper' | 'frame' | 'spaceId'>>) =>
         alova.Post<ApiResponse<Book>>('/books', data),
       update: (
         id: ID,
-        data: Partial<Pick<Book, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'spaceId'> & { theme: BookTheme; paper: PaperColor }>,
+        data: Partial<Pick<Book, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'spaceId'> & { theme: BookTheme; paper: PaperColor; frame: FrameStyle }>,
         code?: string | null,
       ) => alova.Put<ApiResponse<BookWithPages>>(`/books/${id}`, data, withCode(code)),
       /** Replace every page of the book, in order. */
