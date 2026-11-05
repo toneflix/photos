@@ -51,4 +51,5 @@ export default [
 	// Full-screen pages.
 	route("books/:id/edit", "routes/book-edit.tsx"),
 	route("books/:id", "routes/book-view.tsx"),
+	route("books/:id/view", "routes/book-view.tsx", { id: "book-fullscreen" }),
 ] satisfies RouteConfig;

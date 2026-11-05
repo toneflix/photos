@@ -71,7 +71,7 @@ describe('Book access codes', () => {
     expect(created.status).toBe(201)
     expect(created.body.data.code).toMatch(/^[A-Z2-9]{4}-[A-Z2-9]{4}$/)
     expect(created.body.data.permissions).toEqual(['view', 'edit'])
-    expect(created.body.data.shareUrl).toContain(`/books/${bookId}?code=`)
+    expect(created.body.data.shareUrl).toContain(`/books/${bookId}/view?code=`)
   })
 
   it('opens the book with a view code, typed in any case, and counts the visit', async () => {

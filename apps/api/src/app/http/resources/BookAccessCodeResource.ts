@@ -16,7 +16,7 @@ export class BookAccessCodeResource extends Resource {
       lastUsedAt: code.lastUsedAt,
       expiresAt: code.expiresAt,
       expired: code.isExpired(),
-      shareUrl: `${config('app.frontend_url')}/books/${code.bookId}?code=${encodeURIComponent(code.code)}`,
+      shareUrl: `${config('app.frontend_url')}/books/${code.bookId}/view?code=${encodeURIComponent(code.code)}`,
       createdAt: code.createdAt,
       updatedAt: code.updatedAt,
     }
