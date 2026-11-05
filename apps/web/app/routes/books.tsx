@@ -3,17 +3,24 @@ import { data, Form, Link, redirect, useNavigation } from "react-router";
 import type { Book, BookTheme } from "@photos/types";
 import { formError } from "~/lib/api.server";
 import { requireUser } from "~/lib/session.server";
+import { useInfiniteList } from "~/lib/use-infinite-list";
 import { CoverView } from "~/components/flipbook/PageView";
-import { Alert, Button, Field, Input, Textarea, buttonClass } from "~/components/ui";
+import { Alert, Button, Field, Input, Spinner, Textarea } from "~/components/ui";
 import type { Route } from "./+types/books";
 
 export const meta = () => [{ title: "Your books · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const { api } = await requireUser(request, context);
-	const { data: books } = await api.books.list({ per_page: 100 });
-	return { books };
+	const page = Math.max(1, Number(new URL(request.url).searchParams.get("page")) || 1);
+
+	const { data: items, meta } = await api.books.list({ page, per_page: BOOKS_PER_PAGE });
+
+	return { items, page: meta.current_page, lastPage: meta.last_page, total: meta.total };
 }
+
+/** Four shelves of six books per request. */
+const BOOKS_PER_PAGE = 24;
 
 export async function action({ request, context }: Route.ActionArgs) {
 	const { api } = await requireUser(request, context);
@@ -32,8 +39,9 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function Books({ loaderData, actionData }: Route.ComponentProps) {
-	const { books } = loaderData;
-	const [creating, setCreating] = useState(books.length === 0 || !!actionData);
+	const { items: books, hasMore, loading, sentinel } = useInfiniteList(loaderData, "/books");
+	const { total } = loaderData;
+	const [creating, setCreating] = useState(total === 0 || !!actionData);
 
 	return (
 		<main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
@@ -41,9 +49,7 @@ export default function Books({ loaderData, actionData }: Route.ComponentProps) 
 				<div>
 					<h1 className="font-serif text-4xl text-ink-900">Your books</h1>
 					<p className="mt-1 text-ink-500">
-						{books.length === 0
-							? "Bind your photos into your first book."
-							: `${books.length} ${books.length === 1 ? "book" : "books"} on your shelf.`}
+						{total === 0 ? "Bind your photos into your first book." : `${total} ${total === 1 ? "book" : "books"} on your shelf.`}
 					</p>
 				</div>
 				{!creating && (
@@ -53,14 +59,20 @@ export default function Books({ loaderData, actionData }: Route.ComponentProps) 
 				)}
 			</div>
 
-			{creating && <NewBookForm error={actionData} onCancel={books.length ? () => setCreating(false) : undefined} />}
+			{creating && <NewBookForm error={actionData} onCancel={total ? () => setCreating(false) : undefined} />}
 
 			{books.length > 0 && (
-				<ul className="mt-8 grid grid-cols-2 gap-y-8 rounded-3xl bg-gradient-to-b from-[#efe6d6] to-[#e6dac5] px-3 pt-4 pb-8 shadow-[inset_0_2px_12px_rgb(80_50_20/0.12)] sm:grid-cols-3 sm:px-5 lg:grid-cols-4 xl:grid-cols-5">
+				<ul className="mt-8 grid grid-cols-3 gap-y-8 rounded-3xl bg-gradient-to-b from-[#efe6d6] to-[#e6dac5] px-3 pt-4 pb-8 shadow-[inset_0_2px_12px_rgb(80_50_20/0.12)] sm:grid-cols-4 sm:px-5 lg:grid-cols-6">
 					{books.map((book) => (
 						<BookCard key={book.id} book={book} />
 					))}
 				</ul>
+			)}
+
+			{hasMore && (
+				<div ref={sentinel} className="flex h-24 items-center justify-center text-ink-500">
+					{loading && <Spinner />}
+				</div>
 			)}
 		</main>
 	);
@@ -77,7 +89,7 @@ function BookCard({ book }: { book: Book }) {
 	const depth = Math.max(10, Math.min(26, 8 + book.pageCount * 1.2));
 
 	return (
-		<li className="group relative flex flex-col px-3 pt-6 sm:px-5">
+		<li className="group relative flex flex-col px-2 pt-6 sm:px-5">
 			<Link to={`/books/${book.id}`} className="relative block outline-none" aria-label={`Open ${book.title}`} style={{ perspective: "1100px" }}>
 				<div className="shelf-book relative aspect-[3/4]">
 					{/* Spine */}
@@ -103,18 +115,18 @@ function BookCard({ book }: { book: Book }) {
 				</div>
 				<div className="pointer-events-none absolute inset-x-2 -bottom-1 h-3 rounded-[50%] bg-black/40 blur-md transition group-hover:opacity-60" />
 			</Link>
-			<div className="shelf-plank relative z-10 -mx-3 mt-1 h-3.5 rounded-sm sm:-mx-5" />
-			<div className="mt-3 flex items-start justify-between gap-2">
-				<div className="min-w-0">
-					<h2 className="line-clamp-2 font-serif text-lg leading-snug text-ink-900">{book.title}</h2>
-					<p className="text-sm text-ink-500">
+			<div className="shelf-plank relative z-10 -mx-2 mt-1 h-3.5 rounded-sm sm:-mx-5" />
+			<div className="mt-3 min-w-0">
+				<h2 className="line-clamp-2 font-serif text-sm leading-snug text-ink-900 sm:text-lg">{book.title}</h2>
+				<div className="mt-0.5 flex items-center justify-between gap-2 text-xs text-ink-500 sm:text-sm">
+					<p className="truncate">
 						{book.pageCount} {book.pageCount === 1 ? "page" : "pages"}
 						{book.visibility !== "private" && " · Shared"}
 					</p>
+					<Link to={`/books/${book.id}/edit`} className="shrink-0 font-medium text-ink-700 hover:text-ink-900 hover:underline">
+						Edit
+					</Link>
 				</div>
-				<Link to={`/books/${book.id}/edit`} className={buttonClass("ghost", "px-3 py-1.5 text-xs")}>
-					Edit
-				</Link>
 			</div>
 		</li>
 	);
