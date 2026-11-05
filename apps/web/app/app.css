@@ -72,32 +72,47 @@ body {
 	will-change: transform;
 }
 
-.flipbook-face {
+/* A vertical slice of a leaf. A turning leaf is cut into a chain of slices that each hinge a little, so the page bends. */
+.flipbook-strip {
 	position: absolute;
-	inset: 0;
+	top: 0;
+	height: 100%;
+	transform-style: preserve-3d;
+	transform-origin: left center;
+	transition: transform 900ms cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+.flipbook-strip.is-bending {
+	animation: flipbook-bend 900ms cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+@keyframes flipbook-bend {
+	0%, 100% { transform: rotateY(0deg); }
+	45% { transform: rotateY(var(--bend)); }
+}
+
+/* One side of a slice, showing its part of the full page. Slices overlap by a pixel to hide seams. */
+.flipbook-slice {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: calc(100% + 1px);
+	height: 100%;
 	overflow: hidden;
 	backface-visibility: hidden;
 	-webkit-backface-visibility: hidden;
-	container-type: size;
 }
-
-.flipbook-face.is-back {
+.flipbook-slice.is-back {
 	transform: rotateY(180deg);
 }
+.flipbook-strip.is-flat > .flipbook-slice {
+	width: 100%;
+}
 
-/* Fold shadow next to the spine. */
-.flipbook-face.is-right::after,
-.flipbook-face.is-left::after {
-	content: "";
+/* The whole page, offset inside its slice. */
+.flipbook-page {
 	position: absolute;
-	inset: 0;
-	pointer-events: none;
-}
-.flipbook-face.is-right::after {
-	background: linear-gradient(to right, rgb(0 0 0 / 0.22), rgb(0 0 0 / 0.06) 4%, transparent 12%);
-}
-.flipbook-face.is-left::after {
-	background: linear-gradient(to left, rgb(0 0 0 / 0.22), rgb(0 0 0 / 0.06) 4%, transparent 12%);
+	top: 0;
+	height: 100%;
+	container-type: size;
 }
 
 /* Stacked page edges beside an open book. */
@@ -107,7 +122,7 @@ body {
 }
 
 /* Light sweeping across a page while it turns. */
-.flipbook-leaf.is-turning .flipbook-face::before {
+.flipbook-leaf.is-turning .flipbook-page::before {
 	content: "";
 	position: absolute;
 	inset: 0;
@@ -121,9 +136,63 @@ body {
 	100% { background: transparent; }
 }
 
+/* Ink on paper: slightly lifted blacks, warmed toward the paper colour. */
+.print-photo {
+	filter: sepia(0.06) saturate(0.94) contrast(0.94) brightness(1.01);
+}
+.paper-kraft .print-photo {
+	filter: sepia(0.22) saturate(0.88) contrast(0.9) brightness(0.98);
+}
+.paper-charcoal .print-photo {
+	filter: saturate(0.92) contrast(0.94) brightness(0.9);
+}
+
+/* Lighting over a whole page, photos included: grain, the curve into the spine and a soft sheen where the page rises. */
+.page-surface,
+.page-surface > * {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+.page-surface {
+	z-index: 5;
+}
+.page-surface-grain {
+	background: var(--paper-grain) 0 0 / 256px 256px;
+	opacity: 0.45;
+}
+.paper-kraft .page-surface-grain {
+	opacity: 0.35;
+}
+.paper-charcoal .page-surface-grain {
+	opacity: 0.22;
+}
+.page-surface-gutter {
+	background: linear-gradient(
+		var(--to-edge),
+		rgb(20 12 4 / 0.5) 0%,
+		rgb(20 12 4 / 0.3) 1.5%,
+		rgb(20 12 4 / 0.14) 4%,
+		rgb(20 12 4 / 0.05) 8%,
+		transparent 15%,
+		transparent 94%,
+		rgb(20 12 4 / 0.07) 100%
+	);
+}
+.page-surface-sheen {
+	background: linear-gradient(var(--to-edge), transparent 6%, rgb(255 250 240 / 0.07) 13%, rgb(255 250 240 / 0.02) 26%, transparent 40%);
+}
+.page-surface.is-right {
+	--to-edge: to right;
+}
+.page-surface.is-left {
+	--to-edge: to left;
+}
+
 /* Page paper: a texture tile multiplied over the paper colour, plus soft light and vignetting. */
 .paper {
 	--paper-texture: url("/textures/paper-fine.webp");
+	--paper-grain: url("/textures/grain-fine.webp");
 	color: #3d372f;
 	background-color: #fdf9f0;
 	background-image:
@@ -139,6 +208,7 @@ body {
 }
 .paper-kraft {
 	--paper-texture: url("/textures/paper-kraft.webp");
+	--paper-grain: url("/textures/grain-kraft.webp");
 	background-color: #d8c4a2;
 	background-image:
 		radial-gradient(ellipse at 30% 20%, rgb(255 255 255 / 0.18), transparent 55%),
@@ -148,6 +218,7 @@ body {
 }
 .paper-charcoal {
 	--paper-texture: url("/textures/paper-charcoal.webp");
+	--paper-grain: url("/textures/grain-charcoal.webp");
 	background-color: #2a2826;
 	background-image:
 		radial-gradient(ellipse at 30% 20%, rgb(255 255 255 / 0.05), transparent 55%),
@@ -204,7 +275,7 @@ body {
 		transition-duration: 1ms;
 	}
 	.rotate-hint,
-	.flipbook-leaf.is-turning .flipbook-face::before {
+	.flipbook-leaf.is-turning .flipbook-page::before {
 		animation: none;
 	}
 }

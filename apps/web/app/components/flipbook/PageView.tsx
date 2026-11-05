@@ -84,14 +84,14 @@ export function PageView({
 								decoding="async"
 								width={photo.width ?? undefined}
 								height={photo.height ?? undefined}
-								className="h-auto max-h-full w-auto max-w-full bg-white object-contain p-[2.4cqw] shadow-[0_0.6cqw_2cqw_rgb(0_0_0/0.2)] select-none"
+								className="print-photo h-auto max-h-full w-auto max-w-full object-contain select-none"
 							/>
 						) : (
 							<div className="aspect-[4/3] w-full bg-surface-200" />
 						)}
 					</div>
 				) : photo ? (
-					<PhotoImage photo={photo} show={showImages} />
+					<PhotoImage photo={photo} show={showImages} className="print-photo" />
 				) : (
 					<div
 						className={`flex h-full w-full items-center justify-center bg-current/10 opacity-80 ${
@@ -136,8 +136,8 @@ export function PageView({
 
 			{layout === "pair" && (
 				<div className="flex h-full flex-col" style={{ padding: "7cqw", gap: "4cqw" }}>
-					{slot(0, "flex-1 shadow-[0_0.4cqw_1.4cqw_rgb(0_0_0/0.15)]")}
-					{slot(1, "flex-1 shadow-[0_0.4cqw_1.4cqw_rgb(0_0_0/0.15)]")}
+					{slot(0, "flex-1")}
+					{slot(1, "flex-1")}
 					{caption && (
 						<p className="text-center font-serif italic" style={{ fontSize: "3.8cqw" }}>
 							{caption}
@@ -149,7 +149,7 @@ export function PageView({
 			{layout === "grid" && (
 				<div className="flex h-full flex-col" style={{ padding: "7cqw", gap: "3cqw" }}>
 					<div className="grid flex-1 grid-cols-2 grid-rows-2" style={{ gap: "3cqw" }}>
-						{Array.from({ length: slots }, (_, i) => slot(i, "shadow-[0_0.4cqw_1.4cqw_rgb(0_0_0/0.15)]"))}
+						{Array.from({ length: slots }, (_, i) => slot(i, ""))}
 					</div>
 					{caption && (
 						<p className="text-center font-serif italic" style={{ fontSize: "3.8cqw" }}>
@@ -161,10 +161,10 @@ export function PageView({
 
 			{layout === "collage" && (
 				<div className="flex h-full flex-col" style={{ padding: "7cqw", gap: "3cqw" }}>
-					{slot(0, "flex-[1.4] shadow-[0_0.4cqw_1.4cqw_rgb(0_0_0/0.15)]")}
+					{slot(0, "flex-[1.4]")}
 					<div className="flex flex-1" style={{ gap: "3cqw" }}>
-						{slot(1, "flex-1 shadow-[0_0.4cqw_1.4cqw_rgb(0_0_0/0.15)]")}
-						{slot(2, "flex-1 shadow-[0_0.4cqw_1.4cqw_rgb(0_0_0/0.15)]")}
+						{slot(1, "flex-1")}
+						{slot(2, "flex-1")}
 					</div>
 					{caption && (
 						<p className="text-center font-serif italic" style={{ fontSize: "3.8cqw" }}>
@@ -196,6 +196,8 @@ export function PageView({
 					{number}
 				</span>
 			)}
+
+			<PageSurface side={side} />
 		</div>
 	);
 }
@@ -293,8 +295,10 @@ export function BackCoverView({ theme }: { theme: BookTheme }) {
 /** Inside the front cover: a title page. */
 export function TitlePageView({
 	book,
+	side,
 }: {
 	book: Pick<BookWithPages, "title" | "description" | "owner" | "createdAt">;
+	side?: "left" | "right";
 }) {
 	const year = new Date(book.createdAt).getFullYear();
 	const paper = usePaper();
@@ -314,24 +318,45 @@ export function TitlePageView({
 			<p className="tracking-[0.2em] uppercase" style={{ marginTop: "5cqw", fontSize: "2.6cqw" }}>
 				{book.owner.name ? `${book.owner.name} · ${year}` : year}
 			</p>
+			<PageSurface side={side} />
 		</div>
 	);
 }
 
 /** Inside the back cover. */
-export function ColophonView() {
+export function ColophonView({ side }: { side?: "left" | "right" }) {
 	const paper = usePaper();
+
 	return (
 		<div className={`${paper} absolute inset-0 flex flex-col items-center justify-end text-center opacity-90`} style={{ padding: "12cqw" }}>
 			<p className="font-serif italic" style={{ fontSize: "3.6cqw" }}>
 				Preserved for all time with Toneflix Photos.
 			</p>
+			<PageSurface side={side} />
 		</div>
 	);
 }
 
-export function BlankPageView() {
-	return <div className={`${usePaper()} absolute inset-0`} />;
+export function BlankPageView({ side }: { side?: "left" | "right" }) {
+	return (
+		<div className={`${usePaper()} absolute inset-0`}>
+			<PageSurface side={side} />
+		</div>
+	);
+}
+
+/**
+ * Light and grain laid over everything on a page, photos included, so prints
+ * sit in the paper. On a spread, `side` adds the curve into the spine.
+ */
+function PageSurface({ side }: { side?: "left" | "right" }) {
+	return (
+		<div className={`page-surface ${side ? `is-${side}` : ""}`} aria-hidden>
+			<div className="page-surface-grain" />
+			{side && <div className="page-surface-gutter" />}
+			{side && <div className="page-surface-sheen" />}
+		</div>
+	);
 }
 
 function Monogram() {
