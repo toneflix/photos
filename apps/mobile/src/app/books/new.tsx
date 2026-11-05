@@ -26,9 +26,9 @@ export default function NewBook() {
   const create = useRequest(
     () => api.books.create({ title: title.trim(), description: description.trim() || null, theme, spaceId: spaceId || null }),
     { immediate: false },
-  ).onSuccess(() => {
+  ).onSuccess(({ data }) => {
     bookLists.reload()
-    router.back()
+    router.replace({ pathname: '/books/[id]/edit', params: { id: data.data.id } })
   })
   const problem = FormProblem.from(create.error)
 

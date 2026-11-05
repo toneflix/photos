@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, StyleSheet, View, useWindowDimensions } from 'react-native'
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import { usePagination } from 'alova/client'
 import type { Book } from '@photos/types'
@@ -71,7 +71,11 @@ export default function Books() {
       columnWrapperStyle={styles.row}
       contentContainerStyle={styles.content}
       renderItem={({ item: book }) => (
-        <View style={{ width: cover }}>
+        <Pressable
+          style={{ width: cover }}
+          accessibilityRole="button"
+          onPress={() => router.push({ pathname: '/books/[id]/edit', params: { id: book.id } })}
+        >
           <View style={[styles.cover, { height: (cover * 4) / 3 }]} accessibilityLabel={book.title}>
             <BookCover book={book} />
             {book.visibility !== 'private' && (
@@ -87,7 +91,7 @@ export default function Books() {
             {book.pageCount} {book.pageCount === 1 ? 'page' : 'pages'} ·{' '}
             {new Date(book.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
           </Text>
-        </View>
+        </Pressable>
       )}
       onEndReachedThreshold={0.6}
       onEndReached={() => {

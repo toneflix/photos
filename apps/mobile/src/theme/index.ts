@@ -31,6 +31,7 @@ export const colors = {
 
   emerald50: '#ecfdf5',
   emerald200: '#a7f3d0',
+  emerald600: '#059669',
   emerald900: '#064e3b',
 
   amber50: '#fffbeb',

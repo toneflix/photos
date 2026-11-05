@@ -185,7 +185,7 @@ function SelectionBar({ picked, spaceId, onDone }: { picked: string[]; spaceId?:
       await api.books.savePages(book.id, autoLayout(picked))
       bookLists.reload()
       onDone()
-      router.navigate('/')
+      router.push({ pathname: '/books/[id]/edit', params: { id: book.id } })
     } catch (problem) {
       setError(problem)
     } finally {
