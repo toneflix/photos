@@ -4,6 +4,7 @@ import { Photo } from '@app/models/Photo'
 import { PublicBookCollection } from '@app/http/resources/PublicBookCollection'
 import { PublicPhotoCollection } from '@app/http/resources/PublicPhotoCollection'
 import { PublicPhotoDetailResource } from '@app/http/resources/PublicPhotoDetailResource'
+import { SORTS } from '@app/support/search'
 import { perPage } from '@arkstack/common'
 
 /**
@@ -12,7 +13,13 @@ import { perPage } from '@arkstack/common'
  */
 export default class ExploreController extends BaseController {
   async photos() {
-    const photos = await Photo.published()
+    const filters = await this.validateQuery({
+      q: 'nullable|string|max:100',
+      orientation: `nullable|in:${Photo.ORIENTATIONS.join(',')}`,
+      sort: `nullable|in:${SORTS.join(',')}`,
+    })
+
+    const photos = await Photo.published(filters)
       .with('user')
       .paginate(perPage(this.query, { perPage: 40, maxPerPage: 100 }))
 
@@ -29,7 +36,13 @@ export default class ExploreController extends BaseController {
   }
 
   async books() {
-    const books = await Book.published()
+    const filters = await this.validateQuery({
+      q: 'nullable|string|max:100',
+      theme: `nullable|in:${Book.THEMES.join(',')}`,
+      sort: `nullable|in:${SORTS.join(',')}`,
+    })
+
+    const books = await Book.published(filters)
       .with('user')
       .paginate(perPage(this.query, { perPage: 24, maxPerPage: 100 }))
 

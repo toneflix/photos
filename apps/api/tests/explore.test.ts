@@ -102,3 +102,83 @@ describe('Explore', () => {
     expect(photo.status).toBe(404)
   })
 })
+
+describe('Search and filters', () => {
+  const ids: Record<string, string> = {}
+  const word = `zebra${Date.now()}`
+  const owner = `Searcher ${Date.now().toString(36)}`
+
+  const upload = async (name: string, caption: string, width: number, height: number) => {
+    const form = new FormData()
+
+    form.append('photo', new Blob([pixel], { type: 'image/png' }), 'pixel.png')
+    form.append('caption', caption)
+    form.append('width', String(width))
+    form.append('height', String(height))
+
+    const res = await request(app).post('/api/photos').set({ Accept: 'application/json', Authorization: `Bearer ${token}` }).send(form)
+
+    ids[name] = res.body.data.id
+  }
+
+  const found = async (path: string, signedIn = false) =>
+    ((await api('get', path, undefined, signedIn)).body.data as { id: string }[]).map((item) => item.id)
+
+  beforeAll(async () => {
+    const register = await api('post', '/auth/register', { name: owner, email: `${word}@toneflix.test`, password: 'password123' })
+
+    token = register.body.data.token
+
+    await upload('wide', `A ${word} at sunset`, 1600, 900)
+    await upload('tall', `Tall ${word.toUpperCase()} portrait`, 900, 1600)
+    await upload('square', 'Square crop', 1000, 1000)
+    await upload('hidden', `Private ${word}`, 1600, 900)
+
+    for (const name of ['wide', 'tall', 'square']) await api('put', `/photos/${ids[name]}`, { visibility: 'public' })
+
+    const book = await api('post', '/books', { title: `The ${word} book`, theme: 'linen' })
+
+    ids.book = book.body.data.id
+
+    await api('put', `/books/${ids.book}/pages`, { pages: [{ layout: 'single', photoIds: [ids.wide] }] })
+    await api('put', `/books/${ids.book}`, { visibility: 'public' })
+  })
+
+  it('finds public photos by caption, ignoring case, and never private ones', async () => {
+    const results = await found(`/explore/photos?q=${word.toUpperCase()}`)
+
+    expect(results).toEqual(expect.arrayContaining([ids.wide, ids.tall]))
+    expect(results).not.toContain(ids.hidden)
+    expect(results).not.toContain(ids.square)
+  })
+
+  it('finds photos by the owner name when the owner shows it', async () => {
+    expect(await found(`/explore/photos?q=${owner}`)).toEqual(expect.arrayContaining([ids.wide, ids.tall, ids.square]))
+  })
+
+  it('filters photos by shape and sorts oldest first', async () => {
+    expect(await found(`/explore/photos?q=${word}&orientation=landscape`)).toEqual([ids.wide])
+    expect(await found(`/explore/photos?q=${word}&orientation=portrait`)).toEqual([ids.tall])
+    expect(await found(`/explore/photos?q=${owner}&orientation=square`)).toEqual([ids.square])
+    expect(await found(`/explore/photos?q=${word}&sort=oldest`)).toEqual([ids.wide, ids.tall])
+  })
+
+  it('treats LIKE wildcards in the search as plain text', async () => {
+    expect(await found('/explore/photos?q=%25')).toEqual([])
+  })
+
+  it('finds and filters public books', async () => {
+    expect(await found(`/explore/books?q=${word}`)).toEqual([ids.book])
+    expect(await found(`/explore/books?q=${word}&theme=midnight`)).toEqual([])
+  })
+
+  it('rejects unknown filter values', async () => {
+    expect((await api('get', '/explore/photos?orientation=round', undefined, false)).status).toBe(422)
+  })
+
+  it('searches and filters your own library, private photos included', async () => {
+    expect(await found(`/photos?q=${word}&visibility=private`, true)).toEqual([ids.hidden])
+    expect(await found(`/photos?orientation=square`, true)).toEqual([ids.square])
+    expect(await found(`/books?q=${word}&theme=linen`, true)).toEqual([ids.book])
+  })
+})

@@ -2,8 +2,18 @@ import { BookPage } from './BookPage'
 import { Model } from '@arkstack/database'
 import { Photo } from './Photo'
 import { User } from './User'
+import { matches } from '@app/support/search'
+import type { QueryBuilder } from 'arkormx'
 
 export type BookVisibility = 'private' | 'shared' | 'public'
+
+/** What someone searched for and how they narrowed it. */
+export interface BookFilters {
+  q?: string | null
+  theme?: string | null
+  visibility?: string | null
+  sort?: string | null
+}
 
 export interface PageInput {
   layout?: string | null
@@ -52,9 +62,39 @@ export class Book extends Model {
     return this.belongsTo(Photo, 'coverPhotoId')
   }
 
-  /** Public books with at least one page, for the Explore timeline, most recently published first. */
-  static published() {
-    return Book.query().where({ visibility: 'public' }).has('pages').latest('publishedAt')
+  /** Public books with at least one page, for the Explore timeline. Words match titles, descriptions and shown owner names. */
+  static published(filters: BookFilters = {}) {
+    const query = Book.query().where({ visibility: 'public' }).has('pages')
+    const text = filters.q?.trim()
+
+    if (text) {
+      query.where((match: QueryBuilder<Book>) =>
+        match
+          .where(matches('title', text))
+          .orWhere(matches('description', text))
+          .orWhereHas('user', (owner: QueryBuilder<User>) => owner.where({ showOwnerName: true }).where(matches('name', text))),
+      )
+    }
+
+    return Book.narrow(query, filters, 'publishedAt')
+  }
+
+  /** One person's books. Words match titles and descriptions. */
+  static library(owner: User, filters: BookFilters = {}) {
+    const query = Book.query().where({ userId: owner.id })
+    const text = filters.q?.trim()
+
+    if (text) query.where((match: QueryBuilder<Book>) => match.where(matches('title', text)).orWhere(matches('description', text)))
+    if (filters.visibility) query.where({ visibility: filters.visibility as BookVisibility })
+
+    return Book.narrow(query, filters, 'updatedAt')
+  }
+
+  /** Filter by cover theme and order newest or oldest first. */
+  private static narrow(query: QueryBuilder<Book>, filters: BookFilters, by: 'publishedAt' | 'updatedAt') {
+    if (filters.theme) query.where({ theme: filters.theme })
+
+    return filters.sort === 'oldest' ? query.oldest(by) : query.latest(by)
   }
 
   /** Change who can open the book. Making it public puts it at the top of Explore. */

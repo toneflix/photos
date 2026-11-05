@@ -5,6 +5,7 @@ import { Book } from '@app/models/Book'
 import { BookCollection } from '@app/http/resources/BookCollection'
 import { BookDetailResource } from '@app/http/resources/BookDetailResource'
 import { regex } from 'kanun'
+import { SORTS } from '@app/support/search'
 import type { User } from '@app/models/User'
 
 const VISIBILITY = `in:${Book.VISIBILITIES.join(',')}`
@@ -17,7 +18,14 @@ const UUID = regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
  */
 export default class BookController extends BaseController {
   async index() {
-    const books = await this.user.books().latest('updatedAt').paginate(perPage(this.query, { perPage: 30, maxPerPage: 100 }))
+    const filters = await this.validateQuery({
+      q: 'nullable|string|max:100',
+      theme: `nullable|${THEME}`,
+      visibility: `nullable|${VISIBILITY}`,
+      sort: `nullable|in:${SORTS.join(',')}`,
+    })
+
+    const books = await Book.library(this.user, filters).paginate(perPage(this.query, { perPage: 30, maxPerPage: 100 }))
 
     return new BookCollection(books).additional({ status: 'success', message: 'OK', code: 200 })
   }

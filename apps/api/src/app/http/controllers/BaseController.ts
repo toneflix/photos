@@ -23,6 +23,11 @@ export class BaseController extends Controller<HttpContext> {
     return data as { [K in keyof R]: any }
   }
 
+  /** Validate the query string, e.g. search and filter options on a list. */
+  async validateQuery<D extends Record<string, any>, R extends RulesForData<D>>(rules: R) {
+    return (await Validator.make(this.query, rules).validate()) as { [K in keyof R]: any }
+  }
+
   /** Stop with a field error unless `password` is the signed-in user's password. */
   protected async confirmPassword(password: unknown, field = 'password') {
     if (await this.user.checkPassword(String(password))) return

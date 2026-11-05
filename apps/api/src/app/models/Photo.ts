@@ -3,9 +3,19 @@ import { BookPage } from './BookPage'
 import { Model } from '@arkstack/database'
 import { Storage } from '@arkstack/filesystem'
 import { User } from './User'
+import { matches } from '@app/support/search'
+import type { QueryBuilder } from 'arkormx'
 import { randomUUID } from 'node:crypto'
 
 export type PhotoVisibility = 'private' | 'public'
+
+/** What someone searched for and how they narrowed it. */
+export interface PhotoFilters {
+  q?: string | null
+  orientation?: string | null
+  visibility?: string | null
+  sort?: string | null
+}
 
 export interface UploadedPhoto {
   buffer: Buffer
@@ -39,6 +49,7 @@ export class Photo extends Model {
   declare updatedAt: Date
 
   static readonly VISIBILITIES = ['private', 'public']
+  static readonly ORIENTATIONS = ['landscape', 'portrait', 'square']
 
   /** File extension for each accepted image type. */
   static readonly EXTENSIONS: Record<string, string> = {
@@ -95,9 +106,40 @@ export class Photo extends Model {
     })
   }
 
-  /** Public photos for the Explore timeline, most recently published first. */
-  static published() {
-    return Photo.query().where({ visibility: 'public' }).latest('publishedAt')
+  /** Public photos for the Explore timeline. Words match captions and the names of owners who show their name. */
+  static published(filters: PhotoFilters = {}) {
+    const query = Photo.query().where({ visibility: 'public' })
+    const text = filters.q?.trim()
+
+    if (text) {
+      query.where((match: QueryBuilder<Photo>) =>
+        match
+          .where(matches('caption', text))
+          .orWhereHas('user', (owner: QueryBuilder<User>) => owner.where({ showOwnerName: true }).where(matches('name', text))),
+      )
+    }
+
+    return Photo.narrow(query, filters, 'publishedAt')
+  }
+
+  /** One person's photos. Words match captions. */
+  static library(owner: User, filters: PhotoFilters = {}) {
+    const query = Photo.query().where({ userId: owner.id })
+    const text = filters.q?.trim()
+
+    if (text) query.where(matches('caption', text))
+    if (filters.visibility) query.where({ visibility: filters.visibility as PhotoVisibility })
+
+    return Photo.narrow(query, filters, 'createdAt')
+  }
+
+  /** Filter by shape and order newest or oldest first. Photos without a known size match no shape. */
+  private static narrow(query: QueryBuilder<Photo>, filters: PhotoFilters, by: 'publishedAt' | 'createdAt') {
+    if (filters.orientation === 'landscape') query.whereColumn('width', '>', 'height')
+    if (filters.orientation === 'portrait') query.whereColumn('width', '<', 'height')
+    if (filters.orientation === 'square') query.whereColumn('width', '=', 'height')
+
+    return filters.sort === 'oldest' ? query.oldest(by) : query.latest(by)
   }
 
   /** Show or hide the photo on Explore. Publishing again moves it back to the top. */
