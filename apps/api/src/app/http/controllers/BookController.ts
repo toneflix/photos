@@ -2,8 +2,10 @@ import { abortIf, perPage } from '@arkstack/common'
 import { Auth } from '@arkstack/auth'
 import { BaseController } from './BaseController'
 import { Book } from '@app/models/Book'
+import { BookAccess } from '@app/policies/BookAccess'
 import { BookCollection } from '@app/http/resources/BookCollection'
 import { BookDetailResource } from '@app/http/resources/BookDetailResource'
+import { Photo } from '@app/models/Photo'
 import { regex } from 'kanun'
 import { SORTS } from '@app/support/search'
 import type { User } from '@app/models/User'
@@ -51,24 +53,23 @@ export default class BookController extends BaseController {
     })
 
     return new BookDetailResource(book)
-      .for(this.user)
+      .for(new BookAccess(book, this.user))
       .additional({ status: 'success', message: 'Book created', code: 201 })
       .response()
       .setStatusCode(201)
   }
 
-  /** Open a book with every page. Works signed out for shared and public books. */
+  /** Open a book with every page. Works signed out for shared and public books, and for private ones with an access code. */
   async show() {
-    const book = await Book.query().findOrFail(String(this.params.book))
-    const viewer = await this.viewer()
+    const access = (await this.access()).authorize('view')
 
-    abortIf(!book.isVisibleTo(viewer), 'Book not found!', 404)
-
-    return new BookDetailResource(book).for(viewer).additional({ status: 'success', message: 'OK', code: 200 })
+    return new BookDetailResource(access.book).for(access).additional({ status: 'success', message: 'OK', code: 200 })
   }
 
+  /** Change a book's details. Access codes with `edit` may change everything but who can open it. */
   async update() {
-    const book = await this.user.books().findOrFail(String(this.params.book))
+    const access = (await this.access()).authorize('edit')
+    const book = access.book
     const data = await this.validate({
       title: 'nullable|string|max:160',
       description: 'nullable|string|max:2000',
@@ -77,6 +78,8 @@ export default class BookController extends BaseController {
       paper: `nullable|${PAPER}`,
       coverPhotoId: ['nullable', UUID],
     })
+
+    abortIf(!!data.visibility && !access.isOwner, 'Only the owner can change who can open this book.', 403)
 
     if (data.title) book.title = String(data.title).trim()
     if ('description' in data) book.description = data.description || null
@@ -89,7 +92,7 @@ export default class BookController extends BaseController {
 
     await book.save()
 
-    return new BookDetailResource(book).for(this.user).additional({ status: 'success', message: 'Book updated', code: 200 })
+    return new BookDetailResource(book).for(access).additional({ status: 'success', message: 'Book updated', code: 200 })
   }
 
   async destroy() {
@@ -97,12 +100,15 @@ export default class BookController extends BaseController {
 
     await book.remove()
 
-    return new BookDetailResource(book).for(this.user).additional({ status: 'success', message: 'Book deleted', code: 200 })
+    return new BookDetailResource(book)
+      .for(new BookAccess(book, this.user))
+      .additional({ status: 'success', message: 'Book deleted', code: 200 })
   }
 
   /** Replace every page of a book at once. The editor always sends the whole book. */
   async savePages() {
-    const book = await this.user.books().findOrFail(String(this.params.book))
+    const access = (await this.access()).authorize('edit')
+    const book = access.book
     const data = await this.validate({
       pages: `present|array|max:${Book.MAX_PAGES}`,
       'pages.*.layout': `nullable|in:${Object.keys(Book.LAYOUTS).join(',')}`,
@@ -113,7 +119,41 @@ export default class BookController extends BaseController {
 
     await book.replacePages(data.pages)
 
-    return new BookDetailResource(book).for(this.user).additional({ status: 'success', message: 'Book saved', code: 200 })
+    return new BookDetailResource(book).for(access).additional({ status: 'success', message: 'Book saved', code: 200 })
+  }
+
+  /** Upload a photo onto a new last page. It joins the book owner's library, even when a code holder adds it. */
+  async addPhoto() {
+    const access = (await this.access()).authorize('add')
+    const book = access.book
+    const data = await this.validate({
+      photo: `required|file|mimetypes:${Object.keys(Photo.EXTENSIONS).join(',')}|max:25600`,
+      width: 'nullable|integer|min:1',
+      height: 'nullable|integer|min:1',
+      caption: 'nullable|string|max:500',
+    })
+
+    const owner = await book.user().firstOrFail()
+    const photo = await Photo.upload(owner, data.photo, {
+      width: data.width ? Number(data.width) : null,
+      height: data.height ? Number(data.height) : null,
+    })
+
+    await book.appendPhoto(photo, data.caption)
+
+    return new BookDetailResource(book)
+      .for(access)
+      .additional({ status: 'success', message: 'Photo added', code: 201 })
+      .response()
+      .setStatusCode(201)
+  }
+
+  /** The book in the route and what this visitor may do with it, from their sign-in and any access code they sent. */
+  private async access(): Promise<BookAccess> {
+    const book = await Book.query().findOrFail(String(this.params.book))
+    const code = this.ctx.req.headers['x-access-code'] ?? this.query.code
+
+    return BookAccess.resolve(book, await this.viewer(), typeof code === 'string' ? code : null)
   }
 
   /** The signed-in viewer on a route without the `auth` middleware, if any. */
