@@ -26,9 +26,4 @@ export class BaseController extends Controller<HttpContext> {
   protected get user(): User {
     return (this.ctx.req as any).user as User
   }
-
-  /** Results per page from `per_page`, capped at `max`. */
-  protected perPage(fallback: number, max = 100): number {
-    return Math.min(max, Number(this.query.per_page) || fallback)
-  }
 }

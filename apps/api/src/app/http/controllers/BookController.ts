@@ -1,9 +1,9 @@
+import { abortIf, perPage } from '@arkstack/common'
 import { Auth } from '@arkstack/auth'
 import { BaseController } from './BaseController'
 import { Book } from '@app/models/Book'
 import { BookCollection } from '@app/http/resources/BookCollection'
 import { BookDetailResource } from '@app/http/resources/BookDetailResource'
-import { ModelNotFoundException } from 'arkormx'
 import { regex } from 'kanun'
 import type { User } from '@app/models/User'
 
@@ -17,7 +17,7 @@ const UUID = regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
  */
 export default class BookController extends BaseController {
   async index() {
-    const books = await this.user.books().latest('updatedAt').paginate(this.perPage(30))
+    const books = await this.user.books().latest('updatedAt').paginate(perPage(this.query, { perPage: 30, maxPerPage: 100 }))
 
     return new BookCollection(books).additional({ status: 'success', message: 'OK', code: 200 })
   }
@@ -52,7 +52,7 @@ export default class BookController extends BaseController {
     const book = await Book.query().findOrFail(String(this.params.book))
     const viewer = await this.viewer()
 
-    if (!book.isVisibleTo(viewer)) throw new ModelNotFoundException('Book', 'Book not found')
+    abortIf(!book.isVisibleTo(viewer), 'Book not found!', 404)
 
     return new BookDetailResource(book).for(viewer).additional({ status: 'success', message: 'OK', code: 200 })
   }

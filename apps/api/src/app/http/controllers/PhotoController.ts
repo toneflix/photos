@@ -1,3 +1,4 @@
+import { perPage } from '@arkstack/common'
 import { BaseController } from './BaseController'
 import { Photo } from '@app/models/Photo'
 import { PhotoCollection } from '@app/http/resources/PhotoCollection'
@@ -8,7 +9,7 @@ import { PhotoResource } from '@app/http/resources/PhotoResource'
  */
 export default class PhotoController extends BaseController {
   async index() {
-    const photos = await this.user.photos().latest('createdAt').paginate(this.perPage(60, 200))
+    const photos = await this.user.photos().latest('createdAt').paginate(perPage(this.query, { perPage: 60, maxPerPage: 200 }))
 
     return new PhotoCollection(photos).additional({ status: 'success', message: 'OK', code: 200 })
   }
