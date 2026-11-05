@@ -176,7 +176,7 @@ function Deckle({ look, scallop, width, height }: { look: PaperLook; scallop: nu
   return (
     <Svg width={width} height={height} style={styles.abs}>
       <G opacity={0.11} fill={ink(look)}>
-        <Rect x={r} y={r} width={width - scallop} height={height - scallop} />
+        <Rect x={r} y={r} width={Math.max(0, width - scallop)} height={Math.max(0, height - scallop)} />
         {across.map((x) => (
           <G key={`x${x}`}>
             <Circle cx={x} cy={r} r={r} />
@@ -238,7 +238,7 @@ function Band({ frame, look, unit, band, width, height }: { frame: FrameStyle; l
             <Path d={ring} fillRule="evenodd" fill="rgba(214,178,92,0.45)" />
             <Path d={ring} fillRule="evenodd" fill={`url(#hatch45${id})`} />
             <Path d={ring} fillRule="evenodd" fill={`url(#hatch-45${id})`} />
-            <Rect x={gilt / 2} y={gilt / 2} width={width - gilt} height={height - gilt} stroke="#b48a32" strokeWidth={gilt} fill="none" />
+            <Rect x={gilt / 2} y={gilt / 2} width={Math.max(0, width - gilt)} height={Math.max(0, height - gilt)} stroke="#b48a32" strokeWidth={gilt} fill="none" />
           </>
         )}
         {frame === 'woodgrain' && (
