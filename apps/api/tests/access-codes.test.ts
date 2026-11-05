@@ -114,6 +114,9 @@ describe('Book access codes', () => {
       code,
     )
 
+    const moved = await api('put', `/books/${bookId}`, { spaceId: null }, undefined, code)
+
+    expect(moved.status).toBe(403)
     expect(renamed.status).toBe(200)
     expect(renamed.body.data.title).toBe('Our wedding')
     expect(renamed.body.data.canEdit).toBe(true)
@@ -158,6 +161,10 @@ describe('Book access codes', () => {
   })
 
   it('hands the book to whoever claims it with a transfer code', async () => {
+    const space = (await api('post', '/spaces', { name: 'Weddings' }, 'photographer')).body.data
+
+    expect((await api('put', `/books/${bookId}`, { spaceId: space.id }, 'photographer')).body.data.spaceId).toBe(space.id)
+
     const view = (await api('post', `/books/${bookId}/access-codes`, {}, 'photographer')).body.data.code
     const transfer = (await api('post', `/books/${bookId}/access-codes`, { permissions: ['transfer'] }, 'photographer')).body.data.code
 
@@ -169,6 +176,7 @@ describe('Book access codes', () => {
 
     expect(claimed.status).toBe(200)
     expect(claimed.body.data.isOwner).toBe(true)
+    expect(claimed.body.data.spaceId).toBeNull()
 
     const copy = claimed.body.data.pages.find((page: { photos: unknown[] }) => page.photos.length).photos[0]
 

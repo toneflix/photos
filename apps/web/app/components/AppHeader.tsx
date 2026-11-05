@@ -23,6 +23,9 @@ export function AppHeader({ user }: { user: User | null }) {
 							<NavLink to="/photos" className={tab}>
 								Photos
 							</NavLink>
+							<NavLink to="/spaces" end className={tab}>
+								Spaces
+							</NavLink>
 						</>
 					)}
 					<NavLink to="/explore" className={tab}>

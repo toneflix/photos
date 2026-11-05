@@ -14,6 +14,7 @@ export default [
 	layout("routes/app-layout.tsx", [
 		route("books", "routes/books.tsx"),
 		route("photos", "routes/photos.tsx"),
+		route("spaces", "routes/spaces.tsx"),
 		route("books/:id/access", "routes/book-access.tsx"),
 		route("settings", "routes/settings/layout.tsx", [
 			index("routes/settings/index.tsx"),
@@ -34,8 +35,15 @@ export default [
 		layout("routes/explore/feed.tsx", [
 			route("explore", "routes/explore/photos.tsx"),
 			route("explore/books", "routes/explore/books.tsx"),
+			route("explore/spaces", "routes/explore/spaces.tsx"),
 		]),
 		route("explore/photos/:id", "routes/explore/photo.tsx"),
+
+		// A space's page: Explore kept to one space.
+		route("spaces/:slug", "routes/space/layout.tsx", [
+			index("routes/explore/photos.tsx", { id: "space-photos" }),
+			route("books", "routes/explore/books.tsx", { id: "space-books" }),
+		]),
 	]),
 
 	// Full-screen pages.

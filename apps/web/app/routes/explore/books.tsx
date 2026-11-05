@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link, useLocation, useParams, type MetaDescriptor } from "react-router";
 import type { PublicBook } from "@photos/types";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { getServerApi } from "~/lib/api.server";
@@ -8,14 +8,19 @@ import { Empty } from "~/components/explore/Empty";
 import { Owner } from "~/components/explore/Owner";
 import { Spinner } from "~/components/ui";
 import { SORT_FILTER, SearchFilters, THEME_FILTER, filterParam, searchText } from "~/components/SearchFilters";
+import type { SpaceMetaArgs } from "~/routes/space/layout";
 import type { Route } from "./+types/books";
 
-export const meta = () => [
-	{ title: "Explore books · Toneflix Photos" },
-	{ name: "description", content: "Photo books people chose to share with everyone. Open one and turn the pages." },
-];
+/** On a space's page the space names the tab instead. */
+export const meta = ({ params, matches }: SpaceMetaArgs): MetaDescriptor[] =>
+	params.slug
+		? (matches.find((match) => match?.id === "routes/space/layout")?.meta ?? [])
+		: [
+				{ title: "Explore books · Toneflix Photos" },
+				{ name: "description", content: "Photo books people chose to share with everyone. Open one and turn the pages." },
+			];
 
-export async function loader({ request, context }: Route.LoaderArgs) {
+export async function loader({ request, params, context }: Route.LoaderArgs) {
 	const { env } = context.get(cloudflareContext);
 	const api = await getServerApi(request, env);
 	const url = new URL(request.url);
@@ -26,25 +31,26 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 		sort: filterParam(url, "sort", ["latest", "oldest"] as const),
 	};
 
-	const { data: items, meta } = await api.explore.books({ ...filters, page, per_page: 24 });
+	const { data: items, meta } = await api.explore.books({ ...filters, space: params.slug, page, per_page: 24 });
 
 	return { items, page: meta.current_page, lastPage: meta.last_page, total: meta.total, filtered: Object.values(filters).some(Boolean) };
 }
 
 export default function ExploreBooks({ loaderData }: Route.ComponentProps) {
-	const { items: books, hasMore, loading, sentinel } = useInfiniteList(loaderData, "/explore/books");
+	const { items: books, hasMore, loading, sentinel } = useInfiniteList(loaderData, useLocation().pathname);
+	const inSpace = !!useParams().slug;
 
 	return (
 		<>
 			<SearchFilters placeholder="Search books by title, story or author" filters={[THEME_FILTER, SORT_FILTER]} />
-			<p className="mt-5 mb-4 text-sm text-ink-500">
-				{loaderData.filtered ? `${loaderData.total} ${loaderData.total === 1 ? "book" : "books"} found` : ""}
-			</p>
+			<p className="mt-5 mb-4 text-sm text-ink-500">{loaderData.filtered ? `${loaderData.total} ${loaderData.total === 1 ? "book" : "books"} found` : ""}</p>
 			{!books.length && (
 				<Empty>
 					{loaderData.filtered
 						? "No books match. Try other words or clear the filters."
-						: "No public books yet. Set a book to Public in its editor and it shows up here."}
+						: inSpace
+							? "No public books in this space yet."
+							: "No public books yet. Set a book to Public in its editor and it shows up here."}
 				</Empty>
 			)}
 			<ul className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

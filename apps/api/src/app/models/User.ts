@@ -4,6 +4,7 @@ import { Hash } from '@arkstack/common'
 import { Photo, type UploadedPhoto } from './Photo'
 import { PasswordReset } from './PasswordReset'
 import { PersonalAccessToken } from './PersonalAccessToken'
+import { Space } from './Space'
 import { Storage } from '@arkstack/filesystem'
 import { UserNotification } from './UserNotification'
 import { UserTwoFactor } from './UserTwoFactor'
@@ -51,6 +52,10 @@ export class User extends BaseUser {
 
   photos() {
     return this.hasMany(Photo, 'userId')
+  }
+
+  spaces() {
+    return this.hasMany(Space, 'userId')
   }
 
   personalAccessTokens() {

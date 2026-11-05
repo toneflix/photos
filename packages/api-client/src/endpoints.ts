@@ -11,14 +11,19 @@ import type {
   ID,
   BookQuery,
   PhotoQuery,
+  PageQuery,
   PaginatedResponse,
   Photo,
   PhotoVisibility,
   PublicBook,
   PublicPhoto,
   PublicPhotoDetail,
+  PublicSpace,
   Session,
   SignedIn,
+  Space,
+  SpaceQuery,
+  SpaceVisibility,
   TwoFactorChallenge,
   TwoFactorSetup,
   TwoFactorStatus,
@@ -103,7 +108,7 @@ export function createEndpoints(alova: PhotosAlova) {
        */
       upload: (
         file: Blob | { uri: string; name: string; type: string },
-        meta: { caption?: string; width?: number; height?: number; takenAt?: string } = {},
+        meta: { caption?: string; width?: number; height?: number; takenAt?: string; spaceId?: ID } = {},
       ) => {
         const form = new FormData()
         const name = (file as { name?: string }).name
@@ -114,7 +119,7 @@ export function createEndpoints(alova: PhotosAlova) {
         }
         return alova.Post<ApiResponse<Photo>>('/photos', form)
       },
-      update: (id: ID, data: Partial<Pick<Photo, 'caption' | 'takenAt'> & { visibility: PhotoVisibility }>) =>
+      update: (id: ID, data: Partial<Pick<Photo, 'caption' | 'takenAt' | 'spaceId'> & { visibility: PhotoVisibility }>) =>
         alova.Put<ApiResponse<Photo>>(`/photos/${id}`, data),
       remove: (id: ID) => alova.Delete<ApiResponse<null>>(`/photos/${id}`),
     },
@@ -124,17 +129,32 @@ export function createEndpoints(alova: PhotosAlova) {
       photos: (params: Omit<PhotoQuery, 'visibility'> = {}) => alova.Get<PaginatedResponse<PublicPhoto>>('/explore/photos', { params }),
       photo: (id: ID) => alova.Get<ApiResponse<PublicPhotoDetail>>(`/explore/photos/${id}`),
       books: (params: Omit<BookQuery, 'visibility'> = {}) => alova.Get<PaginatedResponse<PublicBook>>('/explore/books', { params }),
+      spaces: (params: SpaceQuery = {}) => alova.Get<PaginatedResponse<PublicSpace>>('/explore/spaces', { params }),
+      /** A space's page by its web address. Private spaces open only for their owner. */
+      space: (slug: string) => alova.Get<ApiResponse<PublicSpace>>(`/explore/spaces/${encodeURIComponent(slug)}`, { cacheFor: null }),
+    },
+
+    /** Your spaces: collections of photos and books with their own page. */
+    spaces: {
+      list: (params: PageQuery = {}) => alova.Get<PaginatedResponse<Space>>('/spaces', { params, cacheFor: null }),
+      get: (id: ID) => alova.Get<ApiResponse<Space>>(`/spaces/${id}`, { cacheFor: null }),
+      create: (data: { name: string; slug?: string | null; description?: string | null; visibility?: SpaceVisibility }) =>
+        alova.Post<ApiResponse<Space>>('/spaces', data),
+      update: (id: ID, data: Partial<{ name: string; slug: string; description: string | null; visibility: SpaceVisibility }>) =>
+        alova.Put<ApiResponse<Space>>(`/spaces/${id}`, data),
+      /** Delete the space. Its photos and books stay in your library. */
+      remove: (id: ID) => alova.Delete<ApiResponse<Space>>(`/spaces/${id}`),
     },
 
     books: {
       list: (params: BookQuery = {}) => alova.Get<PaginatedResponse<Book>>('/books', { params }),
       /** A book with every page. Works signed out for shared and public books, and for private ones with an access `code`. */
       get: (id: ID, code?: string | null) => alova.Get<ApiResponse<BookWithPages>>(`/books/${id}`, withCode(code)),
-      create: (data: Pick<Book, 'title'> & Partial<Pick<Book, 'description' | 'visibility' | 'theme' | 'paper'>>) =>
+      create: (data: Pick<Book, 'title'> & Partial<Pick<Book, 'description' | 'visibility' | 'theme' | 'paper' | 'spaceId'>>) =>
         alova.Post<ApiResponse<Book>>('/books', data),
       update: (
         id: ID,
-        data: Partial<Pick<Book, 'title' | 'description' | 'visibility' | 'coverPhotoId'> & { theme: BookTheme; paper: PaperColor }>,
+        data: Partial<Pick<Book, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'spaceId'> & { theme: BookTheme; paper: PaperColor }>,
         code?: string | null,
       ) => alova.Put<ApiResponse<BookWithPages>>(`/books/${id}`, data, withCode(code)),
       /** Replace every page of the book, in order. */

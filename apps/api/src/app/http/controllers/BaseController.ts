@@ -1,6 +1,6 @@
 import { RulesForData, Validator } from 'kanun'
 
-import { AuthenticationException } from '@arkstack/auth'
+import { Auth, AuthenticationException } from '@arkstack/auth'
 import { Controller } from 'clear-router'
 import { HttpContext } from 'clear-router/types/express'
 import type { User } from '@app/models/User'
@@ -37,6 +37,18 @@ export class BaseController extends Controller<HttpContext> {
       status: 422,
       errors: { [field]: ['Your password is not right'] },
     })
+  }
+
+  /** The signed-in viewer on a route without the `auth` middleware, if any. */
+  protected async viewer(): Promise<User | null> {
+    const header = this.ctx.req.headers.authorization
+
+    if (!header?.startsWith('Bearer ')) return null
+
+    return (await Auth.make()
+      .setRequest(this.ctx.req as never)
+      .authorizeToken(header.slice(7))
+      .catch(() => null)) as User | null
   }
 
   /** The signed-in user. Only call this behind the `auth` middleware. */

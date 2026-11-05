@@ -1,19 +1,16 @@
 import { abortIf, perPage } from '@arkstack/common'
-import { Auth } from '@arkstack/auth'
 import { BaseController } from './BaseController'
 import { Book } from '@app/models/Book'
 import { BookAccess } from '@app/policies/BookAccess'
 import { BookCollection } from '@app/http/resources/BookCollection'
 import { BookDetailResource } from '@app/http/resources/BookDetailResource'
 import { Photo } from '@app/models/Photo'
-import { regex } from 'kanun'
 import { SORTS } from '@app/support/search'
-import type { User } from '@app/models/User'
+import { UUID } from '@app/support/rules'
 
 const VISIBILITY = `in:${Book.VISIBILITIES.join(',')}`
 const THEME = `in:${Book.THEMES.join(',')}`
 const PAPER = `in:${Book.PAPERS.join(',')}`
-const UUID = regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
 
 /**
  * Photo books and their pages.
@@ -25,6 +22,7 @@ export default class BookController extends BaseController {
       theme: `nullable|${THEME}`,
       visibility: `nullable|${VISIBILITY}`,
       sort: `nullable|in:${SORTS.join(',')}`,
+      space: ['nullable', UUID],
     })
 
     const books = await Book.library(this.user, filters).paginate(perPage(this.query, { perPage: 30, maxPerPage: 100 }))
@@ -39,11 +37,14 @@ export default class BookController extends BaseController {
       visibility: `nullable|${VISIBILITY}`,
       theme: `nullable|${THEME}`,
       paper: `nullable|${PAPER}`,
+      spaceId: ['nullable', UUID],
     })
 
+    const space = data.spaceId ? await this.user.spaces().findOrFail(data.spaceId) : null
     const visibility = data.visibility || this.user.defaultVisibility || 'private'
     const book = await Book.query().create({
       userId: this.user.id,
+      spaceId: space?.id ?? null,
       title: String(data.title).trim(),
       description: data.description || null,
       visibility,
@@ -77,15 +78,17 @@ export default class BookController extends BaseController {
       theme: `nullable|${THEME}`,
       paper: `nullable|${PAPER}`,
       coverPhotoId: ['nullable', UUID],
+      spaceId: ['nullable', UUID],
     })
 
-    abortIf(!!data.visibility && !access.isOwner, 'Only the owner can change who can open this book.', 403)
+    abortIf((!!data.visibility || 'spaceId' in data) && !access.isOwner, 'Only the owner can change who can open this book or its space.', 403)
 
     if (data.title) book.title = String(data.title).trim()
     if ('description' in data) book.description = data.description || null
     if (data.visibility) book.setVisibility(data.visibility)
     if (data.theme) book.theme = data.theme
     if (data.paper) book.paper = data.paper
+    if ('spaceId' in data) book.spaceId = data.spaceId ? (await access.viewer!.spaces().findOrFail(data.spaceId)).id : null
     if ('coverPhotoId' in data) {
       book.coverPhotoId = data.coverPhotoId ? ((await book.ownedPhotoIds([data.coverPhotoId]))[0] ?? null) : null
     }
@@ -154,17 +157,5 @@ export default class BookController extends BaseController {
     const code = this.ctx.req.headers['x-access-code'] ?? this.query.code
 
     return BookAccess.resolve(book, await this.viewer(), typeof code === 'string' ? code : null)
-  }
-
-  /** The signed-in viewer on a route without the `auth` middleware, if any. */
-  private async viewer(): Promise<User | null> {
-    const header = this.ctx.req.headers.authorization
-
-    if (!header?.startsWith('Bearer ')) return null
-
-    return (await Auth.make()
-      .setRequest(this.ctx.req as never)
-      .authorizeToken(header.slice(7))
-      .catch(() => null)) as User | null
   }
 }

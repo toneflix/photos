@@ -1,11 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { Form, Link, useFetcher, useNavigation, useSearchParams } from "react-router";
-import type { Photo } from "@photos/types";
+import type { Photo, Space } from "@photos/types";
 import { requireUser } from "~/lib/session.server";
 import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { PhotoUploader } from "~/components/PhotoUploader";
+import { SpacePicker } from "~/components/spaces/SpacePicker";
 import { Button, Input, Textarea, buttonClass } from "~/components/ui";
-import { ORIENTATION_FILTER, PHOTO_VISIBILITY_FILTER, SORT_FILTER, SearchFilters, filterParam, searchText } from "~/components/SearchFilters";
+import {
+	ORIENTATION_FILTER,
+	PHOTO_VISIBILITY_FILTER,
+	SORT_FILTER,
+	SearchFilters,
+	filterParam,
+	searchText,
+	spaceFilter,
+} from "~/components/SearchFilters";
 import type { Route } from "./+types/photos";
 
 export const meta = () => [{ title: "Your photos · Toneflix Photos" }];
@@ -16,15 +25,25 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 	const { api } = await requireUser(request, context);
 	const url = new URL(request.url);
 	const pages = Math.max(1, Number(url.searchParams.get("pages")) || 1);
+	const { data: spaces } = await api.spaces.list({ per_page: 100 });
+	const space = spaces.find((item) => item.id === url.searchParams.get("space")) ?? null;
 	const filters = {
 		q: searchText(url),
 		orientation: filterParam(url, "orientation", ["landscape", "portrait", "square"] as const),
 		visibility: filterParam(url, "visibility", ["private", "public"] as const),
 		sort: filterParam(url, "sort", ["latest", "oldest"] as const),
 	};
-	const result = await api.photos.list({ ...filters, page: 1, per_page: Math.min(PER_PAGE * pages, 600) });
+	const result = await api.photos.list({ ...filters, space: space?.id, page: 1, per_page: Math.min(PER_PAGE * pages, 600) });
 
-	return { photos: result.data, total: result.meta.total, pages, filtered: Object.values(filters).some(Boolean), oldest: filters.sort === "oldest" };
+	return {
+		photos: result.data,
+		total: result.meta.total,
+		pages,
+		spaces,
+		space,
+		filtered: Object.values(filters).some(Boolean),
+		oldest: filters.sort === "oldest",
+	};
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
@@ -46,7 +65,7 @@ function groupByMonth(photos: Photo[], oldest = false) {
 }
 
 export default function Photos({ loaderData }: Route.ComponentProps) {
-	const { photos, total, pages, filtered, oldest } = loaderData;
+	const { photos, total, pages, spaces, space, filtered, oldest } = loaderData;
 	const [params] = useSearchParams();
 	const [open, setOpen] = useState<Photo | null>(null);
 	const [selecting, setSelecting] = useState(false);
@@ -71,9 +90,19 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 					<p className="mt-1 text-ink-500">
 						{filtered
 							? `${total} ${total === 1 ? "photo" : "photos"} found.`
-							: total === 0
-								? "Everything you upload is kept safe here."
-								: `${total} ${total === 1 ? "photo" : "photos"} kept safe.`}
+							: space
+								? `${total} ${total === 1 ? "photo" : "photos"} in ${space.name}. New uploads go here too.`
+								: total === 0
+									? "Everything you upload is kept safe here."
+									: `${total} ${total === 1 ? "photo" : "photos"} kept safe.`}
+						{space && (
+							<>
+								{" "}
+								<Link to={`/spaces/${space.slug}`} className="font-medium text-brand-700 hover:underline">
+									Open the space page
+								</Link>
+							</>
+						)}
 					</p>
 				</div>
 				{total > 0 &&
@@ -96,13 +125,16 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 
 			{!selecting && !filtered && (
 				<div className="mt-8">
-					<PhotoUploader action="/photos" compact={total > 0} />
+					<PhotoUploader key={space?.id ?? ""} action="/photos" compact={total > 0} spaceId={space?.id} />
 				</div>
 			)}
 
-			{(total > 0 || filtered) && (
+			{(total > 0 || filtered || spaces.length > 0) && (
 				<div className="mt-8">
-					<SearchFilters placeholder="Search your photos by caption" filters={[ORIENTATION_FILTER, PHOTO_VISIBILITY_FILTER, SORT_FILTER]} />
+					<SearchFilters
+						placeholder="Search your photos by caption"
+						filters={[...(spaces.length ? [spaceFilter(spaces)] : []), ORIENTATION_FILTER, PHOTO_VISIBILITY_FILTER, SORT_FILTER]}
+					/>
 				</div>
 			)}
 
@@ -183,20 +215,21 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 				</div>
 			)}
 
-			{selecting && <SelectionBar picked={picked} onClear={stopSelecting} />}
-			{open && <PhotoDialog photo={open} onClose={() => setOpen(null)} />}
+			{selecting && <SelectionBar picked={picked} spaceId={space?.id} onClear={stopSelecting} />}
+			{open && <PhotoDialog photo={open} spaces={spaces} onClose={() => setOpen(null)} />}
 		</main>
 	);
 }
 
 /** Floating bar for turning the picked photos into a new book. */
-function SelectionBar({ picked, onClear }: { picked: string[]; onClear: () => void }) {
+function SelectionBar({ picked, spaceId, onClear }: { picked: string[]; spaceId?: string; onClear: () => void }) {
 	const busy = useNavigation().state !== "idle";
 
 	return (
 		<div className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4">
 			<Form method="post" className="mx-auto flex max-w-3xl flex-wrap items-center gap-3 rounded-xl bg-ink-900 p-3 pl-5 text-surface-50 shadow-2xl sm:flex-nowrap">
 				<input type="hidden" name="intent" value="make-book" />
+				{spaceId && <input type="hidden" name="spaceId" value={spaceId} />}
 				{picked.map((id) => (
 					<input key={id} type="hidden" name="photoIds" value={id} />
 				))}
@@ -219,9 +252,11 @@ function SelectionBar({ picked, onClear }: { picked: string[]; onClear: () => vo
 	);
 }
 
-function PhotoDialog({ photo: initial, onClose }: { photo: Photo; onClose: () => void }) {
+function PhotoDialog({ photo: initial, spaces, onClose }: { photo: Photo; spaces: Space[]; onClose: () => void }) {
 	const fetcher = useFetcher<typeof action>();
 	const visibility = useFetcher<typeof action>();
+	const mover = useFetcher<typeof action>();
+	const moved = mover.data && "photo" in mover.data ? mover.data.photo : undefined;
 	const updated = visibility.data && "photo" in visibility.data ? visibility.data.photo : undefined;
 	const pending = visibility.formData?.get("visibility");
 	const photo = updated ?? initial;
@@ -283,6 +318,16 @@ function PhotoDialog({ photo: initial, onClose }: { photo: Photo; onClose: () =>
 							<span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition ${isPublic ? "translate-x-5" : ""}`} />
 						</button>
 					</visibility.Form>
+					{spaces.length > 0 && (
+						<mover.Form method="post" onChange={(event) => mover.submit(event.currentTarget)}>
+							<input type="hidden" name="intent" value="space" />
+							<input type="hidden" name="photoId" value={photo.id} />
+							<label className="block text-sm">
+								<span className="mb-1.5 block font-semibold text-ink-900">Space</span>
+								<SpacePicker spaces={spaces} name="spaceId" defaultValue={(moved ?? photo).spaceId ?? ""} disabled={mover.state !== "idle"} />
+							</label>
+						</mover.Form>
+					)}
 					<fetcher.Form method="post" className="space-y-3">
 						<input type="hidden" name="intent" value="caption" />
 						<input type="hidden" name="photoId" value={photo.id} />

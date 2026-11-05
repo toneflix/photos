@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { data, Link, redirect, useFetcher, type ShouldRevalidateFunctionArgs } from "react-router";
-import type { BookPageInput, BookTheme, BookWithPages, PageLayout, PaperColor, Photo, Visibility } from "@photos/types";
+import type { BookPageInput, BookTheme, BookWithPages, PageLayout, PaperColor, Photo, Space, Visibility } from "@photos/types";
 import { PAGE_LAYOUTS, PAPER_COLORS } from "@photos/types";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { formError, getServerApi } from "~/lib/api.server";
@@ -9,6 +9,7 @@ import { readToken } from "~/lib/session.server";
 import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { CoverView, PageView, PaperContext, PHOTO_DRAG_TYPE, TitlePageView } from "~/components/flipbook/PageView";
 import { PhotoUploader } from "~/components/PhotoUploader";
+import { SpacePicker } from "~/components/spaces/SpacePicker";
 import { Button, Field, Input, Textarea, buttonClass, Spinner } from "~/components/ui";
 import type { Route } from "./+types/book-edit";
 
@@ -32,8 +33,9 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 	const photos = book.isOwner
 		? (await api.photos.list({ per_page: 200 })).data
 		: [...new Map(book.pages.flatMap((page) => page.photos).map((photo) => [photo.id, photo])).values()];
+	const spaces = book.isOwner ? (await api.spaces.list({ per_page: 100 })).data : [];
 
-	return { book, photos };
+	return { book, photos, spaces };
 }
 
 export async function action({ request, params, context }: Route.ActionArgs) {
@@ -568,7 +570,14 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 					</aside>
 				</div>
 
-				{settingsOpen && <SettingsDrawer book={{ ...book, paper }} onClose={() => setSettingsOpen(false)} bookPhotos={pages.flatMap((p) => p.photos)} />}
+				{settingsOpen && (
+					<SettingsDrawer
+						book={{ ...book, paper }}
+						spaces={loaderData.spaces}
+						onClose={() => setSettingsOpen(false)}
+						bookPhotos={pages.flatMap((p) => p.photos)}
+					/>
+				)}
 			</div>
 		</PaperContext.Provider>
 	);
@@ -578,13 +587,14 @@ function DropMarker() {
 	return <div className="pointer-events-none absolute -top-2 right-0 left-0 z-10 h-1 rounded-full bg-brand-500 lg:-top-2" />;
 }
 
-function SettingsDrawer({ book, bookPhotos, onClose }: { book: BookWithPages; bookPhotos: Photo[]; onClose: () => void }) {
+function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithPages; spaces: Space[]; bookPhotos: Photo[]; onClose: () => void }) {
 	const fetcher = useFetcher<typeof action>();
 	const [title, setTitle] = useState(book.title);
 	const [description, setDescription] = useState(book.description ?? "");
 	const [theme, setTheme] = useState<BookTheme>(book.theme);
 	const [visibility, setVisibility] = useState<Visibility>(book.visibility);
 	const [coverPhotoId, setCoverPhotoId] = useState<string | null>(book.coverPhotoId);
+	const [spaceId, setSpaceId] = useState(book.spaceId ?? "");
 	const [copied, setCopied] = useState(false);
 	const saving = fetcher.state !== "idle";
 	const uniquePhotos = useMemo(() => [...new Map(bookPhotos.map((p) => [p.id, p])).values()], [bookPhotos]);
@@ -600,7 +610,7 @@ function SettingsDrawer({ book, bookPhotos, onClose }: { book: BookWithPages; bo
 		fetcher.submit(
 			{
 				intent: "update",
-				changes: { title, description: description || null, theme, coverPhotoId, ...(book.isOwner ? { visibility } : {}) },
+				changes: { title, description: description || null, theme, coverPhotoId, ...(book.isOwner ? { visibility, spaceId: spaceId || null } : {}) },
 			},
 			{ method: "post", encType: "application/json" },
 		);
@@ -678,6 +688,11 @@ function SettingsDrawer({ book, bookPhotos, onClose }: { book: BookWithPages; bo
 							<p className="text-sm text-ink-500">Add photos to your pages to choose a cover photo.</p>
 						)}
 					</fieldset>
+					{book.isOwner && spaces.length > 0 && (
+						<Field label="Space">
+							<SpacePicker spaces={spaces} value={spaceId} onChange={(e) => setSpaceId(e.target.value)} />
+						</Field>
+					)}
 					{book.isOwner && (
 						<fieldset>
 							<legend className="mb-1.5 text-sm font-medium text-ink-700">Who can open it</legend>

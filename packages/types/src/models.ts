@@ -82,6 +82,8 @@ export interface Session {
 export interface Photo {
   id: ID
   userId: ID
+  /** The space the photo sits in, if any. */
+  spaceId: ID | null
   /** Signed URL, generated per response. */
   url: string
   /** Signed URL, generated per response. */
@@ -108,9 +110,17 @@ export interface Owner {
   avatarUrl: string | null
 }
 
+/** A link to the public space a photo or book sits in. Null outside a space or in a private one. */
+export interface SpaceLink {
+  id: ID
+  name: string
+  slug: string
+}
+
 /** A photo on Explore. */
 export interface PublicPhoto extends Photo {
   owner: Owner
+  space: SpaceLink | null
 }
 
 /** A public photo with the owner's public books it appears in, and the page it is first on. */
@@ -155,6 +165,8 @@ export const PAPER_COLORS: Record<PaperColor, { label: string; swatch: string }>
 export interface Book {
   id: ID
   userId: ID
+  /** The space the book sits in, if any. */
+  spaceId: ID | null
   title: string
   description: string | null
   coverPhotoId: ID | null
@@ -172,6 +184,42 @@ export interface Book {
 /** A book on Explore. */
 export interface PublicBook extends Book {
   owner: Owner
+  space: SpaceLink | null
+}
+
+/**
+ * Who can browse a space.
+ * - private: only the owner. Its photos and books stay off Explore.
+ * - public: anyone, on its own page and on Explore.
+ */
+export type SpaceVisibility = 'private' | 'public'
+
+/**
+ * A creator's collection of photos and books, like an organisation. A creator
+ * can have many. Owners see every photo and book in counts and previews.
+ */
+export interface Space {
+  id: ID
+  userId: ID
+  name: string
+  /** The space's web address, e.g. `ada-weddings`. */
+  slug: string
+  description: string | null
+  visibility: SpaceVisibility
+  publishedAt: string | null
+  photoCount: number
+  bookCount: number
+  /** Up to four of the newest photos, for the space's card. */
+  previews: Photo[]
+  createdAt: string
+  updatedAt: string
+}
+
+/** A space as visitors see it: counts and previews include only public photos and books. */
+export interface PublicSpace extends Space {
+  owner: Owner
+  /** True when the signed-in viewer owns the space. */
+  canEdit: boolean
 }
 
 /** One page of a book, holding one or more photos. */
