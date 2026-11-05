@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { BookTheme, BookWithPages } from "@photos/types";
 import {
 	BackCoverView,
@@ -9,19 +9,16 @@ import {
 	PaperContext,
 	TitlePageView,
 } from "./PageView";
+import { Fold, PageTurn, type TurnFrame, type Vec } from "./pageTurn";
 import { FrameContext } from "./PrintedPhoto";
 import { playPageTurn } from "./sound";
 import { enterLandscape, useElementSize, useOrientation } from "./useViewport";
 
 /** Width / height of one page. */
 const PAGE_ASPECT = 3 / 4;
-const TURN_MS = 900;
-/** How far (0–1) a dragged page must travel before letting go finishes the turn. */
-const COMMIT_AT = 0.3;
-/** Hinged strips in a leaf that can turn; more strips make a smoother bend. */
-const BEND_STRIPS = 6;
-/** How far (degrees) a page's free edge bends away from its spine half-way through a turn. */
-const BEND_MAX = 38;
+/** Share of the page width along the outer edge, and of its height along the top and bottom, that grabs the edge itself. */
+const EDGE_X = 0.15;
+const EDGE_Y = 0.08;
 
 type Face =
 	| { kind: "cover" }
@@ -68,10 +65,16 @@ function buildLeaves(faces: Face[], spread: boolean): Leaf[] {
 /** The `flipped` value that shows a given face. */
 const flippedForFace = (face: number, spread: boolean) => (spread ? Math.ceil(face / 2) : face);
 
-/** `progress` runs 0→1 in the direction of the turn. */
-type Drag = { leaf: number; dir: 1 | -1; progress: number };
-/** A leaf finishing its turn. `fromDrag` turns settle from the drag's bend instead of bending afresh. */
-type Turn = { leaf: number; until: number; dir: 1 | -1; fromDrag: boolean };
+/** The leaf being turned or peeked at. Covers are stiff: they swing on the spine instead of curling. */
+type ActiveTurn = { leaf: number; dir: 1 | -1; stiff: boolean; peek: boolean };
+
+/** Light and shadow drawn around the fold of a turning page. */
+type Overlay = "under" | "bend" | "shadow" | "curl";
+
+const isStiff = (leaf: Leaf) => leaf.front.kind === "cover" || leaf.front.kind === "back" || leaf.back.kind === "back";
+
+const polygon = (points: Vec[], dx = 0, dy = 0) =>
+	points.length ? `polygon(${points.map((p) => `${(p.x + dx).toFixed(2)}px ${(p.y + dy).toFixed(2)}px`).join(", ")})` : "polygon(0 0)";
 
 export function Flipbook({
 	book,
@@ -109,8 +112,7 @@ export function Flipbook({
 	const [flipped, setFlipped] = useState(() =>
 		startPage && startPage <= book.pages.length ? flippedForFace(startPage + 1, spread) : 0,
 	);
-	const [turning, setTurning] = useState<Turn | null>(null);
-	const [drag, setDrag] = useState<Drag | null>(null);
+	const [active, setActive] = useState<ActiveTurn | null>(null);
 
 	useEffect(() => {
 		try {
@@ -131,6 +133,128 @@ export function Flipbook({
 		});
 	};
 
+	// Page size: as large as fits, keeping the page aspect, with room for the controls.
+	const pagesAcross = spread ? 2 : 1;
+	const marginY = stage.height < 500 ? 16 : Math.min(150, stage.height * 0.16);
+	const availW = Math.max(0, stage.width - (spread ? 64 : 24));
+	const availH = Math.max(0, stage.height - marginY);
+	const pageW = Math.floor(Math.min(availH * PAGE_ASPECT, availW / pagesAcross));
+	const pageH = Math.floor(pageW / PAGE_ASPECT);
+	const size = { width: pageW, height: pageH };
+
+	// ------------------------------------------------- Turning pages
+	const faceRefs = useRef(new Map<string, HTMLDivElement>());
+	const overlayRefs = useRef(new Map<Overlay, { clip: HTMLDivElement | null; light: HTMLDivElement | null }>());
+	const activeRef = useRef<ActiveTurn | null>(null);
+	activeRef.current = active;
+
+	const paint = useCallback(
+		(frame: TurnFrame) => {
+			const turn = activeRef.current;
+			if (!turn) return;
+
+			const s = turn.dir;
+			const front = faceRefs.current.get(`${turn.leaf}:front`);
+			const back = faceRefs.current.get(`${turn.leaf}:back`);
+			const overlays = overlayRefs.current;
+
+			if (frame.stiff) {
+				const angle = (-Math.acos(Math.max(-1, Math.min(1, (s * frame.point.x) / Math.max(1, frame.origin.x)))) * 180) / Math.PI;
+				const perspective = `perspective(${Math.max(1800, pageW * 5)}px) rotateY(${angle}deg)`;
+
+				if (front) Object.assign(front.style, { transformOrigin: "0 50%", transform: perspective, clipPath: "" });
+				if (back) Object.assign(back.style, { transformOrigin: "0 50%", transform: `${perspective} translateX(${pageW}px) rotateY(180deg)`, clipPath: "" });
+				return;
+			}
+
+			// The side facing up where the leaf started, and the side the fold turns over.
+			const top = s === 1 ? front : back;
+			const under = s === 1 ? back : front;
+			const fold = new Fold(pageW, pageH, frame.origin, frame.point);
+			const flap = fold.flap;
+			// Strongest mid-turn, fading out as the page lies flat at either end.
+			const strength = Math.min(1, fold.progress * 8) * Math.min(1, (1 - fold.progress) * 6);
+
+			if (top) {
+				Object.assign(top.style, {
+					transformOrigin: "",
+					transform: "",
+					clipPath: polygon(fold.flat.map((p) => ({ x: s === 1 ? p.x : pageW - p.x, y: p.y }))),
+				});
+			}
+			if (under) {
+				Object.assign(under.style, {
+					transformOrigin: "0 0",
+					transform: fold.flapMatrix(s),
+					clipPath: polygon(fold.folded.map((p) => ({ x: s === 1 ? pageW - p.x : p.x, y: p.y }))),
+				});
+			}
+
+			const layer = (name: Overlay, region: Vec[], toward: 1 | -1, opacity: number) => {
+				const refs = overlays.get(name);
+				if (!refs?.clip || !refs.light) return;
+
+				const shape = polygon(
+					region.map((p) => ({ x: s * p.x, y: p.y })),
+					pageW,
+					pageH,
+				);
+
+				refs.clip.style.opacity = String(opacity);
+
+				// The flap's shadow is its own silhouette, blurred by the layer around it.
+				if (name === "shadow") {
+					refs.light.style.clipPath = shape;
+					return;
+				}
+
+				refs.clip.style.clipPath = shape;
+
+				const angle = Math.atan2(toward * fold.normal.y, s * toward * fold.normal.x);
+				refs.light.style.transform = `translate(${s * fold.center.x + pageW}px, ${fold.center.y + pageH}px) rotate(${angle}rad) translateY(-50%)`;
+			};
+
+			layer("under", fold.folded, 1, strength);
+			layer("bend", fold.flat, -1, strength);
+			layer("shadow", flap, -1, strength * 0.6);
+			layer("curl", flap, -1, strength);
+		},
+		[pageW, pageH],
+	);
+
+	const settle = useCallback((turned: boolean) => {
+		const turn = activeRef.current;
+		if (!turn) return;
+
+		// A leaf turned from the right lands on the left, and the other way round.
+		const landedLeft = turn.dir === 1 ? turned : !turned;
+
+		setFlipped(landedLeft ? turn.leaf + 1 : turn.leaf);
+		setActive(null);
+	}, []);
+
+	const handlers = useRef({ paint, settle });
+	handlers.current = { paint, settle };
+
+	const [engine] = useState(() => new PageTurn({ frame: (f) => handlers.current.paint(f), settle: (t) => handlers.current.settle(t) }));
+
+	// Faces change roles when a turn starts or ends: place them before the browser paints.
+	useLayoutEffect(() => {
+		faceRefs.current.forEach((el, key) => {
+			const turning = active && (key === `${active.leaf}:front` || key === `${active.leaf}:back`);
+			if (!turning) Object.assign(el.style, { transform: "", transformOrigin: "", clipPath: "" });
+		});
+		if (active) paint(engine.frame);
+	}, [active, paint, engine]);
+
+	useEffect(() => () => engine.cancel(), [engine]);
+
+	// A new layout or page size drops any turn in progress.
+	useEffect(() => {
+		engine.cancel();
+		setActive(null);
+	}, [engine, spread, pageW]);
+
 	// Keep the reader on roughly the same page when the mode changes.
 	const prevSpread = useRef(spread);
 	useEffect(() => {
@@ -142,24 +266,35 @@ export function Flipbook({
 	const go = useCallback(
 		(target: number) => {
 			const next = Math.max(0, Math.min(leaves.length, target));
-			if (next === flipped) return;
-			// Turning one leaf animates it; a jump just swaps the view.
-			if (Math.abs(next - flipped) === 1) {
-				setTurning({ leaf: Math.min(next, flipped), until: Date.now() + TURN_MS, dir: next > flipped ? 1 : -1, fromDrag: false });
+			if (next === flipped || pageW === 0) return;
+
+			// A turn already under way lands first.
+			if (engine.active && !engine.peeking) {
+				engine.finish();
+				return;
 			}
+			engine.cancel();
 			if (sound) playPageTurn();
-			setFlipped(next);
+
+			// Turning one leaf animates it from its bottom corner; a jump just swaps the view.
+			if (Math.abs(next - flipped) !== 1) {
+				setActive(null);
+				setFlipped(next);
+				return;
+			}
+
+			const leaf = Math.min(next, flipped);
+			const stiff = isStiff(leaves[leaf]);
+			const turn: ActiveTurn = { leaf, dir: next > flipped ? 1 : -1, stiff, peek: false };
+
+			activeRef.current = turn;
+			setActive(turn);
+			engine.turn({ x: pageW, y: stiff ? pageH / 2 : pageH }, { width: pageW, height: pageH }, stiff);
 		},
-		[leaves.length, flipped, sound],
+		[leaves, flipped, sound, engine, pageW, pageH],
 	);
 	const next = useCallback(() => go(flipped + 1), [go, flipped]);
 	const prev = useCallback(() => go(flipped - 1), [go, flipped]);
-
-	useEffect(() => {
-		if (!turning) return;
-		const t = setTimeout(() => setTurning(null), Math.max(0, turning.until - Date.now()));
-		return () => clearTimeout(t);
-	}, [turning]);
 
 	// Keyboard: arrows, page keys, space, home/end.
 	useEffect(() => {
@@ -203,69 +338,147 @@ export function Flipbook({
 		else if (rootRef.current) await enterLandscape(rootRef.current);
 	};
 
-	// Page size: as large as fits, keeping the page aspect, with room for the controls.
-	const pagesAcross = spread ? 2 : 1;
-	const marginY = stage.height < 500 ? 16 : Math.min(150, stage.height * 0.16);
-	const availW = Math.max(0, stage.width - (spread ? 64 : 24));
-	const availH = Math.max(0, stage.height - marginY);
-	const pageW = Math.floor(Math.min(availH * PAGE_ASPECT, availW / pagesAcross));
-	const pageH = Math.floor(pageW / PAGE_ASPECT);
-
 	// A closed book sits centred: shift by half a page at either end.
+	const settled = !active || active.peek;
 	let shift = 0;
-	if (spread && flipped === 0 && !(drag && drag.dir === 1)) shift = -pageW / 2;
-	if (spread && flipped === leaves.length && !(drag && drag.dir === -1)) shift = pageW / 2;
+	if (spread && flipped === 0 && settled) shift = -pageW / 2;
+	if (spread && flipped === leaves.length && settled) shift = pageW / 2;
 
-	// ------------------------------------------------- Drag to turn a page
-	const pointer = useRef<{ x: number; y: number; id: number; leaf: number | null; dir: 1 | -1; spine: number } | null>(null);
+	// ------------------------------------------------- Pointer: grab, drag, peek
 	const bookRef = useRef<HTMLDivElement>(null);
+	const press = useRef<{ at: Vec; id: number; grabbed: boolean } | null>(null);
+	const grabStart = useRef<Vec>({ x: 0, y: 0 });
+	const grabDir = useRef<1 | -1>(1);
+	const grabReach = useRef(1);
+
+	/** Pointer position relative to the top of the spine. */
+	const toBook = (e: React.PointerEvent): Vec => {
+		const rect = bookRef.current?.getBoundingClientRect();
+		if (!rect) return { x: 0, y: 0 };
+
+		return { x: e.clientX - (rect.left + (spread ? rect.width / 2 : 0)), y: e.clientY - rect.top };
+	};
+
+	/**
+	 * Which leaf a press at `p` takes hold of, and where on it. Presses near an
+	 * outer edge or corner hold that spot; anywhere else holds the outer edge at
+	 * the same height, so a swipe across the page turns it.
+	 */
+	const holdAt = (p: Vec) => {
+		const forward = spread ? p.x >= 0 : p.x >= pageW * 0.3;
+		const leaf = forward ? flipped : flipped - 1;
+		if (leaf < 0 || leaf >= leaves.length) return null;
+
+		// Measured from the spine toward the side the leaf lies on.
+		const onLeaf = forward ? p : { x: spread ? -p.x : pageW, y: p.y };
+		const nearOuter = onLeaf.x > pageW * (1 - EDGE_X);
+		const nearTop = onLeaf.y < pageH * EDGE_Y;
+		const nearBottom = onLeaf.y > pageH * (1 - EDGE_Y);
+		const stiff = isStiff(leaves[leaf]);
+		const origin = {
+			x: nearOuter || !(nearTop || nearBottom) ? pageW : Math.max(1, onLeaf.x),
+			y: stiff ? pageH / 2 : nearTop ? 0 : nearBottom ? pageH : Math.max(0, Math.min(pageH, onLeaf.y)),
+		};
+
+		return { leaf, dir: forward ? 1 : -1, origin, stiff, start: origin } as const;
+	};
+
+	/** The outer corner under a hovering mouse, if any. */
+	const cornerAt = (p: Vec) => {
+		const reach = Math.max(36, pageW * 0.12);
+		const corners = [
+			...(flipped < leaves.length ? [{ x: pageW, y: 0 }, { x: pageW, y: pageH }] : []),
+			...(spread && flipped > 0 ? [{ x: -pageW, y: 0 }, { x: -pageW, y: pageH }] : []),
+		];
+
+		return corners.find((c) => Math.hypot(p.x - c.x, p.y - c.y) < reach) ?? null;
+	};
+
+	const peekAt = (p: Vec) => {
+		const corner = cornerAt(p);
+
+		if (!corner) {
+			engine.unpeek();
+			return;
+		}
+
+		const dir = corner.x > 0 ? 1 : -1;
+		const leaf = dir === 1 ? flipped : flipped - 1;
+		const stiff = isStiff(leaves[leaf]);
+		const origin = { x: pageW, y: stiff ? pageH / 2 : corner.y };
+		const toward = { x: dir * (p.x - corner.x), y: p.y - corner.y };
+		const distance = Math.hypot(toward.x, toward.y) || 1;
+		const lift = Math.max(pageW * 0.12, Math.min(pageW * 0.2, distance * 2));
+		const point = {
+			x: pageW + (toward.x / distance) * lift,
+			y: stiff ? origin.y : corner.y + (toward.y / distance) * lift,
+		};
+
+		if (active?.leaf !== leaf || active.dir !== dir) {
+			const turn: ActiveTurn = { leaf, dir, stiff, peek: true };
+			activeRef.current = turn;
+			setActive(turn);
+		}
+		engine.peek(origin, point, size, stiff);
+	};
 
 	const onPointerDown = (e: React.PointerEvent) => {
 		if (e.button !== 0) return;
-		const rect = bookRef.current?.getBoundingClientRect();
-		const middle = rect ? rect.left + rect.width / 2 : e.clientX;
-		// Grab the right page to go forward, the left page to go back.
-		const forward = spread ? e.clientX >= middle : e.clientX >= middle - (rect?.width ?? 0) / 6;
-		const dir: 1 | -1 = forward ? 1 : -1;
-		const leaf = forward ? (flipped < leaves.length ? flipped : null) : flipped > 0 ? flipped - 1 : null;
-		const spine = rect ? (spread ? middle : rect.left) : e.clientX;
-		pointer.current = { x: e.clientX, y: e.clientY, id: e.pointerId, leaf, dir, spine };
+
+		press.current = { at: { x: e.clientX, y: e.clientY }, id: e.pointerId, grabbed: false };
 	};
 
 	const onPointerMove = (e: React.PointerEvent) => {
 		poke();
-		const start = pointer.current;
-		if (!start || start.leaf === null || start.id !== e.pointerId) return;
-		const dx = e.clientX - start.x;
-		const dy = e.clientY - start.y;
-		if (!drag && (Math.abs(dx) < 8 || Math.abs(dy) > Math.abs(dx))) return;
-		if (!drag) (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-		// The page's free edge follows the pointer: edge x = spine + width·cos(angle).
-		const cos = Math.max(-1, Math.min(1, (e.clientX - start.spine) / Math.max(1, pageW)));
-		const turned = Math.acos(cos) / Math.PI; // 0 = flat on the right, 1 = flat on the left
-		const progress = start.dir === 1 ? turned : 1 - turned;
-		setDrag({ leaf: start.leaf, dir: start.dir, progress });
+		const p = toBook(e);
+		const start = press.current;
+
+		if (!start) {
+			if (e.pointerType === "mouse" && !engine.dragging) peekAt(p);
+			return;
+		}
+		if (start.id !== e.pointerId) return;
+
+		const dx = e.clientX - start.at.x;
+		const dy = e.clientY - start.at.y;
+
+		if (!start.grabbed) {
+			if (Math.hypot(dx, dy) < 6 || (engine.active && !engine.peeking)) return;
+
+			const pressed = { x: p.x - dx, y: p.y - dy };
+			const peeked = engine.peeking && active ? { ...active, origin: engine.frame.origin, start: engine.frame.point } : null;
+			const hold = peeked ?? holdAt(pressed);
+			if (!hold) return;
+
+			start.grabbed = true;
+			grabStart.current = hold.start;
+			grabDir.current = hold.dir;
+			// On a single page the previous leaf lies out of sight, so it moves twice as far to show up under the pointer.
+			grabReach.current = !spread && hold.dir === -1 ? 2 : 1;
+			(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+
+			const turn: ActiveTurn = { leaf: hold.leaf, dir: hold.dir, stiff: hold.stiff, peek: false };
+			activeRef.current = turn;
+			setActive(turn);
+			engine.grab(hold.origin, hold.start, size, hold.stiff);
+		}
+
+		engine.drag({ x: grabStart.current.x + grabDir.current * grabReach.current * dx, y: grabStart.current.y + dy });
 	};
 
 	const onPointerUp = (e: React.PointerEvent) => {
-		const start = pointer.current;
-		pointer.current = null;
+		const start = press.current;
+		press.current = null;
 		if (!start) return;
 
-		if (drag) {
-			const done = drag.progress >= COMMIT_AT;
-			setTurning({ leaf: drag.leaf, until: Date.now() + TURN_MS, dir: done ? drag.dir : drag.dir === 1 ? -1 : 1, fromDrag: true });
-			setDrag(null);
-			if (done) {
-				if (sound) playPageTurn();
-				setFlipped(drag.dir === 1 ? drag.leaf + 1 : drag.leaf);
-			}
+		if (start.grabbed) {
+			if (engine.release() && sound) playPageTurn();
 			return;
 		}
 
 		// A tap on the outer thirds turns the page.
-		const dx = e.clientX - start.x;
-		const dy = e.clientY - start.y;
+		const dx = e.clientX - start.at.x;
+		const dy = e.clientY - start.at.y;
 		if (Math.abs(dx) < 8 && Math.abs(dy) < 8) {
 			const rect = stageRef.current?.getBoundingClientRect();
 			if (!rect) return;
@@ -276,10 +489,10 @@ export function Flipbook({
 		}
 	};
 
-	const renderFace = (face: Face, side: "left" | "right", nearby: boolean) => {
+	const renderFace = (face: Face, side: "left" | "right") => {
 		switch (face.kind) {
 			case "cover":
-				return <CoverView book={book} showImages={nearby} />;
+				return <CoverView book={book} />;
 			case "back":
 				return <BackCoverView theme={book.theme} />;
 			case "title":
@@ -289,9 +502,78 @@ export function Flipbook({
 			case "blank":
 				return <BlankPageView side={side} />;
 			case "page":
-				return <PageView page={book.pages[face.index]} number={face.index + 1} side={side} showImages={nearby} />;
+				return <PageView page={book.pages[face.index]} number={face.index + 1} side={side} />;
 		}
 	};
+
+	// Faces of the leaves around the opening. Each keeps its element while it
+	// moves between roles, so pages never reload mid-turn.
+	const turnLeaf = active?.leaf ?? null;
+	const turnDir = active?.dir ?? 1;
+	const rightLeaf = turnLeaf !== null ? turnLeaf + 1 : flipped;
+	const leftLeaf = turnLeaf !== null ? turnLeaf - 1 : flipped - 1;
+	const faceElements: ReactNode[] = [];
+
+	for (let k = Math.max(0, flipped - 2); k <= Math.min(leaves.length - 1, flipped + 1); k++) {
+		for (const side of ["front", "back"] as const) {
+			const key = `${k}:${side}`;
+			const facesUp = (side === "front") === (turnDir === 1);
+			const role =
+				k === turnLeaf
+					? facesUp
+						? "turning"
+						: "flap"
+					: side === "front"
+						? k === rightLeaf
+							? "right"
+							: "spare"
+						: k === leftLeaf && spread
+							? "left"
+							: "spare";
+			const z = { right: 1, left: 1, turning: 3, flap: 6, spare: 0 }[role];
+			const onLeft = role === "left" || (role === "turning" && turnDir === -1 && !active?.stiff);
+
+			faceElements.push(
+				<div
+					key={key}
+					ref={(el) => {
+						if (el) faceRefs.current.set(key, el);
+						else faceRefs.current.delete(key);
+					}}
+					className="flipbook-face"
+					style={{ left: onLeft ? -pageW : 0, width: pageW, height: pageH, zIndex: z, visibility: role === "spare" ? "hidden" : "visible" }}
+					aria-hidden={role !== "left" && role !== "right"}
+				>
+					{renderFace(side === "front" ? leaves[k].front : leaves[k].back, side === "front" ? "right" : "left")}
+				</div>,
+			);
+		}
+	}
+
+	const overlay = (name: Overlay, z: number, light: string) => {
+		const shadow = name === "shadow";
+		const bind = (part: "clip" | "light") => (el: HTMLDivElement | null) => {
+			const refs = overlayRefs.current.get(name) ?? { clip: null, light: null };
+			refs[part] = el;
+			overlayRefs.current.set(name, refs);
+		};
+
+		return (
+			<div
+				key={name}
+				ref={bind("clip")}
+				className="flipbook-overlay"
+				style={{ left: -pageW, top: -pageH, width: pageW * 2, height: pageH * 3, zIndex: z, filter: shadow ? `blur(${Math.max(3, pageW * 0.012)}px)` : undefined }}
+			>
+				<div
+					ref={bind("light")}
+					className="flipbook-light"
+					style={shadow ? { inset: 0, background: light } : { width: pageW * 3, height: pageH * 4, background: light }}
+				/>
+			</div>
+		);
+	};
+	const w = (share: number) => `${(pageW * share).toFixed(1)}px`;
 
 	const label = pageLabel(flipped, leaves, spread, book.pages.length);
 	const atStart = flipped === 0;
@@ -313,8 +595,8 @@ export function Flipbook({
 		>
 			{/* Top bar */}
 			<div
-				className={`absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-3 bg-gradient-to-b from-black/60 to-transparent px-4 py-3 transition-opacity duration-300 ${
-					chromeShown ? "opacity-100" : "pointer-events-none opacity-0"
+				className={`pointer-events-none absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-3 bg-gradient-to-b from-black/60 to-transparent px-4 py-3 transition-opacity duration-300 ${
+					chromeShown ? "opacity-100 [&>*]:pointer-events-auto" : "opacity-0"
 				}`}
 			>
 				<div className="flex min-w-0 items-center gap-3">
@@ -339,13 +621,13 @@ export function Flipbook({
 			<div
 				ref={stageRef}
 				className="relative flex flex-1 touch-none items-center justify-center"
-				style={{ perspective: `${Math.max(1800, pageW * 5)}px` }}
 				onPointerDown={onPointerDown}
 				onPointerMove={onPointerMove}
 				onPointerUp={onPointerUp}
+				onPointerLeave={() => engine.unpeek()}
 				onPointerCancel={() => {
-					pointer.current = null;
-					setDrag(null);
+					press.current = null;
+					if (engine.dragging) engine.release();
 				}}
 			>
 				{pageW > 0 && (
@@ -356,15 +638,16 @@ export function Flipbook({
 							width: pageW * pagesAcross,
 							height: pageH,
 							transform: `translateX(${shift}px)`,
-							cursor: drag ? "grabbing" : "grab",
+							cursor: engine.dragging ? "grabbing" : "grab",
+							clipPath: spread ? undefined : "inset(-50% -50% -50% 0)",
 						}}
 					>
 						{/* Shadow cast by the book */}
 						<div
 							className="pointer-events-none absolute -bottom-8 h-12 rounded-[50%] bg-black/60 blur-2xl transition-all duration-700"
 							style={{
-								left: spread && atStart ? "52%" : "2%",
-								right: spread && atEnd ? "52%" : "2%",
+								left: spread && atStart && settled ? "52%" : "2%",
+								right: spread && atEnd && settled ? "52%" : "2%",
 							}}
 						/>
 						{/* Page edges */}
@@ -375,75 +658,21 @@ export function Flipbook({
 							<div className="flipbook-edge absolute top-[3px] bottom-[3px]" style={{ right: -rightEdge, width: rightEdge }} />
 						)}
 
-						{leaves.map((leaf, k) => {
-							const isDragged = drag?.leaf === k;
-							const isFlipped = k < flipped;
-							const isTurning = turning?.leaf === k;
-							const nearby = Math.abs(k - flipped) <= 2;
-
-							let angle = isFlipped ? -180 : 0;
-							if (isDragged) angle = drag.dir === 1 ? -180 * drag.progress : -180 + 180 * drag.progress;
-							const lift = isDragged ? Math.sin(Math.PI * drag.progress) : 0;
-							// Leaves either side of the spine can turn next, so they are built from strips that bend.
-							const canTurn = isDragged || isTurning || k === flipped || k === flipped - 1;
-							// The free edge trails the rest of the page, so it bows as it turns.
-							const bend = isDragged ? BEND_MAX * lift * drag.dir : isTurning ? BEND_MAX * turning.dir : 0;
-							const bending = isTurning && !turning.fromDrag;
-							const z = isDragged || isTurning ? leaves.length + 2 : isFlipped ? k + 1 : leaves.length - k;
-							// Hide leaves that can't be seen so large books stay fast.
-							const hidden =
-								!isDragged &&
-								!isTurning &&
-								(spread ? k < flipped - 2 || k > flipped + 1 : (isFlipped || k > flipped + 1));
-
-							return (
-								<div
-									key={k}
-									className={`flipbook-leaf ${isTurning ? "is-turning" : ""}`}
-									style={{
-										left: spread ? "50%" : 0,
-										width: spread ? "50%" : "100%",
-										zIndex: z,
-										transform: `rotateY(${angle}deg)`,
-										transition: isDragged ? "none" : undefined,
-										visibility: hidden ? "hidden" : "visible",
-									}}
-									aria-hidden={!(k === flipped || k === flipped - 1)}
-								>
-									<LeafFaces
-										strips={canTurn ? BEND_STRIPS : 1}
-										flat={!isDragged && !isTurning}
-										bend={bend}
-										bending={bending}
-										dragging={isDragged}
-										front={
-											<>
-												{renderFace(leaf.front, "right", nearby)}
-												{lift > 0 && (
-													<div
-														className="pointer-events-none absolute inset-0 z-10"
-														style={{ background: `linear-gradient(to left, rgb(0 0 0 / ${0.35 * lift}), transparent 70%)` }}
-													/>
-												)}
-											</>
-										}
-										back={
-											<>
-												{renderFace(leaf.back, "left", nearby)}
-												{lift > 0 && (
-													<div
-														className="pointer-events-none absolute inset-0 z-10"
-														style={{
-															background: `linear-gradient(to right, rgb(0 0 0 / ${0.3 * lift}), rgb(255 255 255 / ${0.06 * lift}) 50%, transparent)`,
-														}}
-													/>
-												)}
-											</>
-										}
-									/>
-								</div>
-							);
-						})}
+						{/* Everything inside is placed from the top of the spine. */}
+						<div className="absolute top-0" style={{ left: spread ? pageW : 0 }}>
+							{faceElements}
+							{active &&
+								!active.stiff && [
+									overlay("under", 2, `linear-gradient(to right, rgb(0 0 0 / 0.42), rgb(0 0 0 / 0.2) ${w(0.05)}, rgb(0 0 0 / 0.06) ${w(0.16)}, transparent ${w(0.3)})`),
+									overlay("bend", 4, `linear-gradient(to right, rgb(0 0 0 / 0.16), rgb(0 0 0 / 0.04) ${w(0.05)}, transparent ${w(0.1)})`),
+									overlay("shadow", 5, "rgb(0 0 0 / 0.55)"),
+									overlay(
+										"curl",
+										7,
+										`linear-gradient(to right, rgb(0 0 0 / 0.3), rgb(0 0 0 / 0.1) ${w(0.035)}, rgb(255 255 255 / 0.2) ${w(0.11)}, rgb(255 255 255 / 0.06) ${w(0.25)}, rgb(0 0 0 / 0.05) ${w(0.6)}, rgb(0 0 0 / 0.12) ${w(1)})`,
+									),
+								]}
+						</div>
 					</div>
 				)}
 			</div>
@@ -464,8 +693,8 @@ export function Flipbook({
 
 			{/* Bottom controls */}
 			<div
-				className={`absolute inset-x-0 bottom-0 z-30 flex items-center justify-center gap-3 bg-gradient-to-t from-black/60 to-transparent px-4 pt-6 pb-4 transition-opacity duration-300 ${
-					chromeShown ? "opacity-100" : "pointer-events-none opacity-0"
+				className={`pointer-events-none absolute inset-x-0 bottom-0 z-30 flex items-center justify-center gap-3 bg-gradient-to-t from-black/60 to-transparent px-4 pt-6 pb-4 transition-opacity duration-300 ${
+					chromeShown ? "opacity-100 [&>*]:pointer-events-auto" : "opacity-0"
 				}`}
 			>
 				<RoundButton onClick={prev} disabled={atStart} label="Previous page">
@@ -498,65 +727,6 @@ export function Flipbook({
 		</FrameContext.Provider>
 		</PaperContext.Provider>
 	);
-}
-
-/**
- * Both faces of a leaf, cut into a chain of vertical strips. Each strip hinges
- * on the one before it, so rotating them by `bend` (spread across the chain)
- * curves the page. `bending` plays the bend once as the leaf turns.
- */
-function LeafFaces({
-	front,
-	back,
-	strips,
-	flat,
-	bend,
-	bending,
-	dragging,
-}: {
-	front: ReactNode;
-	back: ReactNode;
-	strips: number;
-	flat: boolean;
-	bend: number;
-	bending: boolean;
-	dragging: boolean;
-}) {
-	const step = strips > 1 ? bend / (strips - 1) : 0;
-	// Slices are a pixel wider than their strip, so size the page from the strip width.
-	const page = (offset: number): CSSProperties =>
-		flat ? { left: 0, width: "100%" } : { left: `calc((100% - 1px) * ${-offset})`, width: `calc((100% - 1px) * ${strips})` };
-
-	// At rest the first strip shows the whole page and the rest stay mounted but hidden, so a turn starts without seams or reloads.
-	const strip = (i: number): ReactNode => (
-		<div
-			className={`flipbook-strip ${flat ? "is-flat" : ""} ${bending && i > 0 ? "is-bending" : ""}`}
-			style={
-				{
-					left: i === 0 ? 0 : "100%",
-					width: i === 0 && !flat ? `${100 / strips}%` : "100%",
-					display: flat && i > 0 ? "none" : undefined,
-					transform: i === 0 || bending ? undefined : `rotateY(${step}deg)`,
-					transition: dragging ? "none" : undefined,
-					"--bend": `${step}deg`,
-				} as CSSProperties
-			}
-		>
-			<div className="flipbook-slice">
-				<div className="flipbook-page" style={page(i)}>
-					{front}
-				</div>
-			</div>
-			<div className="flipbook-slice is-back">
-				<div className="flipbook-page" style={page(strips - 1 - i)}>
-					{back}
-				</div>
-			</div>
-			{i < strips - 1 && strip(i + 1)}
-		</div>
-	);
-
-	return strip(0);
 }
 
 /** A strip of every spread (or page) to jump around the book. */

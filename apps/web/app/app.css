@@ -58,82 +58,36 @@ body {
 
 .flipbook-book {
 	position: relative;
-	transform-style: preserve-3d;
 	transition: transform 900ms cubic-bezier(0.645, 0.045, 0.355, 1);
 }
 
-.flipbook-leaf {
+/* One side of a leaf. Turning pages are clipped and moved from script. */
+.flipbook-face {
 	position: absolute;
 	top: 0;
-	height: 100%;
-	transform-style: preserve-3d;
-	transform-origin: left center;
-	transition: transform 900ms cubic-bezier(0.645, 0.045, 0.355, 1);
-	will-change: transform;
-}
-
-/* A vertical slice of a leaf. A turning leaf is cut into a chain of slices that each hinge a little, so the page bends. */
-.flipbook-strip {
-	position: absolute;
-	top: 0;
-	height: 100%;
-	transform-style: preserve-3d;
-	transform-origin: left center;
-	transition: transform 900ms cubic-bezier(0.645, 0.045, 0.355, 1);
-}
-.flipbook-strip.is-bending {
-	animation: flipbook-bend 900ms cubic-bezier(0.645, 0.045, 0.355, 1);
-}
-@keyframes flipbook-bend {
-	0%, 100% { transform: rotateY(0deg); }
-	45% { transform: rotateY(var(--bend)); }
-}
-
-/* One side of a slice, showing its part of the full page. Slices overlap by a pixel to hide seams. */
-.flipbook-slice {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: calc(100% + 1px);
-	height: 100%;
 	overflow: hidden;
 	backface-visibility: hidden;
 	-webkit-backface-visibility: hidden;
-}
-.flipbook-slice.is-back {
-	transform: rotateY(180deg);
-}
-.flipbook-strip.is-flat > .flipbook-slice {
-	width: 100%;
+	container-type: size;
 }
 
-/* The whole page, offset inside its slice. */
-.flipbook-page {
+/* Light or shadow around a turning page's fold, clipped to one region of it. */
+.flipbook-overlay {
 	position: absolute;
+	overflow: hidden;
+	pointer-events: none;
+}
+.flipbook-light {
+	position: absolute;
+	left: 0;
 	top: 0;
-	height: 100%;
-	container-type: size;
+	transform-origin: 0 0;
 }
 
 /* Stacked page edges beside an open book. */
 .flipbook-edge {
 	background: repeating-linear-gradient(to right, #efe7d6 0 1px, #d9cfbb 1px 2px);
 	box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
-}
-
-/* Light sweeping across a page while it turns. */
-.flipbook-leaf.is-turning .flipbook-page::before {
-	content: "";
-	position: absolute;
-	inset: 0;
-	z-index: 2;
-	pointer-events: none;
-	animation: flipbook-shade 900ms ease-in-out;
-}
-@keyframes flipbook-shade {
-	0% { background: transparent; }
-	50% { background: linear-gradient(to left, rgb(0 0 0 / 0.35), rgb(255 255 255 / 0.08) 60%, transparent); }
-	100% { background: transparent; }
 }
 
 /* Ink on paper: slightly lifted blacks, warmed toward the paper colour. */
@@ -482,12 +436,10 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.flipbook-book,
-	.flipbook-leaf {
+	.flipbook-book {
 		transition-duration: 1ms;
 	}
-	.rotate-hint,
-	.flipbook-leaf.is-turning .flipbook-page::before {
+	.rotate-hint {
 		animation: none;
 	}
 }
