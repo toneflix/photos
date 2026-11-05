@@ -1,0 +1,141 @@
+name: Deploy API
+
+on:
+  push:
+    branches: [deploy]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Deploy the selected branch, or roll back to the release before the current one
+        type: choice
+        options: [deploy, rollback]
+        default: deploy
+      skip_migrations:
+        description: Skip database migrations
+        type: boolean
+        default: false
+      run_checks:
+        description: Typecheck and test the API before deploying
+        type: boolean
+        default: true
+      keep_releases:
+        description: Number of releases to keep on the server
+        type: string
+        default: '5'
+
+concurrency:
+  group: deploy-api
+  cancel-in-progress: false
+
+env:
+  DEPLOY_PATH: ${{ vars.API_DEPLOY_PATH || '/var/www/api.music.toneflix.net' }}
+
+jobs:
+  check:
+    if: github.event_name == 'push' || (inputs.action == 'deploy' && inputs.run_checks)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: toneflix_photos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter '@photos/api...'
+      - run: pnpm --filter @photos/api typecheck
+      - name: Test API
+        working-directory: apps/api
+        run: |
+          cp .env.example .env
+          pnpm exec ark migrate
+          pnpm test
+
+  deploy:
+    needs: check
+    if: ${{ !failure() && !cancelled() }}
+    runs-on: ubuntu-latest
+    environment: api-production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH
+        env:
+          SSH_KEY: ${{ secrets.API_SSH_KEY }}
+          SSH_HOST: ${{ secrets.API_SSH_HOST }}
+          SSH_USER: ${{ secrets.API_SSH_USER }}
+          SSH_PORT: ${{ secrets.API_SSH_PORT || '22' }}
+          KNOWN_HOSTS: ${{ secrets.API_SSH_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          if [ -n "$KNOWN_HOSTS" ]; then
+            printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" > ~/.ssh/known_hosts
+          fi
+
+          cat > ~/.ssh/config <<EOF
+          Host api
+            HostName $SSH_HOST
+            User $SSH_USER
+            Port $SSH_PORT
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            ServerAliveInterval 30
+          EOF
+
+      - name: Upload release
+        if: github.event_name == 'push' || inputs.action == 'deploy'
+        id: release
+        run: |
+          release="$(date -u +%Y%m%d%H%M%S)-${GITHUB_SHA::7}"
+          echo "name=$release" >> "$GITHUB_OUTPUT"
+
+          git archive --format=tar.gz -o release.tar.gz HEAD \
+            package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc tsconfig.base.json \
+            packages apps/api apps/web/package.json apps/mobile/package.json
+
+          ssh api "mkdir -p '$DEPLOY_PATH/releases' && cat > '$DEPLOY_PATH/releases/$release.tar.gz'" < release.tar.gz
+
+      - name: Deploy
+        if: github.event_name == 'push' || inputs.action == 'deploy'
+        env:
+          RELEASE: ${{ steps.release.outputs.name }}
+          SKIP_MIGRATIONS: ${{ inputs.skip_migrations || false }}
+          KEEP_RELEASES: ${{ inputs.keep_releases || '5' }}
+          PM2_NAME: ${{ vars.API_PM2_NAME || 'toneflix-photos-api' }}
+          RESTART_COMMAND: ${{ vars.API_RESTART_COMMAND }}
+        run: |
+          ssh api "$(printf 'DEPLOY_PATH=%q SKIP_MIGRATIONS=%q KEEP_RELEASES=%q PM2_NAME=%q RESTART_COMMAND=%q bash -ls -- deploy %q' \
+            "$DEPLOY_PATH" "$SKIP_MIGRATIONS" "$KEEP_RELEASES" "$PM2_NAME" "$RESTART_COMMAND" "$RELEASE")" \
+            < .github/scripts/deploy-api.sh
+
+      - name: Roll back
+        if: github.event_name == 'workflow_dispatch' && inputs.action == 'rollback'
+        env:
+          PM2_NAME: ${{ vars.API_PM2_NAME || 'toneflix-photos-api' }}
+          RESTART_COMMAND: ${{ vars.API_RESTART_COMMAND }}
+        run: |
+          ssh api "$(printf 'DEPLOY_PATH=%q PM2_NAME=%q RESTART_COMMAND=%q bash -ls -- rollback' \
+            "$DEPLOY_PATH" "$PM2_NAME" "$RESTART_COMMAND")" \
+            < .github/scripts/deploy-api.sh
+
+      - name: Check the public URL
+        if: vars.API_URL != ''
+        env:
+          API_URL: ${{ vars.API_URL }}
+        run: curl -fsS --retry 5 --retry-delay 3 --retry-all-errors "$API_URL" > /dev/null
