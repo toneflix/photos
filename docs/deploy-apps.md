@@ -31,7 +31,7 @@ One-time setup:
 1. Create a Cloudflare API token with the **Edit Cloudflare Workers** template, scoped to the Toneflix account.
 2. After the first deploy, add `photos.toneflix.net` as a custom domain on the worker (Workers & Pages → toneflix-photos-web → Settings → Domains & Routes).
 
-To deploy from your machine instead: `CLOUDFLARE_API_TOKEN=... pnpm --filter @photos/web build && cd apps/web && pnpm exec wrangler deploy --var API_URL:https://api.music.toneflix.net/api`.
+To deploy from your machine instead: `CLOUDFLARE_API_TOKEN=... pnpm --filter @photos/web build && cd apps/web && pnpm exec wrangler deploy --var API_URL:https://api.photos.toneflix.net/api`.
 
 ## Android (EAS)
 
@@ -69,7 +69,7 @@ One-time setup:
 
 | Name | Needed for | Value |
 | --- | --- | --- |
-| `API_URL` | web, android | Public API address, e.g. `https://api.music.toneflix.net/api` |
+| `API_URL` | web, android | Public API address, e.g. `https://api.photos.toneflix.net/api` |
 | `WEB_URL` | android | `https://photos.toneflix.net` (app links and share links) |
 | `EAS_PROJECT_ID` | android | EAS project ID |
 | `EAS_OWNER` | android, optional | Expo account or organisation that owns the project |
@@ -97,7 +97,7 @@ CI (`.github/workflows/ci.yml`) runs the same checks on every pull request.
 
 - **Locally**: `pnpm dev:web` against a local API (`pnpm dev:api`).
 - **Production build in the Workers runtime**: `pnpm --filter @photos/web preview`, or `pnpm --filter @photos/web build && cd apps/web && pnpm exec wrangler dev`.
-- **Check a deploy without shipping it**: `cd apps/web && pnpm exec wrangler deploy --dry-run --var API_URL:https://api.music.toneflix.net/api` lists the bindings and bundle size.
+- **Check a deploy without shipping it**: `cd apps/web && pnpm exec wrangler deploy --dry-run --var API_URL:https://api.photos.toneflix.net/api` lists the bindings and bundle size.
 - **After a deploy**: open photos.toneflix.net, sign in, open a book and turn a few pages. `pnpm exec wrangler tail toneflix-photos-web` streams the worker's logs. Roll back with `pnpm exec wrangler rollback` or from the worker's Deployments tab.
 
 ### Android app

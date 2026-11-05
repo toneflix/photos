@@ -28,7 +28,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  DEPLOY_PATH: ${{ vars.API_DEPLOY_PATH || '/var/www/api.music.toneflix.net' }}
+  DEPLOY_PATH: ${{ vars.API_DEPLOY_PATH || '/var/www/api.photos.toneflix.net' }}
 
 jobs:
   check:

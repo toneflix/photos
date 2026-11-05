@@ -1,6 +1,6 @@
 # Deploying the API
 
-The API (`apps/api`) is deployed over SSH to `/var/www/api.music.toneflix.net` by the **Deploy API** workflow (`.github/workflows/deploy-api.yml`). The workflow uploads the API's source, and the server installs, builds, migrates and restarts it. Each deploy is a separate release, so a bad deploy can be rolled back.
+The API (`apps/api`) is deployed over SSH to `/var/www/api.photos.toneflix.net` by the **Deploy API** workflow (`.github/workflows/deploy-api.yml`). The workflow uploads the API's source, and the server installs, builds, migrates and restarts it. Each deploy is a separate release, so a bad deploy can be rolled back.
 
 ## How a deploy works
 
@@ -21,7 +21,7 @@ A failed install, build or migration stops before `current` changes, so the runn
 ### Server layout
 
 ```
-/var/www/api.music.toneflix.net/
+/var/www/api.photos.toneflix.net/
 ├── current -> releases/20261105201500-0e38a56
 ├── releases/
 │   ├── 20261105193000-bc95783/
@@ -50,12 +50,12 @@ Runs never overlap: a second deploy waits for the first to finish.
 ## One-time server setup
 
 1. **Software**: Node 24, pnpm 10 (`corepack enable`), [pm2](https://pm2.keymetrics.io) (`npm i -g pm2`), PostgreSQL 16, and `curl`. Node, pnpm and pm2 must be on the `PATH` of a non-interactive login shell (the workflow runs `bash -l`), so install Node system-wide or load nvm from `~/.profile` rather than `~/.bashrc`.
-2. **Deploy user**: an account that owns `/var/www/api.music.toneflix.net` and can run pm2. Add the public half of the deploy key to its `~/.ssh/authorized_keys`.
+2. **Deploy user**: an account that owns `/var/www/api.photos.toneflix.net` and can run pm2. Add the public half of the deploy key to its `~/.ssh/authorized_keys`.
 3. **Settings**: create `shared/.env` from `apps/api/.env.example`:
 
    ```sh
-   mkdir -p /var/www/api.music.toneflix.net/shared
-   nano /var/www/api.music.toneflix.net/shared/.env
+   mkdir -p /var/www/api.photos.toneflix.net/shared
+   nano /var/www/api.photos.toneflix.net/shared/.env
    ```
 
    At least set:
@@ -63,7 +63,7 @@ Runs never overlap: a second deploy waits for the first to finish.
    | Variable | Value |
    | --- | --- |
    | `NODE_ENV` | `production` |
-   | `APP_URL` | Public API address, e.g. `https://api.music.toneflix.net` |
+   | `APP_URL` | Public API address, e.g. `https://api.photos.toneflix.net` |
    | `FRONTEND_URL` | `https://photos.toneflix.net` |
    | `APP_HOST`, `APP_PORT` | `127.0.0.1` and the port the reverse proxy forwards to (the health check reads `APP_PORT`, default 3000) |
    | `APP_KEY` | A new key. Generate one locally with `pnpm --filter @photos/api exec ark key:generate` and copy the value. |
@@ -74,12 +74,12 @@ Runs never overlap: a second deploy waits for the first to finish.
    | `TRUST_PROXY` | Required behind nginx and Cloudflare. The web app calls the API from Cloudflare Workers, so without it every web visitor shares the Worker's IP and its rate limit. |
    | `CACHE_STORE` | `redis` (with the `REDIS_*` settings) if more than one API instance runs, so rate limits and cache are shared between them. `memory` is fine for a single instance. |
 
-4. **Reverse proxy**: point nginx (or Caddy) for `api.music.toneflix.net` at `127.0.0.1:<APP_PORT>` with TLS.
+4. **Reverse proxy**: point nginx (or Caddy) for `api.photos.toneflix.net` at `127.0.0.1:<APP_PORT>` with TLS.
 5. **pm2 on boot**: run `pm2 startup` once and follow its instructions. The first deploy starts the API as `toneflix-photos-api` and runs `pm2 save`.
 6. **Scheduler** (optional): Arkstack's scheduled tasks need one cron entry for the deploy user:
 
    ```
-   * * * * * cd /var/www/api.music.toneflix.net/current/apps/api && pnpm exec ark schedule:run >> /dev/null 2>&1
+   * * * * * cd /var/www/api.photos.toneflix.net/current/apps/api && pnpm exec ark schedule:run >> /dev/null 2>&1
    ```
 
 ## GitHub settings
@@ -100,8 +100,8 @@ Add these under Settings → Secrets and variables → Actions. Secrets can also
 
 | Name | Default | Value |
 | --- | --- | --- |
-| `API_DEPLOY_PATH` | `/var/www/api.music.toneflix.net` | Deploy directory |
-| `API_URL` | none | Public API address, e.g. `https://api.music.toneflix.net/api`. Used for the public check here, and by the web and mobile builds. |
+| `API_DEPLOY_PATH` | `/var/www/api.photos.toneflix.net` | Deploy directory |
+| `API_URL` | none | Public API address, e.g. `https://api.photos.toneflix.net/api`. Used for the public check here, and by the web and mobile builds. |
 | `API_PM2_NAME` | `toneflix-photos-api` | pm2 process name |
 | `API_RESTART_COMMAND` | none | Replaces the pm2 restart with your own command (run in `current/apps/api`), e.g. `sudo systemctl restart toneflix-photos-api` |
 
@@ -113,7 +113,7 @@ The workflow's server script also works without GitHub, from the repository root
 release="$(date -u +%Y%m%d%H%M%S)-$(git rev-parse --short=7 HEAD)"
 git archive --format=tar.gz HEAD package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc tsconfig.base.json \
   packages apps/api apps/web/package.json apps/mobile/package.json \
-  | ssh deploy@server "cat > /var/www/api.music.toneflix.net/releases/$release.tar.gz"
+  | ssh deploy@server "cat > /var/www/api.photos.toneflix.net/releases/$release.tar.gz"
 ssh deploy@server "bash -ls -- deploy $release" < .github/scripts/deploy-api.sh
 ```
 

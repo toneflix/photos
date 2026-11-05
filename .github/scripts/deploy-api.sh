@@ -9,7 +9,7 @@ set -euo pipefail
 
 ACTION="${1:-deploy}"
 RELEASE="${2:-}"
-DEPLOY_PATH="${DEPLOY_PATH:-/var/www/api.music.toneflix.net}"
+DEPLOY_PATH="${DEPLOY_PATH:-/var/www/api.photos.toneflix.net}"
 SKIP_MIGRATIONS="${SKIP_MIGRATIONS:-false}"
 KEEP_RELEASES="${KEEP_RELEASES:-5}"
 PM2_NAME="${PM2_NAME:-toneflix-photos-api}"
