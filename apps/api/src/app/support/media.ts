@@ -48,11 +48,18 @@ export async function deletePhotoFile(photo: Photo) {
   }
 }
 
-/** Public URL for a stored photo. Local disks are served by the API under /media. */
+/** How long a signed photo URL stays valid. */
+const SIGNED_URL_TTL = '6h'
+
+/**
+ * URL for a stored photo. Only the path is stored, never a URL, because
+ * bucket URLs expire: a fresh signed URL is made on every response. Local
+ * disks are served by the API under /media instead.
+ */
 export async function photoUrl(photo: Photo): Promise<string> {
   if (LOCAL_DISKS.includes(photo.disk)) {
     return appUrl(`media/${photo.path}`)
   }
 
-  return await Storage.disk(photo.disk as never).getUrl(photo.path)
+  return await Storage.disk(photo.disk as never).getSignedUrl(photo.path, { expiresIn: SIGNED_URL_TTL })
 }
