@@ -1,20 +1,21 @@
-import { useEffect, useState } from 'react'
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native'
+import { useEffect, useMemo, useState } from 'react'
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
+import { StatusBar } from 'expo-status-bar'
 import { Ionicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRequest } from 'alova/client'
 import type { BookPermission, BookWithPages } from '@photos/types'
-import { BookCover } from '@/components/BookCover'
+import { Flipbook } from '@toneflix/flipbook-native'
 import { AuthFrame } from '@/components/AuthFrame'
 import { CodeForm } from '@/components/access/CodeForm'
 import { Sheet } from '@/components/access/Sheet'
-import { PAGE_RATIO, PageView } from '@/components/book/PageView'
-import { BookLookContext } from '@/components/book/paper'
+import { BOOK_FONTS } from '@/components/book/look'
 import { Button, Callout, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { bookCodes, useBookCode } from '@/lib/book-codes'
+import { FlipbookModel } from '@/lib/flipbook'
 import { FormProblem } from '@/lib/forms'
 import { bookLists } from '@/lib/lists'
 import { useSession } from '@/lib/session'
@@ -23,11 +24,11 @@ import { uploadFile } from '@/lib/upload-file'
 import { colors, fonts, radius } from '@/theme'
 
 /**
- * A book: its cover and pages, and what the visitor may do with it. Opens private books with a saved
- * access code, or a `?code=` from a share link.
+ * A book as a flipbook that opens sideways, with what the visitor may do with it in its top bar.
+ * Opens private books with a saved access code, or a `?code=` from a share link, at `?page=` if given.
  */
 export default function BookScreen() {
-  const { id, code: shared } = useLocalSearchParams<{ id: string; code?: string }>()
+  const { id, code: shared, page } = useLocalSearchParams<{ id: string; code?: string; page?: string }>()
   const saved = useBookCode(id)
   const [redeeming, setRedeeming] = useState(!!shared)
   const [shareError, setShareError] = useState<string | null>(null)
@@ -49,14 +50,14 @@ export default function BookScreen() {
 
   if (saved === undefined || redeeming) return <View style={styles.center} />
 
-  return <LoadBook key={saved ?? 'none'} id={id} code={saved} shareError={shareError} />
+  return <LoadBook key={saved ?? 'none'} id={id} code={saved} startPage={Number(page) || undefined} shareError={shareError} />
 }
 
-function LoadBook({ id, code, shareError }: { id: string; code: string | null; shareError: string | null }) {
+function LoadBook({ id, code, startPage, shareError }: { id: string; code: string | null; startPage?: number; shareError: string | null }) {
   const { data, error, loading, send } = useRequest(() => api.books.get(id, code), { cacheFor: null })
   const book: BookWithPages | undefined = data?.data
 
-  if (book) return <Book book={book} code={code} reload={() => send().catch(() => undefined)} />
+  if (book) return <Book book={book} code={code} startPage={startPage} reload={() => send().catch(() => undefined)} />
 
   if (loading) {
     return (
@@ -86,54 +87,45 @@ function LoadBook({ id, code, shareError }: { id: string; code: string | null; s
   )
 }
 
-function Book({ book, code, reload }: { book: BookWithPages; code: string | null; reload: () => void }) {
+function Book({ book, code, startPage, reload }: { book: BookWithPages; code: string | null; startPage?: number; reload: () => void }) {
   const insets = useSafeAreaInsets()
-  const { width } = useWindowDimensions()
   const [panel, setPanel] = useState<'add' | 'claim' | null>(null)
   const can = (permission: BookPermission) => book.permissions.includes(permission)
-  const pageWidth = Math.min(width - 32, 480)
-
-  const header = (
-    <View style={styles.header}>
-      <View style={[styles.cover, { width: pageWidth * 0.6, height: (pageWidth * 0.6) / PAGE_RATIO }]}>
-        <BookCover book={book} />
-      </View>
-      <Text style={styles.title}>{book.title}</Text>
-      <Text variant="muted" style={styles.centerText}>
-        {[book.owner.name, `${book.pages.length} ${book.pages.length === 1 ? 'page' : 'pages'}`].filter(Boolean).join(' · ')}
-      </Text>
-      <View style={styles.actions}>
-        {book.canEdit && <Button title="Edit" onPress={() => router.push({ pathname: '/books/[id]/edit', params: { id: book.id } })} />}
-        {book.isOwner && <Button title="Access codes" variant="secondary" onPress={() => router.push({ pathname: '/books/[id]/access', params: { id: book.id } })} />}
-        {!book.isOwner && can('add') && <Button title="Add photos" variant="secondary" onPress={() => setPanel('add')} />}
-        {!book.isOwner && can('transfer') && <Button title="Make it yours" variant="secondary" onPress={() => setPanel('claim')} />}
-      </View>
-    </View>
-  )
+  const model = useMemo(() => FlipbookModel.book(book), [book])
 
   return (
-    <BookLookContext.Provider value={{ paper: book.paper ?? 'ivory', frame: book.frame ?? 'none' }}>
-      <View style={[styles.screen, { paddingTop: insets.top }]}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={styles.back} hitSlop={8}>
-          <Ionicons name="chevron-back" size={24} color={colors.ink900} />
-        </Pressable>
-        <FlatList
-          data={book.pages}
-          keyExtractor={(page) => page.id}
-          ListHeaderComponent={header}
-          contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 32 }]}
-          renderItem={({ item: page, index }) => (
-            <View style={styles.page}>
-              <PageView page={page} width={pageWidth} number={index + 1} />
-            </View>
-          )}
-          ListEmptyComponent={<Text variant="muted" style={styles.centerText}>This book has no pages yet.</Text>}
-        />
+    <View style={[styles.reader, { paddingTop: insets.top, paddingBottom: insets.bottom, paddingLeft: insets.left, paddingRight: insets.right }]}>
+      <StatusBar style="light" />
+      <Flipbook
+        book={model}
+        startPage={startPage}
+        fonts={BOOK_FONTS}
+        topLeft={
+          <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} hitSlop={8} style={styles.round}>
+            <Ionicons name="chevron-back" size={20} color={colors.white} />
+          </Pressable>
+        }
+        topRight={
+          <>
+            {book.isOwner && <Chip title="Access codes" onPress={() => router.push({ pathname: '/books/[id]/access', params: { id: book.id } })} />}
+            {!book.isOwner && can('add') && <Chip title="Add photos" onPress={() => setPanel('add')} />}
+            {!book.isOwner && can('transfer') && <Chip title="Make it yours" onPress={() => setPanel('claim')} />}
+            {book.canEdit && <Chip title="Edit" onPress={() => router.push({ pathname: '/books/[id]/edit', params: { id: book.id } })} />}
+          </>
+        }
+      />
 
-        {panel === 'add' && <AddPhotos book={book} code={code} onDone={reload} onClose={() => setPanel(null)} />}
-        {panel === 'claim' && <Claim book={book} code={code} onClose={() => setPanel(null)} />}
-      </View>
-    </BookLookContext.Provider>
+      {panel === 'add' && <AddPhotos book={book} code={code} onDone={reload} onClose={() => setPanel(null)} />}
+      {panel === 'claim' && <Claim book={book} code={code} onClose={() => setPanel(null)} />}
+    </View>
+  )
+}
+
+function Chip({ title, onPress }: { title: string; onPress: () => void }) {
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}>
+      <Text style={styles.chipText}>{title}</Text>
+    </Pressable>
   )
 }
 
@@ -238,17 +230,13 @@ function Claim({ book, code, onClose }: { book: BookWithPages; code: string | nu
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#ece6da' },
+  reader: { flex: 1, backgroundColor: colors.black },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: colors.white },
   flex: { flex: 1 },
   row: { flexDirection: 'row', gap: 8 },
-  back: { paddingHorizontal: 12, paddingVertical: 8, alignSelf: 'flex-start' },
-  list: { alignItems: 'center', gap: 20, paddingHorizontal: 16 },
-  header: { alignItems: 'center', gap: 8, paddingBottom: 8 },
-  cover: { borderTopRightRadius: 6, borderBottomRightRadius: 6, overflow: 'hidden', boxShadow: '0 14px 36px rgba(60,40,20,0.3)' },
-  title: { marginTop: 12, fontFamily: fonts.serif, fontSize: 26, lineHeight: 32, textAlign: 'center', color: colors.ink900 },
-  centerText: { textAlign: 'center' },
-  actions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 8 },
-  page: { boxShadow: '0 10px 28px rgba(60,40,20,0.2)', borderRadius: radius.md },
+  round: { padding: 10, borderRadius: radius.full, backgroundColor: 'rgba(255,255,255,0.1)' },
+  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.full, backgroundColor: 'rgba(255,255,255,0.1)' },
+  chipPressed: { backgroundColor: 'rgba(255,255,255,0.2)' },
+  chipText: { fontFamily: fonts.medium, fontSize: 14, color: colors.white },
   strong: { fontFamily: fonts.semibold, color: colors.ink900 },
 })
