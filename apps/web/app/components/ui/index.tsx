@@ -1,17 +1,18 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
 import { Link } from "react-router";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
+type Variant = "primary" | "dark" | "secondary" | "ghost" | "danger";
 
 const variants: Record<Variant, string> = {
-	primary: "bg-ink-900 text-paper-50 hover:bg-ink-700",
-	secondary: "border border-paper-300 bg-white text-ink-900 hover:bg-paper-100",
-	ghost: "text-ink-700 hover:bg-paper-200/70",
+	primary: "bg-brand-500 text-white hover:bg-brand-600",
+	dark: "bg-ink-900 text-white hover:bg-ink-700",
+	secondary: "border border-surface-300 bg-white text-ink-900 hover:border-ink-500",
+	ghost: "text-ink-700 hover:bg-surface-100",
 	danger: "border border-red-200 bg-white text-red-700 hover:bg-red-50",
 };
 
 export function buttonClass(variant: Variant = "primary", extra = "") {
-	return `inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${extra}`;
+	return `inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${extra}`;
 }
 
 export function Button({
@@ -35,7 +36,7 @@ export function Field({
 }) {
 	return (
 		<label className="block">
-			<span className="mb-1.5 block text-sm font-medium text-ink-700">{label}</span>
+			<span className="mb-1.5 block text-sm font-semibold text-ink-900">{label}</span>
 			{children}
 			{error ? (
 				<span className="mt-1 block text-sm text-red-700">{error}</span>
@@ -47,7 +48,7 @@ export function Field({
 }
 
 const inputClass =
-	"block w-full rounded-xl border border-paper-300 bg-white px-3.5 py-2.5 text-ink-900 placeholder:text-ink-500/60 focus:border-ember-500 focus:ring-2 focus:ring-ember-500/20 focus:outline-none";
+	"block w-full rounded-lg border border-surface-300 bg-white px-3.5 py-3 text-ink-900 placeholder:text-ink-500 transition hover:border-ink-500 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none";
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
 	return <input {...props} className={`${inputClass} ${props.className ?? ""}`} />;
@@ -59,20 +60,21 @@ export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
 
 export function Logo({ to = "/", light = false, compact = false }: { to?: string; light?: boolean; compact?: boolean }) {
 	return (
-		<Link to={to} className={`flex items-center gap-2 ${light ? "text-paper-50" : "text-ink-900"}`}>
-			<svg viewBox="0 0 32 32" className="h-7 w-7" aria-hidden>
-				<rect x="3" y="5" width="12" height="22" rx="1.5" fill="currentColor" opacity="0.85" />
-				<rect x="17" y="5" width="12" height="22" rx="1.5" fill="currentColor" opacity="0.55" />
-				<rect x="15" y="4" width="2" height="24" fill="#b4532a" />
-			</svg>
-			<span className={`font-serif text-xl tracking-tight ${compact ? "hidden sm:inline" : ""}`}>Toneflix Photos</span>
+		<Link to={to} className={`flex items-center gap-2 ${light ? "text-surface-50" : "text-ink-900"}`}>
+			<span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-500 text-white">
+				<svg viewBox="0 0 32 32" className="h-5 w-5" aria-hidden>
+					<rect x="4" y="6" width="11" height="20" rx="1.5" fill="currentColor" />
+					<rect x="17" y="6" width="11" height="20" rx="1.5" fill="currentColor" opacity="0.6" />
+				</svg>
+			</span>
+			<span className={`whitespace-nowrap font-display text-lg font-bold tracking-tight sm:text-xl ${compact ? "hidden sm:inline" : ""}`}>Toneflix Photos</span>
 		</Link>
 	);
 }
 
 export function Alert({ children }: { children: ReactNode }) {
 	return (
-		<div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+		<div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
 			{children}
 		</div>
 	);
@@ -80,7 +82,7 @@ export function Alert({ children }: { children: ReactNode }) {
 
 export function Notice({ children }: { children: ReactNode }) {
 	return (
-		<div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+		<div role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
 			{children}
 		</div>
 	);

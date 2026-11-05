@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 export function PageHeader({ title, description }: { title: string; description?: ReactNode }) {
 	return (
 		<header className="mb-8">
-			<h1 className="font-serif text-4xl text-ink-900">{title}</h1>
+			<h1 className="font-display font-bold tracking-tight text-4xl text-ink-900">{title}</h1>
 			{description && <p className="mt-2 max-w-2xl text-ink-500">{description}</p>}
 		</header>
 	);
@@ -24,9 +24,9 @@ export function Section({
 }) {
 	return (
 		<section
-			className={`rounded-3xl border bg-white p-6 shadow-sm sm:p-8 ${tone === "danger" ? "border-red-200" : "border-paper-200"}`}
+			className={`rounded-2xl border bg-white p-6 shadow-sm sm:p-8 ${tone === "danger" ? "border-red-200" : "border-surface-200"}`}
 		>
-			{title && <h2 className={`font-serif text-2xl ${tone === "danger" ? "text-red-800" : "text-ink-900"}`}>{title}</h2>}
+			{title && <h2 className={`font-display font-bold tracking-tight text-2xl ${tone === "danger" ? "text-red-800" : "text-ink-900"}`}>{title}</h2>}
 			{description && <p className="mt-1 text-sm text-ink-500">{description}</p>}
 			<div className={title || description ? "mt-6" : ""}>{children}</div>
 		</section>

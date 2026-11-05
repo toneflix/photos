@@ -29,14 +29,14 @@ export default function SettingsHome({ loaderData }: Route.ComponentProps) {
 
 	return (
 		<>
-			<h1 className="font-serif text-4xl text-ink-900 md:hidden">Settings</h1>
+			<h1 className="font-display font-bold tracking-tight text-4xl text-ink-900 md:hidden">Settings</h1>
 			<Link
 				to="/settings/profile"
-				className="mt-6 flex items-center gap-4 rounded-3xl border border-paper-200 bg-white p-5 shadow-sm transition hover:border-paper-300 md:mt-0"
+				className="mt-6 flex items-center gap-4 rounded-2xl border border-surface-200 bg-white p-5 shadow-sm transition hover:border-surface-300 md:mt-0"
 			>
 				<Avatar user={user} size="lg" />
 				<div className="min-w-0">
-					<p className="font-serif text-2xl text-ink-900">{user.name}</p>
+					<p className="font-display font-bold tracking-tight text-2xl text-ink-900">{user.name}</p>
 					<p className="truncate text-sm text-ink-500">{user.email}</p>
 				</div>
 			</Link>
@@ -45,14 +45,14 @@ export default function SettingsHome({ loaderData }: Route.ComponentProps) {
 				{SETTINGS_GROUPS.map((group) => (
 					<section key={group.label}>
 						<h2 className="px-1 text-xs font-semibold tracking-[0.14em] text-ink-500 uppercase">{group.label}</h2>
-						<ul className="mt-3 divide-y divide-paper-200 overflow-hidden rounded-3xl border border-paper-200 bg-white shadow-sm">
+						<ul className="mt-3 divide-y divide-surface-200 overflow-hidden rounded-2xl border border-surface-200 bg-white shadow-sm">
 							{group.pages.map((page) => {
 								const state = status[page.to];
 								const danger = "danger" in page;
 
 								return (
 									<li key={page.to}>
-										<Link to={page.to} className="flex items-center gap-4 px-5 py-4 transition hover:bg-paper-50">
+										<Link to={page.to} className="flex items-center gap-4 px-5 py-4 transition hover:bg-surface-50">
 											<div className="min-w-0 flex-1">
 												<p className={`font-medium ${danger ? "text-red-700" : "text-ink-900"}`}>{page.label}</p>
 												<p className="text-sm text-ink-500">{page.hint}</p>

@@ -46,7 +46,7 @@ export function PageView({
 				key={index}
 				className={`${className.includes("absolute") ? "" : "relative"} ${fit === "framed" ? "" : "overflow-hidden"} ${className} ${
 					editable ? "cursor-pointer" : ""
-				} ${active ? "ring-[0.8cqw] ring-ember-500 ring-offset-0" : ""} data-[over=true]:ring-[1cqw] data-[over=true]:ring-amber-400`}
+				} ${active ? "ring-[0.8cqw] ring-brand-500 ring-offset-0" : ""} data-[over=true]:ring-[1cqw] data-[over=true]:ring-amber-400`}
 				onClick={editable ? () => onSlotClick(index) : undefined}
 				onDragOver={
 					onSlotDrop
@@ -87,7 +87,7 @@ export function PageView({
 								className="h-auto max-h-full w-auto max-w-full bg-white object-contain p-[2.4cqw] shadow-[0_0.6cqw_2cqw_rgb(0_0_0/0.2)] select-none"
 							/>
 						) : (
-							<div className="aspect-[4/3] w-full bg-paper-200" />
+							<div className="aspect-[4/3] w-full bg-surface-200" />
 						)}
 					</div>
 				) : photo ? (
@@ -95,7 +95,7 @@ export function PageView({
 				) : (
 					<div
 						className={`flex h-full w-full items-center justify-center bg-current/10 opacity-80 ${
-							editable ? "border-[0.4cqw] border-dashed border-paper-300" : ""
+							editable ? "border-[0.4cqw] border-dashed border-surface-300" : ""
 						}`}
 						style={{ fontSize: "3.2cqw" }}
 					>
@@ -211,7 +211,7 @@ export function PhotoImage({
 	show?: boolean;
 	className?: string;
 }) {
-	if (!show) return <div className={`h-full w-full bg-paper-200 ${className}`} />;
+	if (!show) return <div className={`h-full w-full bg-surface-200 ${className}`} />;
 
 	return (
 		<img

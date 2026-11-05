@@ -61,10 +61,10 @@ function Devices({
 		<Section>
 			{result?.message && <div className="mb-4"><Notice>{result.message}</Notice></div>}
 			{result?.error && <div className="mb-4"><Alert>{result.error}</Alert></div>}
-			<ul className="divide-y divide-paper-200">
+			<ul className="divide-y divide-surface-200">
 				{sessions.map((session) => (
 					<li key={session.id} className="flex items-center gap-4 py-4 first:pt-0">
-						<span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-paper-100 text-ink-700">
+						<span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-100 text-ink-700">
 							<DeviceIcon type={session.deviceType} />
 						</span>
 						<div className="min-w-0 flex-1">
@@ -90,7 +90,7 @@ function Devices({
 				))}
 			</ul>
 			{others > 0 && (
-				<Form method="post" className="mt-4 border-t border-paper-200 pt-4">
+				<Form method="post" className="mt-4 border-t border-surface-200 pt-4">
 					<Button variant="secondary" type="submit" name="intent" value="revoke-others" disabled={busy("revoke-others")}>
 						Sign out of all other devices
 					</Button>

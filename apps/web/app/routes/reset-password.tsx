@@ -35,7 +35,7 @@ export default function ResetPassword({ loaderData, actionData }: Route.Componen
 	const subtitle = (
 		<>
 			Need a new link?{" "}
-			<Link to="/forgot-password" className="font-medium text-ember-600 hover:underline">
+			<Link to="/forgot-password" className="font-medium text-brand-600 hover:underline">
 				Send another
 			</Link>
 		</>

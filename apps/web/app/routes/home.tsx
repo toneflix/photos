@@ -1,6 +1,7 @@
 import { Link, redirect } from "react-router";
 import { optionalUser } from "~/lib/session.server";
 import { Logo, buttonClass } from "~/components/ui";
+import { Mosaic } from "~/components/Mosaic";
 import type { Route } from "./+types/home";
 
 export function meta(_: Route.MetaArgs) {
@@ -20,66 +21,60 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export default function Home({ loaderData }: Route.ComponentProps) {
 	return (
-		<div className="min-h-dvh bg-paper-50">
+		<div className="min-h-dvh bg-white">
 			{loaderData.deleted && (
-				<p className="bg-ink-900 px-6 py-3 text-center text-sm text-paper-50">
+				<p className="bg-ink-900 px-6 py-3 text-center text-sm text-white">
 					Your account and everything in it was deleted. Thank you for keeping your memories with us.
 				</p>
 			)}
-			<header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-				<Logo />
-				<nav className="flex items-center gap-2">
-					<Link to="/signin" className={buttonClass("ghost")}>
-						Sign in
-					</Link>
-					<Link to="/signup" className={buttonClass("primary")}>
-						Start a book
-					</Link>
-				</nav>
-			</header>
 
-			<main className="mx-auto grid max-w-6xl items-center gap-12 px-6 pt-10 pb-24 lg:grid-cols-[1fr_1.1fr] lg:pt-20">
-				<div>
-					<p className="text-sm font-medium tracking-[0.2em] text-ember-600 uppercase">Digital photo books</p>
-					<h1 className="mt-4 font-serif text-5xl leading-[1.05] tracking-tight text-ink-900 sm:text-6xl">
+			<section className="relative isolate overflow-hidden bg-ink-900">
+				<Mosaic columns={7} className="absolute -inset-x-10 -top-10 -z-10 opacity-70" />
+				<div className="absolute inset-0 -z-10 bg-gradient-to-b from-black/55 via-black/45 to-black/75" />
+				<header className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
+					<Logo light />
+					<nav className="flex items-center gap-1 sm:gap-2">
+						<Link to="/signin" className={buttonClass("ghost", "!text-white hover:!bg-white/10")}>
+							Sign in
+						</Link>
+						<Link to="/signup" className={buttonClass("primary")}>
+							Join free
+						</Link>
+					</nav>
+				</header>
+				<div className="mx-auto max-w-3xl px-4 pt-20 pb-28 text-center sm:px-6 sm:pt-28 sm:pb-36">
+					<h1 className="font-display text-4xl leading-tight font-extrabold tracking-tight text-white sm:text-6xl">
 						Your photos, bound into books that last for all time.
 					</h1>
-					<p className="mt-6 max-w-lg text-lg leading-relaxed text-ink-500">
-						Upload your favourite moments, lay them out page by page, and turn through them like a real
-						album. On your phone, just turn it sideways and the book opens across two pages.
+					<p className="mx-auto mt-5 max-w-xl text-lg text-white/80">
+						Upload your favourite moments, lay them out page by page, and turn through them like a real album. On your phone,
+						turn it sideways and the book opens across two pages.
 					</p>
-					<div className="mt-8 flex flex-wrap gap-3">
-						<Link to="/signup" className={buttonClass("primary", "px-6 py-3 text-base")}>
+					<div className="mt-9 flex flex-wrap justify-center gap-3">
+						<Link to="/signup" className={buttonClass("primary", "px-6 py-3.5 text-base")}>
 							Create your first book
 						</Link>
-						<Link to="/signin" className={buttonClass("secondary", "px-6 py-3 text-base")}>
+						<Link to="/signin" className={buttonClass("secondary", "px-6 py-3.5 text-base !border-white/30 !bg-white/10 !text-white hover:!bg-white/20")}>
 							I have an account
 						</Link>
 					</div>
 				</div>
+			</section>
 
-				<HeroBook />
+			<main className="mx-auto grid max-w-7xl gap-6 px-4 py-16 sm:grid-cols-3 sm:px-6">
+				{FEATURES.map((feature) => (
+					<div key={feature.title} className="rounded-xl border border-surface-200 p-6">
+						<p className="font-display text-lg font-bold text-ink-900">{feature.title}</p>
+						<p className="mt-2 text-ink-500">{feature.text}</p>
+					</div>
+				))}
 			</main>
 		</div>
 	);
 }
 
-/** A small, static open book for the landing page. */
-function HeroBook() {
-	return (
-		<div className="relative mx-auto w-full max-w-xl" style={{ perspective: "1800px" }} aria-hidden>
-			<div className="absolute inset-x-8 -bottom-6 h-10 rounded-[50%] bg-ink-900/30 blur-2xl" />
-			<div className="relative flex aspect-[3/2] rotate-x-[8deg] shadow-2xl">
-				<div className="paper relative flex-1 overflow-hidden p-[7%]">
-					<div className="h-full bg-gradient-to-br from-amber-200 via-orange-300 to-rose-400 shadow-md" />
-					<div className="absolute inset-0 bg-gradient-to-l from-black/20 via-transparent to-transparent" />
-				</div>
-				<div className="paper relative flex flex-1 flex-col gap-[5%] overflow-hidden p-[7%]">
-					<div className="flex-1 bg-gradient-to-br from-sky-300 via-teal-200 to-emerald-300 shadow-md" />
-					<div className="flex-1 bg-gradient-to-br from-violet-300 via-fuchsia-200 to-pink-300 shadow-md" />
-					<div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-transparent" />
-				</div>
-			</div>
-		</div>
-	);
-}
+const FEATURES = [
+	{ title: "Keep every original", text: "Your photos are stored at full quality, and you can download all of them whenever you like." },
+	{ title: "Lay out real pages", text: "Full-bleed, framed, pairs, grids and pages of words, on ivory, white, kraft or charcoal paper." },
+	{ title: "Share only what you choose", text: "Books are private until you share them, with a link or with everyone." },
+];

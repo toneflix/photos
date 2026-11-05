@@ -66,7 +66,7 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 								{VISIBILITY.map((option) => (
 									<label
 										key={option.value}
-										className="flex cursor-pointer flex-col gap-1 rounded-2xl border border-paper-300 p-4 transition has-[:checked]:border-ink-900 has-[:checked]:bg-paper-100"
+										className="flex cursor-pointer flex-col gap-1 rounded-xl border border-surface-300 p-4 transition has-[:checked]:border-ink-900 has-[:checked]:bg-surface-100"
 									>
 										<span className="flex items-center gap-2 text-sm font-medium text-ink-900">
 											<input

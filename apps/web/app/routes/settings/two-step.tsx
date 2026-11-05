@@ -98,7 +98,7 @@ function TwoStep({ status, result, busy }: { status: TwoFactorStatus; result?: R
 				<RecoveryCodes codes={recoveryCodes} message={enable?.message ?? regenerated?.message ?? null} />
 			) : status.enabled ? (
 				<div className="space-y-6">
-					<div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-emerald-50 px-4 py-3">
+					<div className="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-emerald-50 px-4 py-3">
 						<p className="flex items-center gap-2 text-sm font-medium text-emerald-900">
 							<span className="h-2 w-2 rounded-full bg-emerald-500" /> On since{" "}
 							{status.enabledAt ? new Date(status.enabledAt).toLocaleDateString(undefined, { dateStyle: "medium" }) : "recently"}
@@ -110,7 +110,7 @@ function TwoStep({ status, result, busy }: { status: TwoFactorStatus; result?: R
 							Make new recovery codes
 						</Button>
 					</Form>
-					<Form method="post" className="flex max-w-xl flex-wrap items-end gap-3 border-t border-paper-200 pt-6">
+					<Form method="post" className="flex max-w-xl flex-wrap items-end gap-3 border-t border-surface-200 pt-6">
 						<input type="hidden" name="intent" value="two-factor-disable" />
 						<div className="min-w-56 flex-1">
 							<Field label="Password to turn it off" error={disable?.fieldErrors.password}>
@@ -128,7 +128,7 @@ function TwoStep({ status, result, busy }: { status: TwoFactorStatus; result?: R
 				<div className="space-y-4">
 					{disable?.message && <Notice>{disable.message}</Notice>}
 					<p className="flex items-center gap-2 text-sm text-ink-500">
-						<span className="h-2 w-2 rounded-full bg-paper-300" /> Off. Anyone with your password can sign in.
+						<span className="h-2 w-2 rounded-full bg-surface-300" /> Off. Anyone with your password can sign in.
 					</p>
 					<Form method="post">
 						<Button type="submit" name="intent" value="two-factor-setup" disabled={busy("two-factor-setup")}>
@@ -146,7 +146,7 @@ function SetupSteps({ setup, result, busy }: { setup: NonNullable<Result["setup"
 		<div className="grid gap-8 sm:grid-cols-[11rem_1fr]">
 			<div className="space-y-3">
 				<div
-					className="aspect-square w-44 rounded-2xl border border-paper-200 bg-white p-3 [&_svg]:h-full [&_svg]:w-full"
+					className="aspect-square w-44 rounded-xl border border-surface-200 bg-white p-3 [&_svg]:h-full [&_svg]:w-full"
 					dangerouslySetInnerHTML={{ __html: setup.qr }}
 				/>
 			</div>
@@ -158,7 +158,7 @@ function SetupSteps({ setup, result, busy }: { setup: NonNullable<Result["setup"
 					<li>Scan the code with your authenticator app.</li>
 					<li>
 						Can't scan it? Enter this key instead:
-						<code className="mt-1 block rounded-lg bg-paper-100 px-3 py-2 font-mono text-xs break-all text-ink-900">
+						<code className="mt-1 block rounded-lg bg-surface-100 px-3 py-2 font-mono text-xs break-all text-ink-900">
 							{setup.secret.match(/.{1,4}/g)?.join(" ")}
 						</code>
 					</li>
@@ -198,7 +198,7 @@ function RecoveryCodes({ codes, message }: { codes: string[]; message: string | 
 			<p className="text-sm text-ink-700">
 				Save these recovery codes somewhere safe. Each one signs you in once if you lose your phone. You won't see them again.
 			</p>
-			<ul className="grid max-w-md grid-cols-2 gap-2 rounded-2xl bg-paper-100 p-4 font-mono text-sm text-ink-900">
+			<ul className="grid max-w-md grid-cols-2 gap-2 rounded-xl bg-surface-100 p-4 font-mono text-sm text-ink-900">
 				{codes.map((code) => (
 					<li key={code}>{code}</li>
 				))}
@@ -213,11 +213,11 @@ function RecoveryCodes({ codes, message }: { codes: string[]; message: string | 
 				<a
 					href={`data:text/plain;charset=utf-8,${encodeURIComponent(`Toneflix Photos recovery codes\n\n${text}\n`)}`}
 					download="toneflix-photos-recovery-codes.txt"
-					className="inline-flex items-center rounded-full border border-paper-300 bg-white px-4 py-2 text-sm font-medium text-ink-900 hover:bg-paper-100"
+					className="inline-flex items-center rounded-full border border-surface-300 bg-white px-4 py-2 text-sm font-medium text-ink-900 hover:bg-surface-100"
 				>
 					Download
 				</a>
-				<a href="/settings/two-step" className="inline-flex items-center rounded-full bg-ink-900 px-4 py-2 text-sm font-medium text-paper-50 hover:bg-ink-700">
+				<a href="/settings/two-step" className="inline-flex items-center rounded-full bg-ink-900 px-4 py-2 text-sm font-medium text-surface-50 hover:bg-ink-700">
 					I've saved them
 				</a>
 			</div>

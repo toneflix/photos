@@ -13,7 +13,7 @@ export default function SettingsLayout() {
 		<main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
 			<div className="gap-10 md:grid md:grid-cols-[15rem_1fr]">
 				<aside className="hidden md:block">
-					<Link to="/settings" className="font-serif text-3xl text-ink-900 hover:text-ember-700">
+					<Link to="/settings" className="font-display font-bold tracking-tight text-3xl text-ink-900 hover:text-brand-700">
 						Settings
 					</Link>
 					<nav className="mt-8 space-y-7" aria-label="Settings">
@@ -26,12 +26,12 @@ export default function SettingsLayout() {
 											<NavLink
 												to={page.to}
 												className={({ isActive }) =>
-													`block rounded-xl px-3 py-2 text-sm transition ${
+													`block rounded-lg px-3 py-2 text-sm transition ${
 														isActive
-															? "bg-ink-900 font-medium text-paper-50"
+															? "bg-ink-900 font-medium text-surface-50"
 															: "danger" in page
 																? "text-red-700 hover:bg-red-50"
-																: "text-ink-700 hover:bg-paper-200/70"
+																: "text-ink-700 hover:bg-surface-200/70"
 													}`
 												}
 											>

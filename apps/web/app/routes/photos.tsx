@@ -54,7 +54,7 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 		<main className="mx-auto max-w-7xl px-4 py-8 pb-32 sm:px-6 sm:py-12">
 			<div className="flex flex-wrap items-end justify-between gap-4">
 				<div>
-					<h1 className="font-serif text-4xl text-ink-900">Your photos</h1>
+					<h1 className="font-display font-bold tracking-tight text-4xl text-ink-900">Your photos</h1>
 					<p className="mt-1 text-ink-500">
 						{total === 0 ? "Everything you upload is kept safe here." : `${total} ${total === 1 ? "photo" : "photos"} kept safe.`}
 					</p>
@@ -72,7 +72,7 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 			</div>
 
 			{params.get("welcome") && total === 0 && (
-				<p className="mt-6 rounded-2xl bg-paper-100 px-5 py-4 text-ink-700">
+				<p className="mt-6 rounded-xl bg-surface-100 px-5 py-4 text-ink-700">
 					Welcome! Start by uploading a few photos. Then pick the ones you love and turn them into a book.
 				</p>
 			)}
@@ -85,12 +85,12 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 
 			{groups.map((group) => (
 				<section key={group.label} className="mt-10">
-					<div className="sticky top-[61px] z-10 -mx-2 mb-3 flex items-center justify-between bg-paper-50/90 px-2 py-2 backdrop-blur">
-						<h2 className="font-serif text-xl text-ink-900">{group.label}</h2>
+					<div className="sticky top-[61px] z-10 -mx-2 mb-3 flex items-center justify-between bg-surface-50/90 px-2 py-2 backdrop-blur">
+						<h2 className="font-display font-bold tracking-tight text-xl text-ink-900">{group.label}</h2>
 						{selecting && (
 							<button
 								type="button"
-								className="text-sm font-medium text-ember-600 hover:underline"
+								className="text-sm font-medium text-brand-600 hover:underline"
 								onClick={() => {
 									const ids = group.photos.map((p) => p.id);
 									const all = ids.every((id) => picked.includes(id));
@@ -109,8 +109,8 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 									<button
 										type="button"
 										onClick={() => (selecting ? toggle(photo.id) : setOpen(photo))}
-										className={`group relative block w-full overflow-hidden rounded-xl bg-paper-200 transition ${
-											order >= 0 ? "ring-4 ring-ember-500 ring-offset-2 ring-offset-paper-50" : ""
+										className={`group relative block w-full overflow-hidden rounded-lg bg-surface-200 transition ${
+											order >= 0 ? "ring-4 ring-brand-500 ring-offset-2 ring-offset-surface-50" : ""
 										}`}
 										style={{ aspectRatio: photo.width && photo.height ? `${photo.width} / ${photo.height}` : "4 / 3" }}
 										aria-pressed={selecting ? order >= 0 : undefined}
@@ -131,7 +131,7 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 										{selecting && (
 											<span
 												className={`absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full border-2 text-xs font-semibold ${
-													order >= 0 ? "border-ember-500 bg-ember-500 text-white" : "border-white bg-black/20"
+													order >= 0 ? "border-brand-500 bg-brand-500 text-white" : "border-white bg-black/20"
 												}`}
 											>
 												{order >= 0 ? order + 1 : ""}
@@ -165,7 +165,7 @@ function SelectionBar({ picked, onClear }: { picked: string[]; onClear: () => vo
 
 	return (
 		<div className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4">
-			<Form method="post" className="mx-auto flex max-w-3xl flex-wrap items-center gap-3 rounded-2xl bg-ink-900 p-3 pl-5 text-paper-50 shadow-2xl sm:flex-nowrap">
+			<Form method="post" className="mx-auto flex max-w-3xl flex-wrap items-center gap-3 rounded-xl bg-ink-900 p-3 pl-5 text-surface-50 shadow-2xl sm:flex-nowrap">
 				<input type="hidden" name="intent" value="make-book" />
 				{picked.map((id) => (
 					<input key={id} type="hidden" name="photoIds" value={id} />
@@ -173,11 +173,11 @@ function SelectionBar({ picked, onClear }: { picked: string[]; onClear: () => vo
 				<p className="shrink-0 text-sm">
 					<span className="font-semibold">{picked.length}</span> {picked.length === 1 ? "photo" : "photos"} picked
 				</p>
-				<Input name="title" placeholder="Name your book" className="min-w-0 flex-1 !border-white/20 !bg-white/10 !py-2 !text-paper-50 placeholder:!text-white/50" />
+				<Input name="title" placeholder="Name your book" className="min-w-0 flex-1 !border-white/20 !bg-white/10 !py-2 !text-surface-50 placeholder:!text-white/50" />
 				<button
 					type="submit"
 					disabled={!picked.length || busy}
-					className="shrink-0 rounded-full bg-ember-500 px-4 py-2 text-sm font-medium text-white hover:bg-ember-600 disabled:opacity-40"
+					className="shrink-0 rounded-full bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-40"
 				>
 					{busy ? "Making your book…" : "Make a book"}
 				</button>
@@ -206,14 +206,14 @@ function PhotoDialog({ photo, onClose }: { photo: Photo; onClose: () => void }) 
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/80 p-4 backdrop-blur-sm" onClick={onClose} role="dialog" aria-modal>
-			<div className="flex max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-white md:flex-row" onClick={(e) => e.stopPropagation()}>
+			<div className="flex max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white md:flex-row" onClick={(e) => e.stopPropagation()}>
 				<div className="flex min-h-0 flex-1 items-center justify-center bg-ink-900">
 					<img src={photo.url} alt={photo.caption ?? ""} className="max-h-[60vh] w-full object-contain md:max-h-[80vh]" />
 				</div>
 				<div className="flex w-full flex-col gap-4 p-6 md:w-80">
 					<div className="flex items-start justify-between">
-						<h2 className="font-serif text-2xl">Photo</h2>
-						<button type="button" onClick={onClose} className="rounded-full p-1 text-ink-500 hover:bg-paper-100" aria-label="Close">
+						<h2 className="font-display font-bold tracking-tight text-2xl">Photo</h2>
+						<button type="button" onClick={onClose} className="rounded-full p-1 text-ink-500 hover:bg-surface-100" aria-label="Close">
 							<svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" /></svg>
 						</button>
 					</div>
