@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native'
 import { Link, useLocalSearchParams } from 'expo-router'
 import { useRequest } from 'alova/client'
 import { AuthFrame } from '@/components/AuthFrame'
-import { Button, Callout, Field, Input, Text } from '@/components/ui'
+import { Button, Callout, Field, Input, OtpInput, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { FormProblem } from '@/lib/forms'
 import { session } from '@/lib/session'
@@ -82,8 +82,8 @@ function TwoStep({ challengeToken }: { challengeToken: string }) {
   const verify = useRequest((form: { challengeToken: string; code?: string; recoveryCode?: string }) => api.auth.twoFactor(form), { immediate: false })
   const problem = FormProblem.from(verify.error)
 
-  const submit = async () => {
-    const { data } = await verify.send(recovery ? { challengeToken, recoveryCode: code.trim() } : { challengeToken, code: code.replace(/\s/g, '') })
+  const submit = async (entered = code) => {
+    const { data } = await verify.send(recovery ? { challengeToken, recoveryCode: entered.trim() } : { challengeToken, code: entered })
 
     await session.signIn(data)
   }
@@ -107,16 +107,13 @@ function TwoStep({ challengeToken }: { challengeToken: string }) {
         {recovery ? (
           <Input key="recovery" value={code} onChangeText={setCode} placeholder="XXXX-XXXX" autoCapitalize="characters" autoCorrect={false} autoFocus />
         ) : (
-          <Input
+          <OtpInput
             key="code"
             value={code}
-            onChangeText={setCode}
-            placeholder="123 456"
-            keyboardType="number-pad"
-            autoComplete="one-time-code"
-            textContentType="oneTimeCode"
-            maxLength={7}
-            style={styles.code}
+            onChange={setCode}
+            onComplete={(entered) => submit(entered).catch(() => setCode(''))}
+            invalid={!!problem.message}
+            disabled={verify.loading}
             autoFocus
           />
         )}
@@ -131,6 +128,5 @@ function TwoStep({ challengeToken }: { challengeToken: string }) {
 
 const styles = StyleSheet.create({
   forgot: { alignItems: 'flex-end', marginTop: -8 },
-  code: { textAlign: 'center', fontSize: 24, letterSpacing: 6, fontVariant: ['tabular-nums'] },
   toggle: { alignItems: 'center', paddingVertical: 8 },
 })
