@@ -60,6 +60,7 @@ export class AccountArchive {
       emailVerified: this.user.hasVerifiedEmail(),
       defaultVisibility: this.user.defaultVisibility,
       showOwnerName: this.user.showOwnerName,
+      defaultLicense: this.user.defaultLicense,
       createdAt: this.user.createdAt,
       exportedAt: new Date(),
     })
@@ -90,6 +91,7 @@ export class AccountArchive {
         width: photo.width,
         height: photo.height,
         caption: photo.caption,
+        license: photo.license,
         takenAt: photo.takenAt,
         uploadedAt: photo.createdAt,
       })),

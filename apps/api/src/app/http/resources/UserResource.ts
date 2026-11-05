@@ -13,6 +13,7 @@ export class UserResource extends Resource {
       avatarUrl: await user.avatarUrl(),
       defaultVisibility: user.defaultVisibility,
       showOwnerName: user.showOwnerName,
+      defaultLicense: user.defaultLicense,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     }

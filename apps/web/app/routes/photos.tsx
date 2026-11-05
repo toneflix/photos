@@ -15,6 +15,7 @@ import {
 	searchText,
 	spaceFilter,
 } from "~/components/SearchFilters";
+import { LICENSES, licenseFor } from "~/lib/licenses";
 import type { Route } from "./+types/photos";
 
 export const meta = () => [{ title: "Your photos · Toneflix Photos" }];
@@ -257,9 +258,14 @@ function PhotoDialog({ photo: initial, spaces, onClose }: { photo: Photo; spaces
 	const visibility = useFetcher<typeof action>();
 	const mover = useFetcher<typeof action>();
 	const moved = mover.data && "photo" in mover.data ? mover.data.photo : undefined;
-	const updated = visibility.data && "photo" in visibility.data ? visibility.data.photo : undefined;
+	const licensing = useFetcher<typeof action>();
+	const updated = [licensing.data, visibility.data]
+		.map((result) => (result && "photo" in result ? result.photo : undefined))
+		.filter(Boolean)
+		.sort((a, b) => b!.updatedAt.localeCompare(a!.updatedAt))[0];
 	const pending = visibility.formData?.get("visibility");
 	const photo = updated ?? initial;
+	const license = licenseFor((licensing.formData?.get("license") as Photo["license"] | null) ?? photo.license);
 	const isPublic = pending ? pending === "public" : photo.visibility === "public";
 	const deleting = fetcher.state !== "idle" && fetcher.formData?.get("intent") === "delete";
 	const saving = fetcher.state !== "idle" && fetcher.formData?.get("intent") === "caption";
@@ -328,6 +334,29 @@ function PhotoDialog({ photo: initial, spaces, onClose }: { photo: Photo; spaces
 							</label>
 						</mover.Form>
 					)}
+					<licensing.Form method="post" className="rounded-lg bg-surface-100 p-3">
+						<input type="hidden" name="intent" value="license" />
+						<input type="hidden" name="photoId" value={photo.id} />
+						<label className="block text-sm">
+							<span className="block font-semibold text-ink-900">Licence</span>
+							<select
+								name="license"
+								value={license.value}
+								onChange={(event) => licensing.submit(event.currentTarget.form)}
+								className="mt-1.5 block w-full rounded-md border border-surface-300 bg-white px-3 py-2 text-sm text-ink-900"
+							>
+								{LICENSES.map((option) => (
+									<option key={option.value} value={option.value}>
+										{option.label}
+									</option>
+								))}
+							</select>
+							<span className="mt-1.5 block text-ink-500">{license.forCreators}</span>
+						</label>
+						<Link to="/licenses" className="mt-1 inline-block text-sm font-medium text-brand-700 hover:underline">
+							About licences
+						</Link>
+					</licensing.Form>
 					<fetcher.Form method="post" className="space-y-3">
 						<input type="hidden" name="intent" value="caption" />
 						<input type="hidden" name="photoId" value={photo.id} />

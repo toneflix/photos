@@ -43,6 +43,16 @@ export default class ExploreController extends BaseController {
     return new PublicPhotoDetailResource(photo).additional({ status: 'success', message: 'OK', code: 200 })
   }
 
+  /** The original file, only when the owner chose an open licence. */
+  async download() {
+    const photo = await Photo.query().where({ visibility: 'public' }).findOrFail(String(this.params.photo))
+
+    abortIf(!(await photo.isListedFor(await this.viewer())), 'Photo not found!', 404)
+    abortIf(!photo.allowsDownload(), 'The photographer keeps all rights to this photo, so it cannot be downloaded.', 403)
+
+    return photo.download()
+  }
+
   async books() {
     const filters = await this.validateQuery({
       q: 'nullable|string|max:100',

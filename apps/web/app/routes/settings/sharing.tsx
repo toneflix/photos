@@ -1,5 +1,6 @@
-import { Form, useNavigation } from "react-router";
-import type { Visibility } from "@photos/types";
+import { Form, Link, useNavigation } from "react-router";
+import type { PhotoLicense, Visibility } from "@photos/types";
+import { LICENSES } from "~/lib/licenses";
 import { requireUser } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
 import { Button, Notice } from "~/components/ui";
@@ -40,6 +41,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 		await api.account.updatePrivacy({
 			defaultVisibility: String(form.get("defaultVisibility")) as Visibility,
 			showOwnerName: form.get("showOwnerName") === "on",
+			defaultLicense: String(form.get("defaultLicense")) as PhotoLicense,
 		});
 
 		return { message: "Saved." };
@@ -55,7 +57,7 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 
 	return (
 		<>
-			<PageHeader title="Sharing" description="Who can open your books. Each book also has its own setting in the editor; these are the starting point." />
+			<PageHeader title="Sharing" description="Who can open your books and reuse your photos. Each book and photo also has its own setting; these are the starting point." />
 			<div className="space-y-6">
 				<Section>
 					<Form method="post" className="space-y-6">
@@ -79,6 +81,35 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 											{option.label}
 										</span>
 										<span className="text-xs text-ink-500">{option.hint}</span>
+									</label>
+								))}
+							</div>
+						</fieldset>
+						<fieldset>
+							<legend className="mb-1 text-sm font-medium text-ink-700">Licence for new photos</legend>
+							<p className="mb-3 text-xs text-ink-500">
+								What people may do with your photos once they're on Explore. You can change it for any photo from your library.{" "}
+								<Link to="/licenses" className="font-medium text-brand-700 hover:underline">
+									About licences
+								</Link>
+							</p>
+							<div className="grid gap-3 sm:grid-cols-2">
+								{LICENSES.map((option) => (
+									<label
+										key={option.value}
+										className="flex cursor-pointer flex-col gap-1 rounded-xl border border-surface-300 p-4 transition has-[:checked]:border-ink-900 has-[:checked]:bg-surface-100"
+									>
+										<span className="flex items-center gap-2 text-sm font-medium text-ink-900">
+											<input
+												type="radio"
+												name="defaultLicense"
+												value={option.value}
+												defaultChecked={(user.defaultLicense ?? "all-rights-reserved") === option.value}
+												className="accent-ink-900"
+											/>
+											{option.label}
+										</span>
+										<span className="text-xs text-ink-500">{option.forCreators}</span>
 									</label>
 								))}
 							</div>

@@ -44,7 +44,9 @@ export default [
 			index("routes/explore/photos.tsx", { id: "space-photos" }),
 			route("books", "routes/explore/books.tsx", { id: "space-books" }),
 		]),
+		route("licenses", "routes/licenses.tsx"),
 	]),
+	route("explore/photos/:id/download", "routes/explore/download.ts"),
 
 	// Full-screen pages.
 	route("books/:id/edit", "routes/book-edit.tsx"),

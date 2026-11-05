@@ -1,5 +1,5 @@
 import { data, redirect } from "react-router";
-import type { BookPageInput, PageLayout } from "@photos/types";
+import type { BookPageInput, PageLayout, PhotoLicense } from "@photos/types";
 import type { PhotosEndpoints } from "@photos/api-client";
 import { formError } from "./api.server";
 
@@ -41,6 +41,13 @@ export async function handlePhotoIntent(api: PhotosEndpoints, form: FormData) {
 		if (intent === "visibility") {
 			const { data: photo } = await api.photos.update(String(form.get("photoId")), {
 				visibility: form.get("visibility") === "public" ? "public" : "private",
+			});
+			return { ok: true as const, photo };
+		}
+
+		if (intent === "license") {
+			const { data: photo } = await api.photos.update(String(form.get("photoId")), {
+				license: String(form.get("license")) as PhotoLicense,
 			});
 			return { ok: true as const, photo };
 		}

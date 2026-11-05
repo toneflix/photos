@@ -32,6 +32,7 @@ export default class PhotoController extends BaseController {
       caption: 'nullable|string|max:2000',
       takenAt: 'nullable|date',
       spaceId: ['nullable', UUID],
+      license: `nullable|in:${Photo.LICENSES.join(',')}`,
     })
 
     const space = data.spaceId ? await this.user.spaces().findOrFail(data.spaceId) : null
@@ -41,6 +42,7 @@ export default class PhotoController extends BaseController {
       height: data.height ? Number(data.height) : null,
       caption: data.caption || null,
       takenAt: data.takenAt || null,
+      license: data.license || null,
     })
 
     return new PhotoResource(photo)
@@ -62,10 +64,12 @@ export default class PhotoController extends BaseController {
       takenAt: 'nullable|date',
       visibility: `nullable|in:${Photo.VISIBILITIES.join(',')}`,
       spaceId: ['nullable', UUID],
+      license: `nullable|in:${Photo.LICENSES.join(',')}`,
     })
 
     if ('spaceId' in data) photo.spaceId = data.spaceId ? (await this.user.spaces().findOrFail(data.spaceId)).id : null
     if (data.visibility) photo.setVisibility(data.visibility)
+    if (data.license) photo.license = data.license
     if ('caption' in data) photo.caption = data.caption || null
     if ('takenAt' in data) photo.takenAt = data.takenAt ? new Date(data.takenAt) : null
 

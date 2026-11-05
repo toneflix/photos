@@ -24,6 +24,8 @@ export interface User {
   defaultVisibility: Visibility
   /** Whether people opening a shared or public book see the owner's name. */
   showOwnerName: boolean
+  /** Licence given to new uploads. */
+  defaultLicense: PhotoLicense
   createdAt: string
   updatedAt: string
 }
@@ -96,12 +98,16 @@ export interface Photo {
   takenAt: string | null
   /** Public photos show on Explore. */
   visibility: PhotoVisibility
+  license: PhotoLicense
   publishedAt: string | null
   createdAt: string
   updatedAt: string
 }
 
 export type PhotoVisibility = 'private' | 'public'
+
+/** How others may use a public photo. Only open licences can be downloaded. */
+export type PhotoLicense = 'all-rights-reserved' | 'cc-by' | 'cc-by-nc' | 'cc0'
 
 /** Who made a public photo or book. All null when they keep their name off shared work. */
 export interface Owner {
