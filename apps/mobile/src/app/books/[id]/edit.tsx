@@ -15,6 +15,7 @@ import { BookLookContext } from '@/components/book/paper'
 import { Button, Callout, Input, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { BookDraft } from '@/lib/book-draft'
+import { useBookCode } from '@/lib/book-codes'
 import { confirm } from '@/lib/confirm'
 import { FormProblem } from '@/lib/forms'
 import { bookLists, photoLists } from '@/lib/lists'
@@ -30,7 +31,16 @@ const SAVE_DELAY = 900
 /** Edit a book's pages: layouts, photos, captions, paper and frames. Changes save on their own. */
 export default function BookEditor() {
   const { id } = useLocalSearchParams<{ id: string }>()
-  const { data, error, loading } = useRequest(() => api.books.get(id), { cacheFor: null })
+  const code = useBookCode(id)
+
+  if (code === undefined) return <View style={styles.center} />
+
+  return <LoadBook id={id} code={code} />
+}
+
+/** The book with every page, opened with the code this device unlocked it with, if any. */
+function LoadBook({ id, code }: { id: string; code: string | null }) {
+  const { data, error, loading } = useRequest(() => api.books.get(id, code), { cacheFor: null })
   const book: BookWithPages | undefined = data?.data
 
   if (!book) {
@@ -45,10 +55,10 @@ export default function BookEditor() {
     )
   }
 
-  return <Editor book={book} />
+  return <Editor book={book} code={code} />
 }
 
-function Editor({ book: loaded }: { book: BookWithPages }) {
+function Editor({ book: loaded, code }: { book: BookWithPages; code: string | null }) {
   const insets = useSafeAreaInsets()
   const { width } = useWindowDimensions()
   const spaces = useSpaces()
@@ -87,7 +97,7 @@ function Editor({ book: loaded }: { book: BookWithPages }) {
     setSaving(true)
 
     try {
-      await api.books.savePages(book.id, pages.toInput()).send()
+      await api.books.savePages(book.id, pages.toInput(), code).send()
       setSaveError(undefined)
     } catch (problem) {
       setSaveError(FormProblem.from(problem).message ?? "Couldn't save")
@@ -110,7 +120,7 @@ function Editor({ book: loaded }: { book: BookWithPages }) {
 
   useEffect(
     () => () => {
-      const leaving = latest.current.dirty ? api.books.savePages(loaded.id, latest.current.draft.toInput()).send() : Promise.resolve()
+      const leaving = latest.current.dirty ? api.books.savePages(loaded.id, latest.current.draft.toInput(), code).send() : Promise.resolve()
 
       leaving.finally(() => bookLists.reload()).catch(() => undefined)
     },
@@ -130,7 +140,7 @@ function Editor({ book: loaded }: { book: BookWithPages }) {
   const updateBook = async (changes: BookChanges & { paper?: PaperColor; frame?: FrameStyle }) => {
     setBook((current) => ({ ...current, ...changes }))
 
-    const { data: saved } = await api.books.update(book.id, changes).send()
+    const { data: saved } = await api.books.update(book.id, changes, code).send()
 
     setBook((current) => ({ ...current, ...saved, pages: current.pages }))
     bookLists.replace(saved)

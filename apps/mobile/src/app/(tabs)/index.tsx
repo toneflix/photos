@@ -48,7 +48,10 @@ export default function Books() {
             ? 'Bind your photos into your first book.'
             : `${total} ${total === 1 ? 'book' : 'books'} on your shelf.`}
       </Text>
-      <Button title="New book" onPress={() => router.push({ pathname: '/books/new', params: space ? { space: space.id } : {} })} />
+      <View style={styles.headerActions}>
+        <Button title="New book" style={styles.flex} onPress={() => router.push({ pathname: '/books/new', params: space ? { space: space.id } : {} })} />
+        <Button title="Open with a code" variant="secondary" style={styles.flex} onPress={() => router.push('/unlock')} />
+      </View>
       {(total > 0 || filters.active || spaces.length > 0) && (
         <SearchFilters
           placeholder="Search your books by title or description"
@@ -74,7 +77,7 @@ export default function Books() {
         <Pressable
           style={{ width: cover }}
           accessibilityRole="button"
-          onPress={() => router.push({ pathname: '/books/[id]/edit', params: { id: book.id } })}
+          onPress={() => router.push({ pathname: '/books/[id]', params: { id: book.id } })}
         >
           <View style={[styles.cover, { height: (cover * 4) / 3 }]} accessibilityLabel={book.title}>
             <BookCover book={book} />
@@ -107,6 +110,8 @@ export default function Books() {
 const styles = StyleSheet.create({
   content: { paddingHorizontal: PADDING, paddingBottom: 32 },
   header: { gap: 12, paddingTop: 20, paddingBottom: 20 },
+  flex: { flex: 1 },
+  headerActions: { flexDirection: 'row', gap: 10 },
   row: { gap: GAP, marginBottom: 24 },
   cover: { borderRadius: radius.md, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' },
   badge: { position: 'absolute', bottom: 8, left: 8, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: 'rgba(0,0,0,0.55)' },
