@@ -35,7 +35,7 @@ export class BookDetailResource extends BookResource {
         layout: page.layout,
         frame: page.frame,
         caption: page.caption,
-        photos: (page.photoIds ?? []).flatMap((id) => serialized.get(id) ?? []),
+        photos: page.placements().flatMap(({ id, frame }) => (serialized.has(id) ? [{ ...serialized.get(id), frame }] : [])),
       })),
       canEdit: !!this.access?.can('edit'),
       isOwner: !!this.access?.isOwner,

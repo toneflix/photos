@@ -18,6 +18,8 @@ export class BookResource extends Resource {
       visibility: book.visibility,
       publishedAt: book.publishedAt,
       theme: book.theme,
+      coverDesign: book.coverDesign,
+      coverText: book.coverText,
       paper: book.paper,
       frame: book.frame,
       pageCount: await book.pages().count(),

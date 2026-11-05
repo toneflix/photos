@@ -1,3 +1,5 @@
+import type { BookTheme } from './models'
+
 /**
  * Response envelopes produced by the API (resora, see apps/api/src/config/resources.ts).
  */
@@ -64,7 +66,7 @@ export interface PhotoQuery extends PageQuery {
  */
 export interface BookQuery extends PageQuery {
   q?: string
-  theme?: 'classic' | 'linen' | 'midnight'
+  theme?: BookTheme
   visibility?: 'private' | 'shared' | 'public'
   sort?: ListSort
   space?: string

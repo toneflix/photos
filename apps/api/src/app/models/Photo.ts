@@ -249,7 +249,7 @@ export class Photo extends Model {
     for (const page of pages.all()) {
       if (!page.photoIds?.includes(this.id)) continue
 
-      await page.update({ photoIds: page.photoIds.filter((id) => id !== this.id) })
+      await page.update(BookPage.place(page.placements().filter(({ id }) => id !== this.id)))
     }
 
     await this.delete()

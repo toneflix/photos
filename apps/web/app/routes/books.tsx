@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { data, Form, Link, redirect, useNavigation } from "react-router";
-import type { Book, BookTheme, Space } from "@photos/types";
+import { FlipbookModel, type Book, type BookTheme, type Space } from "@photos/types";
 import { formError } from "~/lib/api.server";
 import { requireUser } from "~/lib/session.server";
 import { useInfiniteList } from "~/lib/use-infinite-list";
-import { CoverView } from "~/components/flipbook/PageView";
+import { CoverView } from "@toneflix/flipbook-react";
+import { ClothPicker } from "~/components/book/CoverPickers";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
 import { Alert, Button, Field, Input, Spinner, Textarea } from "~/components/ui";
 import { BOOK_VISIBILITY_FILTER, SORT_FILTER, SearchFilters, THEME_FILTER, filterParam, searchText, spaceFilter } from "~/components/SearchFilters";
@@ -134,7 +135,7 @@ function BookCard({ book }: { book: Book }) {
 					style={{ containerType: "size" }}
 					aria-label={`Open ${book.title}`}
 				>
-					<CoverView book={{ ...book, coverPhoto: book.coverPhoto ?? null }} />
+					<CoverView book={FlipbookModel.cover(book)} />
 					<span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/20 opacity-0 transition group-hover:opacity-100" />
 				</Link>
 				<div className="absolute top-2 right-2 flex gap-1.5 opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100">
@@ -159,11 +160,6 @@ function BookCard({ book }: { book: Book }) {
 	);
 }
 
-const THEMES: { value: BookTheme; label: string }[] = [
-	{ value: "classic", label: "Classic leather" },
-	{ value: "linen", label: "Linen" },
-	{ value: "midnight", label: "Midnight" },
-];
 
 function NewBookForm({
 	error,
@@ -191,22 +187,7 @@ function NewBookForm({
 				<Field label="A line for the title page (optional)">
 					<Textarea name="description" rows={2} maxLength={2000} placeholder="Two weeks of sun, family and jollof." />
 				</Field>
-				<fieldset>
-					<legend className="mb-1.5 text-sm font-medium text-ink-700">Cover</legend>
-					<div className="flex flex-wrap gap-2">
-						{THEMES.map((t) => (
-							<label
-								key={t.value}
-								className={`cursor-pointer rounded-full border px-4 py-2 text-sm font-medium ${
-									theme === t.value ? "border-ink-900 bg-ink-900 text-white" : "border-surface-300 hover:border-ink-500"
-								}`}
-							>
-								<input type="radio" name="theme" value={t.value} checked={theme === t.value} onChange={() => setTheme(t.value)} className="sr-only" />
-								{t.label}
-							</label>
-						))}
-					</div>
-				</fieldset>
+				<ClothPicker value={theme} onChange={setTheme} name="theme" />
 				{spaces.length > 0 && (
 					<Field label="Space">
 						<SpacePicker spaces={spaces} name="spaceId" defaultValue={spaceId ?? ""} />
@@ -225,7 +206,7 @@ function NewBookForm({
 			</div>
 			<div className="hidden md:block">
 				<div className="relative aspect-[3/4] overflow-hidden rounded-r-md shadow-lg" style={{ containerType: "size" }}>
-					<CoverView book={{ title: title || "Your title", description: null, theme, coverPhoto: null }} />
+					<CoverView book={FlipbookModel.cover({ title: title || "Your title", description: null, theme, coverDesign: "classic", coverText: null })} />
 				</div>
 			</div>
 		</Form>

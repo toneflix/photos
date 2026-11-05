@@ -39,7 +39,13 @@ export class BookDraft {
 
   /** What the API's save-pages call takes. */
   toInput(): BookPageInput[] {
-    return this.pages.map((page) => ({ layout: page.layout, frame: page.frame, caption: page.caption || null, photoIds: page.photos.map((photo) => photo.id) }))
+    return this.pages.map((page) => ({
+      layout: page.layout,
+      frame: page.frame,
+      caption: page.caption || null,
+      photoIds: page.photos.map((photo) => photo.id),
+      photoFrames: page.photos.map((photo) => ('frame' in photo ? (photo.frame as FrameStyle | null) : null)),
+    }))
   }
 
   insert(at: number, layout: PageLayout = 'framed', photos: Photo[] = []) {
@@ -73,13 +79,13 @@ export class BookDraft {
   layout(index: number, layout: PageLayout) {
     const page = this.pages[index]
 
-    return page ? this.update(index, { layout, photos: page.photos.slice(0, PAGE_LAYOUTS[layout].maxPhotos) }) : this
+    return page ? this.update(index, { layout, photos: page.photos.slice(0, PAGE_LAYOUTS[layout].slots) }) : this
   }
 
   /** Put a photo in a slot (or the next free one) and return the slot it went in, or null when the page holds no photos. */
   place(index: number, photo: Photo, slot: number | null): { draft: BookDraft; slot: number | null } {
     const page = this.pages[index]
-    const max = page ? PAGE_LAYOUTS[page.layout].maxPhotos : 0
+    const max = page ? PAGE_LAYOUTS[page.layout].slots : 0
 
     if (!page || max === 0) return { draft: this, slot: null }
 
@@ -111,7 +117,7 @@ export class BookDraft {
 
     for (let i = 0, n = 0; i < unused.length; n++) {
       const layout = MIX[n % MIX.length]
-      const count = PAGE_LAYOUTS[layout].maxPhotos
+      const count = PAGE_LAYOUTS[layout].slots
 
       added.push({ key: newKey(), layout, frame: null, caption: '', photos: unused.slice(i, i + count) })
       i += count

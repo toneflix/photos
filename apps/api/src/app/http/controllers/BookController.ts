@@ -12,6 +12,7 @@ const VISIBILITY = `in:${Book.VISIBILITIES.join(',')}`
 const THEME = `in:${Book.THEMES.join(',')}`
 const PAPER = `in:${Book.PAPERS.join(',')}`
 const FRAME = `in:${Book.FRAMES.join(',')}`
+const COVER_DESIGN = `in:${Book.COVER_DESIGNS.join(',')}`
 
 /**
  * Photo books and their pages.
@@ -37,6 +38,8 @@ export default class BookController extends BaseController {
       description: 'nullable|string|max:2000',
       visibility: `nullable|${VISIBILITY}`,
       theme: `nullable|${THEME}`,
+      coverDesign: `nullable|${COVER_DESIGN}`,
+      coverText: 'nullable|boolean',
       paper: `nullable|${PAPER}`,
       frame: `nullable|${FRAME}`,
       spaceId: ['nullable', UUID],
@@ -52,6 +55,8 @@ export default class BookController extends BaseController {
       visibility,
       publishedAt: visibility === 'public' ? new Date() : null,
       theme: data.theme || 'classic',
+      coverDesign: data.coverDesign || 'classic',
+      coverText: data.coverText ?? null,
       paper: data.paper || 'ivory',
       frame: data.frame || 'none',
     })
@@ -79,6 +84,8 @@ export default class BookController extends BaseController {
       description: 'nullable|string|max:2000',
       visibility: `nullable|${VISIBILITY}`,
       theme: `nullable|${THEME}`,
+      coverDesign: `nullable|${COVER_DESIGN}`,
+      coverText: 'nullable|boolean',
       paper: `nullable|${PAPER}`,
       frame: `nullable|${FRAME}`,
       coverPhotoId: ['nullable', UUID],
@@ -91,6 +98,8 @@ export default class BookController extends BaseController {
     if ('description' in data) book.description = data.description || null
     if (data.visibility) book.setVisibility(data.visibility)
     if (data.theme) book.theme = data.theme
+    if (data.coverDesign) book.coverDesign = data.coverDesign
+    if ('coverText' in data) book.coverText = data.coverText ?? null
     if (data.paper) book.paper = data.paper
     if (data.frame) book.frame = data.frame
     if ('spaceId' in data) book.spaceId = data.spaceId ? (await access.viewer!.spaces().findOrFail(data.spaceId)).id : null
@@ -119,11 +128,13 @@ export default class BookController extends BaseController {
     const book = access.book
     const data = await this.validate({
       pages: `present|array|max:${Book.MAX_PAGES}`,
-      'pages.*.layout': `nullable|in:${Object.keys(Book.LAYOUTS).join(',')}`,
+      'pages.*.layout': `nullable|in:${Book.LAYOUTS.join(',')}`,
       'pages.*.frame': `nullable|${FRAME}`,
       'pages.*.caption': 'nullable|string|max:500',
       'pages.*.photoIds': 'nullable|array',
       'pages.*.photoIds.*': [UUID],
+      'pages.*.photoFrames': 'nullable|array',
+      'pages.*.photoFrames.*': `nullable|${FRAME}`,
     })
 
     await book.replacePages(data.pages)

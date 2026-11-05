@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { Form, Link, useLocation, useNavigation, useSubmit } from "react-router";
-import type { Space } from "@photos/types";
+import { COVER_THEMES, type Space } from "@photos/types";
 
 export interface FilterField {
 	name: string;
@@ -133,9 +133,7 @@ export const THEME_FILTER: FilterField = {
 	label: "Cover",
 	options: [
 		{ value: "", label: "Any cover" },
-		{ value: "classic", label: "Classic leather" },
-		{ value: "linen", label: "Linen" },
-		{ value: "midnight", label: "Midnight" },
+		...Object.entries(COVER_THEMES).map(([value, { label }]) => ({ value, label })),
 	],
 };
 

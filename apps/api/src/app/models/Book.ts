@@ -1,3 +1,4 @@
+import { COVER_DESIGNS, COVER_THEMES, FRAME_STYLES, PAGE_LAYOUTS, PAPER_COLORS } from '@toneflix/flipbook-core'
 import { BookAccessCode } from './BookAccessCode'
 import { BookPage } from './BookPage'
 import { Model } from '@arkstack/database'
@@ -5,6 +6,7 @@ import { Photo } from './Photo'
 import { Space } from './Space'
 import { User } from './User'
 import { matches } from '@app/support/search'
+import type { PageLayout } from '@toneflix/flipbook-core'
 import type { QueryBuilder } from 'arkormx'
 
 export type BookVisibility = 'private' | 'shared' | 'public'
@@ -24,6 +26,7 @@ export interface PageInput {
   frame?: string | null
   caption?: string | null
   photoIds?: string[] | null
+  photoFrames?: (string | null)[] | null
 }
 
 export class Book extends Model {
@@ -35,6 +38,9 @@ export class Book extends Model {
   declare coverPhotoId: string | null
   declare visibility: BookVisibility
   declare theme: string
+  declare coverDesign: string
+  /** Null leaves it to the cover design: on, except for full-image covers. */
+  declare coverText: boolean | null
   declare paper: string
   declare frame: string
   declare publishedAt: Date | null
@@ -42,13 +48,12 @@ export class Book extends Model {
   declare updatedAt: Date
 
   static readonly VISIBILITIES = ['private', 'shared', 'public']
-  static readonly THEMES = ['classic', 'linen', 'midnight']
-  static readonly PAPERS = ['ivory', 'white', 'kraft', 'charcoal']
-  static readonly FRAMES = ['none', 'hairline', 'double', 'mat', 'corners', 'deckle', 'plate', 'feather', 'oval', 'botanical', 'watercolor', 'arcs', 'gilt', 'woodgrain']
+  static readonly THEMES = Object.keys(COVER_THEMES)
+  static readonly COVER_DESIGNS = Object.keys(COVER_DESIGNS)
+  static readonly PAPERS = Object.keys(PAPER_COLORS)
+  static readonly FRAMES = Object.keys(FRAME_STYLES)
+  static readonly LAYOUTS = Object.keys(PAGE_LAYOUTS)
   static readonly MAX_PAGES = 500
-
-  /** How many photos each page layout holds. */
-  static readonly LAYOUTS: Record<string, number> = { single: 1, framed: 1, pair: 2, grid: 4, collage: 3, text: 0 }
 
   protected static override table = 'books'
 
@@ -56,6 +61,8 @@ export class Book extends Model {
     userId: 'user_id',
     spaceId: 'space_id',
     coverPhotoId: 'cover_photo_id',
+    coverDesign: 'cover_design',
+    coverText: 'cover_text',
     publishedAt: 'published_at',
   }
 
@@ -181,7 +188,7 @@ export class Book extends Model {
     for (const photo of photos) copies.set(photo.id, (await photo.copyTo(owner)).id)
 
     await Book.transaction(async () => {
-      for (const page of pages) await page.update({ photoIds: (page.photoIds ?? []).flatMap((id) => copies.get(id) ?? []) })
+      for (const page of pages) await page.update(BookPage.place(page.placements().flatMap(({ id, frame }) => (copies.has(id) ? [{ id: copies.get(id)!, frame }] : []))))
 
       await BookAccessCode.query().where({ bookId: this.id }).delete()
       await this.update({ userId: owner.id, spaceId: null, coverPhotoId: this.coverPhotoId ? (copies.get(this.coverPhotoId) ?? null) : null })
@@ -207,7 +214,11 @@ export class Book extends Model {
     const owned = new Set(await this.ownedPhotoIds(input.flatMap((page) => page.photoIds ?? [])))
 
     const pages = input.map((page, index) => {
-      const layout = page.layout && page.layout in Book.LAYOUTS ? page.layout : 'single'
+      const layout = (page.layout && Book.LAYOUTS.includes(page.layout) ? page.layout : 'single') as PageLayout
+      const placed = (page.photoIds ?? [])
+        .map((id, slot) => ({ id, frame: Book.FRAMES.find((frame) => frame === page.photoFrames?.[slot]) ?? null }))
+        .filter(({ id }) => owned.has(id))
+        .slice(0, PAGE_LAYOUTS[layout].slots)
 
       return {
         bookId: this.id,
@@ -215,7 +226,7 @@ export class Book extends Model {
         layout,
         frame: page.frame && Book.FRAMES.includes(page.frame) ? page.frame : null,
         caption: page.caption?.trim() || null,
-        photoIds: (page.photoIds ?? []).filter((id) => owned.has(id)).slice(0, Book.LAYOUTS[layout]),
+        ...BookPage.place(placed),
       }
     })
 
