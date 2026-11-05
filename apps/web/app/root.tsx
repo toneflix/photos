@@ -26,6 +26,12 @@ export const links: Route.LinksFunction = () => [
 	},
 ];
 
+export function loader({ request }: Route.LoaderArgs) {
+	return { origin: new URL(request.url).origin };
+}
+
+export const shouldRevalidate = () => false;
+
 export function Layout({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang="en">
