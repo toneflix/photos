@@ -53,6 +53,11 @@ export class User extends BaseUser {
 
   protected override hidden = ['password']
 
+  /** The stored form of an email address: trimmed and lower case. Anything else is returned as given for validation to reject. */
+  static normalizeEmail<T>(value: T): T | string {
+    return typeof value === 'string' ? value.trim().toLowerCase() : value
+  }
+
   books() {
     return this.hasMany(Book, 'userId')
   }

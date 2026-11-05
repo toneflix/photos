@@ -1,9 +1,11 @@
 import { Auth, AuthenticationException } from '@arkstack/auth'
+import { Hash, abort } from '@arkstack/common'
+import { Cache } from '@arkstack/cache'
 import { Throttle } from '@app/support/Throttle'
 import { TwoFactor } from '@app/support/TwoFactor'
 import type { Request } from 'express'
-import type { User } from '@app/models/User'
-import { abort } from '@arkstack/common'
+import { User } from '@app/models/User'
+import { randomUUID } from 'node:crypto'
 
 export interface TwoFactorAnswer {
   code?: string | null
@@ -23,23 +25,38 @@ export class SignIn {
 
   static readonly LOCKOUT_SECONDS = 15 * 60
 
+  /** How long a used authenticator code stays refused: its 30-second step plus the one either side. */
+  static readonly USED_CODE_SECONDS = 90
+
+  /** A hash checked when no account matches, so a missing account takes as long to refuse as a wrong password. */
+  private static decoyHash?: Promise<string>
+
   readonly auth: Auth
 
   constructor(private readonly req: Request) {
     this.auth = Auth.make().setRequest(req as never)
   }
 
-  /** The account behind an email and password. */
+  /** The account behind an email and password. A wrong password and an unknown email get the same answer. */
   async attempt(email: string, password: string): Promise<User> {
     const throttle = new Throttle(`sign-in:${email}|${this.req.ip}`, SignIn.MAX_PASSWORD_ATTEMPTS, SignIn.LOCKOUT_SECONDS)
 
     await throttle.ensureAllowed('Too many sign-in attempts.')
 
-    const user = (await this.auth.attempt(email, password).catch(async (error) => {
-      if (error instanceof AuthenticationException) await throttle.hit()
+    SignIn.decoyHash ??= Hash.make(randomUUID())
 
-      throw error
-    })) as User
+    const user = await User.query().where({ email }).first()
+    const valid = await Hash.verify(password, user?.password ?? (await SignIn.decoyHash))
+
+    if (!user || !valid) {
+      await throttle.hit()
+
+      throw new AuthenticationException('Email or password is not right', {
+        req: this.req as never,
+        status: 422,
+        errors: { password: ['Email or password is not right'] },
+      })
+    }
 
     await throttle.clear()
 
@@ -55,9 +72,10 @@ export class SignIn {
 
     const secret = await TwoFactor.getSecret(user.id)
     const code = answer.code?.replace(/\s/g, '')
+    const valid = !!secret && !!code && TwoFactor.verifyCode(user as never, secret, code)
     const passed = answer.recoveryCode
       ? await TwoFactor.consumeRecoveryCode(user.id, answer.recoveryCode.trim())
-      : !!secret && !!code && TwoFactor.verifyCode(user as never, secret, code)
+      : valid && (await Cache.add(`two-factor-used:${user.id}:${code}`, true, SignIn.USED_CODE_SECONDS))
 
     if (!passed) {
       await throttle.hit()

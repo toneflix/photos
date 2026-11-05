@@ -37,13 +37,15 @@ export default class AccountController extends BaseController {
   }
 
   async updateEmail() {
+    this.body.email = User.normalizeEmail(this.body.email)
+
     const data = await this.validate({
       email: 'required|email|max:191|unique:users,email',
       password: 'required|string',
     })
 
     await this.confirmPassword(data.password)
-    await this.user.changeEmail(String(data.email).trim().toLowerCase())
+    await this.user.changeEmail(String(data.email))
 
     return new UserResource(this.user).additional({
       status: 'success',

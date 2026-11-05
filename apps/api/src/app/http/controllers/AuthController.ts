@@ -17,6 +17,8 @@ import { UserResource } from '@app/http/resources/UserResource'
  */
 export default class AuthController extends BaseController {
   async register() {
+    this.body.email = User.normalizeEmail(this.body.email)
+
     const data = await this.validate({
       name: 'required|string|max:120',
       email: 'required|email|max:191|unique:users,email',
@@ -25,7 +27,7 @@ export default class AuthController extends BaseController {
 
     const user = await User.query().create({
       name: String(data.name).trim(),
-      email: String(data.email).trim().toLowerCase(),
+      email: String(data.email),
       password: await Hash.make(String(data.password)),
     })
 
@@ -43,13 +45,15 @@ export default class AuthController extends BaseController {
 
   /** Check the password, then either issue a token or ask for the two-factor code. */
   async login() {
+    this.body.email = User.normalizeEmail(this.body.email)
+
     const data = await this.validate({
       email: 'required|email',
       password: 'required|string',
     })
 
     const signIn = new SignIn(this.ctx.req as never)
-    const user = await signIn.attempt(String(data.email).trim().toLowerCase(), String(data.password))
+    const user = await signIn.attempt(String(data.email), String(data.password))
     const status = await TwoFactor.readStatus(user.id)
 
     if (status.enabled) {
@@ -98,8 +102,10 @@ export default class AuthController extends BaseController {
 
   /** Email a reset link. The answer is the same whether or not the address has an account. */
   async forgotPassword() {
+    this.body.email = User.normalizeEmail(this.body.email)
+
     const data = await this.validate({ email: 'required|email' })
-    const email = String(data.email).trim().toLowerCase()
+    const email = String(data.email)
     const user = await User.query().where({ email }).first()
 
     if (user) {
