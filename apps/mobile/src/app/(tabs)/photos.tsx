@@ -213,6 +213,7 @@ function SelectionBar({ picked, spaceId, onDone }: { picked: string[]; spaceId?:
           loading={busy}
           disabled={!picked.length}
           onPress={make}
+          style={styles.barButton}
         />
       </View>
     </View>
@@ -234,8 +235,10 @@ const styles = StyleSheet.create({
   bold: { fontFamily: fonts.semibold },
   barError: { color: '#fca5a5', fontSize: 13 },
   barRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
+  barButton: { flexShrink: 0 },
   barInput: {
     flex: 1,
+    minWidth: 0,
     height: 44,
     paddingHorizontal: 12,
     borderRadius: radius.md,
