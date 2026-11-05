@@ -27,6 +27,15 @@ export default [
 	]),
 	...prefix("settings", [route("export", "routes/settings/export.ts")]),
 
+	// Public timeline, open to everyone.
+	layout("routes/explore/layout.tsx", [
+		layout("routes/explore/feed.tsx", [
+			route("explore", "routes/explore/photos.tsx"),
+			route("explore/books", "routes/explore/books.tsx"),
+		]),
+		route("explore/photos/:id", "routes/explore/photo.tsx"),
+	]),
+
 	// Full-screen pages.
 	route("books/:id/edit", "routes/book-edit.tsx"),
 	route("books/:id", "routes/book-view.tsx"),

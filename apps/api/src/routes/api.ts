@@ -1,6 +1,7 @@
 import AccountController from 'src/app/http/controllers/AccountController'
 import AuthController from 'src/app/http/controllers/AuthController'
 import BookController from 'src/app/http/controllers/BookController'
+import ExploreController from 'src/app/http/controllers/ExploreController'
 import PhotoController from 'src/app/http/controllers/PhotoController'
 import SessionController from 'src/app/http/controllers/SessionController'
 import TwoFactorController from 'src/app/http/controllers/TwoFactorController'
@@ -44,6 +45,11 @@ Router.post('/account/two-factor/setup', [TwoFactorController, 'setup'], [auth])
 Router.post('/account/two-factor', [TwoFactorController, 'enable'], [auth, limiter(10, 60)])
 Router.post('/account/two-factor/recovery-codes', [TwoFactorController, 'regenerateRecoveryCodes'], [auth])
 Router.delete('/account/two-factor', [TwoFactorController, 'disable'], [auth, limiter(10, 60)])
+
+// Explore: public photos and books, open to everyone
+Router.get('/explore/photos', [ExploreController, 'photos'], [limiter(120, 60)])
+Router.get('/explore/photos/:photo', [ExploreController, 'photo'], [limiter(120, 60)])
+Router.get('/explore/books', [ExploreController, 'books'], [limiter(120, 60)])
 
 // Photo library
 Router.apiResource('/photos', PhotoController, { middlewares: auth })

@@ -1,11 +1,12 @@
 import type { User } from "@photos/types";
 
 const sizes = {
+	xs: "h-7 w-7 text-[11px]",
 	sm: "h-9 w-9 text-sm",
 	lg: "h-20 w-20 text-2xl",
 };
 
-/** The user's profile photo, or their initials on an ember circle. */
+/** The user's profile photo, or their initials on a blue circle. */
 export function Avatar({ user, size = "sm" }: { user: Pick<User, "name" | "avatarUrl">; size?: keyof typeof sizes }) {
 	if (user.avatarUrl) {
 		return <img src={user.avatarUrl} alt="" className={`${sizes[size]} shrink-0 rounded-full object-cover`} />;

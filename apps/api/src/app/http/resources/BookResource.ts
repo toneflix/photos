@@ -15,6 +15,7 @@ export class BookResource extends Resource {
       coverPhotoId: book.coverPhotoId,
       coverPhoto: cover ? await new PhotoResource(cover).data() : null,
       visibility: book.visibility,
+      publishedAt: book.publishedAt,
       theme: book.theme,
       paper: book.paper,
       pageCount: await book.pages().count(),

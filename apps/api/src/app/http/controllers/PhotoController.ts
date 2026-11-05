@@ -1,3 +1,4 @@
+import { SORTS } from '@app/support/search'
 import { perPage } from '@arkstack/common'
 import { BaseController } from './BaseController'
 import { Photo } from '@app/models/Photo'
@@ -9,7 +10,14 @@ import { PhotoResource } from '@app/http/resources/PhotoResource'
  */
 export default class PhotoController extends BaseController {
   async index() {
-    const photos = await this.user.photos().latest('createdAt').paginate(perPage(this.query, { perPage: 60, maxPerPage: 200 }))
+    const filters = await this.validateQuery({
+      q: 'nullable|string|max:100',
+      orientation: `nullable|in:${Photo.ORIENTATIONS.join(',')}`,
+      visibility: `nullable|in:${Photo.VISIBILITIES.join(',')}`,
+      sort: `nullable|in:${SORTS.join(',')}`,
+    })
+
+    const photos = await Photo.library(this.user, filters).paginate(perPage(this.query, { perPage: 60, maxPerPage: 200 }))
 
     return new PhotoCollection(photos).additional({ status: 'success', message: 'OK', code: 200 })
   }
@@ -47,8 +55,10 @@ export default class PhotoController extends BaseController {
     const data = await this.validate({
       caption: 'nullable|string|max:2000',
       takenAt: 'nullable|date',
+      visibility: `nullable|in:${Photo.VISIBILITIES.join(',')}`,
     })
 
+    if (data.visibility) photo.setVisibility(data.visibility)
     if ('caption' in data) photo.caption = data.caption || null
     if ('takenAt' in data) photo.takenAt = data.takenAt ? new Date(data.takenAt) : null
 

@@ -1,5 +1,8 @@
 import { Link, redirect } from "react-router";
+import { cloudflareContext } from "~/lib/cloudflare";
+import { getServerApi } from "~/lib/api.server";
 import { optionalUser } from "~/lib/session.server";
+import { PublicPhotoGrid } from "~/components/explore/PublicPhotoGrid";
 import { Logo, buttonClass } from "~/components/ui";
 import { Mosaic } from "~/components/Mosaic";
 import type { Route } from "./+types/home";
@@ -16,7 +19,15 @@ export function meta(_: Route.MetaArgs) {
 
 export async function loader({ request, context }: Route.LoaderArgs) {
 	if (await optionalUser(request, context)) throw redirect("/books");
-	return { deleted: new URL(request.url).searchParams.has("deleted") };
+
+	const { env } = context.get(cloudflareContext);
+	const api = await getServerApi(request, env, null);
+	const fresh = await api.explore
+		.photos({ per_page: 16 })
+		.then(({ data }) => data)
+		.catch(() => []);
+
+	return { deleted: new URL(request.url).searchParams.has("deleted"), fresh };
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
@@ -34,6 +45,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 				<header className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
 					<Logo light />
 					<nav className="flex items-center gap-1 sm:gap-2">
+						<Link to="/explore" className={buttonClass("ghost", "!text-white hover:!bg-white/10 max-sm:hidden")}>
+							Explore
+						</Link>
 						<Link to="/signin" className={buttonClass("ghost", "!text-white hover:!bg-white/10")}>
 							Sign in
 						</Link>
@@ -61,13 +75,27 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 				</div>
 			</section>
 
-			<main className="mx-auto grid max-w-7xl gap-6 px-4 py-16 sm:grid-cols-3 sm:px-6">
-				{FEATURES.map((feature) => (
-					<div key={feature.title} className="rounded-xl border border-surface-200 p-6">
-						<p className="font-display text-lg font-bold text-ink-900">{feature.title}</p>
-						<p className="mt-2 text-ink-500">{feature.text}</p>
-					</div>
-				))}
+			<main className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+				<div className="grid gap-6 sm:grid-cols-3">
+					{FEATURES.map((feature) => (
+						<div key={feature.title} className="rounded-xl border border-surface-200 p-6">
+							<p className="font-display text-lg font-bold text-ink-900">{feature.title}</p>
+							<p className="mt-2 text-ink-500">{feature.text}</p>
+						</div>
+					))}
+				</div>
+
+				{loaderData.fresh.length > 0 && (
+					<section className="mt-20">
+						<div className="mb-6 flex items-end justify-between gap-4">
+							<h2 className="font-display text-3xl font-bold tracking-tight text-ink-900">Fresh on Explore</h2>
+							<Link to="/explore" className="text-sm font-semibold text-brand-700 hover:underline">
+								See more
+							</Link>
+						</div>
+						<PublicPhotoGrid photos={loaderData.fresh} />
+					</section>
+				)}
 			</main>
 		</div>
 	);

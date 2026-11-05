@@ -1,0 +1,27 @@
+import { NavLink, Outlet } from "react-router";
+
+const tab = ({ isActive }: { isActive: boolean }) =>
+	`-mb-px border-b-2 px-1 pb-3 text-sm font-semibold transition ${
+		isActive ? "border-ink-900 text-ink-900" : "border-transparent text-ink-500 hover:text-ink-900"
+	}`;
+
+/** The Explore heading with its Photos and Books tabs. */
+export default function ExploreFeed() {
+	return (
+		<main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
+			<h1 className="font-display text-4xl font-bold tracking-tight text-ink-900 sm:text-5xl">Explore</h1>
+			<p className="mt-2 max-w-xl text-ink-500">Photos and books people chose to share with everyone.</p>
+			<nav className="mt-8 flex gap-6 border-b border-surface-200">
+				<NavLink to="/explore" end className={tab}>
+					Photos
+				</NavLink>
+				<NavLink to="/explore/books" className={tab}>
+					Books
+				</NavLink>
+			</nav>
+			<div className="mt-8">
+				<Outlet />
+			</div>
+		</main>
+	);
+}

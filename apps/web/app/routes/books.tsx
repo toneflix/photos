@@ -6,17 +6,25 @@ import { requireUser } from "~/lib/session.server";
 import { useInfiniteList } from "~/lib/use-infinite-list";
 import { CoverView } from "~/components/flipbook/PageView";
 import { Alert, Button, Field, Input, Spinner, Textarea } from "~/components/ui";
+import { BOOK_VISIBILITY_FILTER, SORT_FILTER, SearchFilters, THEME_FILTER, filterParam, searchText } from "~/components/SearchFilters";
 import type { Route } from "./+types/books";
 
 export const meta = () => [{ title: "Your books · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const { api } = await requireUser(request, context);
-	const page = Math.max(1, Number(new URL(request.url).searchParams.get("page")) || 1);
+	const url = new URL(request.url);
+	const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+	const filters = {
+		q: searchText(url),
+		theme: filterParam(url, "theme", ["classic", "linen", "midnight"] as const),
+		visibility: filterParam(url, "visibility", ["private", "shared", "public"] as const),
+		sort: filterParam(url, "sort", ["latest", "oldest"] as const),
+	};
 
-	const { data: items, meta } = await api.books.list({ page, per_page: BOOKS_PER_PAGE });
+	const { data: items, meta } = await api.books.list({ ...filters, page, per_page: BOOKS_PER_PAGE });
 
-	return { items, page: meta.current_page, lastPage: meta.last_page, total: meta.total };
+	return { items, page: meta.current_page, lastPage: meta.last_page, total: meta.total, filtered: Object.values(filters).some(Boolean) };
 }
 
 /** Four shelves of six books per request. */
@@ -40,8 +48,8 @@ export async function action({ request, context }: Route.ActionArgs) {
 
 export default function Books({ loaderData, actionData }: Route.ComponentProps) {
 	const { items: books, hasMore, loading, sentinel } = useInfiniteList(loaderData, "/books");
-	const { total } = loaderData;
-	const [creating, setCreating] = useState(total === 0 || !!actionData);
+	const { total, filtered } = loaderData;
+	const [creating, setCreating] = useState((total === 0 && !filtered) || !!actionData);
 
 	return (
 		<main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
@@ -49,7 +57,11 @@ export default function Books({ loaderData, actionData }: Route.ComponentProps) 
 				<div>
 					<h1 className="font-display font-bold tracking-tight text-4xl text-ink-900">Your books</h1>
 					<p className="mt-1 text-ink-500">
-						{total === 0 ? "Bind your photos into your first book." : `${total} ${total === 1 ? "book" : "books"} on your shelf.`}
+						{filtered
+							? `${total} ${total === 1 ? "book" : "books"} found.`
+							: total === 0
+								? "Bind your photos into your first book."
+								: `${total} ${total === 1 ? "book" : "books"} on your shelf.`}
 					</p>
 				</div>
 				{!creating && (
@@ -59,7 +71,15 @@ export default function Books({ loaderData, actionData }: Route.ComponentProps) 
 				)}
 			</div>
 
-			{creating && <NewBookForm error={actionData} onCancel={total ? () => setCreating(false) : undefined} />}
+			{creating && <NewBookForm error={actionData} onCancel={total || filtered ? () => setCreating(false) : undefined} />}
+
+			{(total > 0 || filtered) && (
+				<div className="mt-8">
+					<SearchFilters placeholder="Search your books by title or description" filters={[THEME_FILTER, BOOK_VISIBILITY_FILTER, SORT_FILTER]} />
+				</div>
+			)}
+
+			{filtered && total === 0 && <p className="mt-10 text-center text-ink-500">No books match. Try other words or clear the filters.</p>}
 
 			{books.length > 0 && (
 				<ul className="mt-8 grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

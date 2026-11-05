@@ -6,9 +6,14 @@ import type {
   BookWithPages,
   PaperColor,
   ID,
-  PageQuery,
+  BookQuery,
+  PhotoQuery,
   PaginatedResponse,
   Photo,
+  PhotoVisibility,
+  PublicBook,
+  PublicPhoto,
+  PublicPhotoDetail,
   Session,
   SignedIn,
   TwoFactorChallenge,
@@ -84,7 +89,7 @@ export function createEndpoints(alova: PhotosAlova) {
     },
 
     photos: {
-      list: (params: PageQuery = {}) => alova.Get<PaginatedResponse<Photo>>('/photos', { params }),
+      list: (params: PhotoQuery = {}) => alova.Get<PaginatedResponse<Photo>>('/photos', { params }),
       get: (id: ID) => alova.Get<ApiResponse<Photo>>(`/photos/${id}`),
       /**
        * Upload one photo. `file` is a File/Blob on web, or an RN `{ uri, name, type }` object.
@@ -103,13 +108,20 @@ export function createEndpoints(alova: PhotosAlova) {
         }
         return alova.Post<ApiResponse<Photo>>('/photos', form)
       },
-      update: (id: ID, data: Partial<Pick<Photo, 'caption' | 'takenAt'>>) =>
+      update: (id: ID, data: Partial<Pick<Photo, 'caption' | 'takenAt'> & { visibility: PhotoVisibility }>) =>
         alova.Put<ApiResponse<Photo>>(`/photos/${id}`, data),
       remove: (id: ID) => alova.Delete<ApiResponse<null>>(`/photos/${id}`),
     },
 
+    /** The public timeline. Works signed out. */
+    explore: {
+      photos: (params: Omit<PhotoQuery, 'visibility'> = {}) => alova.Get<PaginatedResponse<PublicPhoto>>('/explore/photos', { params }),
+      photo: (id: ID) => alova.Get<ApiResponse<PublicPhotoDetail>>(`/explore/photos/${id}`),
+      books: (params: Omit<BookQuery, 'visibility'> = {}) => alova.Get<PaginatedResponse<PublicBook>>('/explore/books', { params }),
+    },
+
     books: {
-      list: (params: PageQuery = {}) => alova.Get<PaginatedResponse<Book>>('/books', { params }),
+      list: (params: BookQuery = {}) => alova.Get<PaginatedResponse<Book>>('/books', { params }),
       /** A book with every page. Works signed out for shared and public books. */
       get: (id: ID) => alova.Get<ApiResponse<BookWithPages>>(`/books/${id}`),
       create: (data: Pick<Book, 'title'> & Partial<Pick<Book, 'description' | 'visibility' | 'theme' | 'paper'>>) =>
