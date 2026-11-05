@@ -10,6 +10,7 @@ import {
 	TitlePageView,
 } from "./PageView";
 import { Fold, PageTurn, type TurnFrame, type Vec } from "./pageTurn";
+import { FrameContext } from "./PrintedPhoto";
 import { playPageTurn } from "./sound";
 import { enterLandscape, useElementSize, useOrientation } from "./useViewport";
 
@@ -586,6 +587,7 @@ export function Flipbook({
 
 	return (
 		<PaperContext.Provider value={book.paper ?? "ivory"}>
+		<FrameContext.Provider value={book.frame ?? "none"}>
 		<div
 			ref={rootRef}
 			className="relative flex h-dvh w-full flex-col overflow-hidden text-white select-none"
@@ -722,6 +724,7 @@ export function Flipbook({
 				/>
 			)}
 		</div>
+		</FrameContext.Provider>
 		</PaperContext.Provider>
 	);
 }
