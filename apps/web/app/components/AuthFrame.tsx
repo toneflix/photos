@@ -6,11 +6,12 @@ import { Mosaic } from "~/components/Mosaic";
 export function AuthFrame({ title, subtitle, children }: { title: string; subtitle: ReactNode; children: ReactNode }) {
 	return (
 		<div className="flex min-h-dvh bg-white">
-			<aside className="bg-gold-glow relative isolate hidden w-[44%] overflow-hidden lg:block">
-				<Mosaic columns={4} className="absolute -inset-x-6 -top-6 -z-10 opacity-60 mix-blend-soft-light" />
+			<aside className="relative isolate hidden w-[44%] overflow-hidden bg-ink-900 lg:block">
+				<Mosaic columns={4} className="absolute -inset-x-6 -top-6 -z-10 opacity-80" />
+				<div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
 				<div className="flex h-full flex-col justify-between p-10">
-					<Logo />
-					<p className="max-w-sm font-display text-3xl leading-tight font-bold text-ink-900">Every photo you keep here is kept for all time.</p>
+					<Logo light />
+					<p className="max-w-sm font-display text-3xl leading-tight font-bold text-white">Every photo you keep here is kept for all time.</p>
 				</div>
 			</aside>
 			<main className="flex flex-1 flex-col px-4 py-5 sm:px-10">
