@@ -184,12 +184,63 @@ export interface BookPage {
   photos: Photo[]
 }
 
+/**
+ * What someone may do with a book.
+ * - view: open and read it. Every access code has this.
+ * - add: upload photos onto new pages.
+ * - edit: change pages, captions, title and cover.
+ * - transfer: claim the book as their own.
+ */
+export type BookPermission = 'view' | 'add' | 'edit' | 'transfer'
+
+export const BOOK_PERMISSIONS: Record<BookPermission, { label: string; description: string }> = {
+  view: { label: 'View', description: 'Open and read the book' },
+  add: { label: 'Add', description: 'Upload photos onto new pages' },
+  edit: { label: 'Edit', description: 'Change pages, captions, title and cover' },
+  transfer: { label: 'Transfer', description: 'Claim the book as their own' },
+}
+
 /** A book with all of its pages, as returned by `GET /books/:id`. */
 export interface BookWithPages extends Book {
   pages: BookPage[]
-  /** True when the signed-in user owns the book and may edit it. */
+  /** True when the visitor may edit the book, as its owner or with an access code. */
   canEdit: boolean
+  isOwner: boolean
+  /** Everything the visitor may do with the book. */
+  permissions: BookPermission[]
   owner: Pick<User, 'id' | 'name'>
+}
+
+/** A code that unlocks a book, as its owner manages it. */
+export interface BookAccessCode {
+  id: ID
+  bookId: ID
+  /** Like `K7QM-4XTP`. Case and the dash don't matter when typed. */
+  code: string
+  label: string | null
+  permissions: BookPermission[]
+  /** How many times the code was used to open the book. */
+  uses: number
+  lastUsedAt: string | null
+  expiresAt: string | null
+  expired: boolean
+  /** Link that opens the book with this code filled in. */
+  shareUrl: string
+  createdAt: string
+  updatedAt: string
+}
+
+/** The book an access code opens, as returned by `POST /access-codes/redeem`. */
+export interface BookAccessGrant {
+  code: string
+  permissions: BookPermission[]
+  book: Book
+}
+
+export interface BookAccessCodeInput {
+  label?: string | null
+  permissions?: BookPermission[]
+  expiresAt?: string | null
 }
 
 /** One page as sent to `PUT /books/:id/pages`. */

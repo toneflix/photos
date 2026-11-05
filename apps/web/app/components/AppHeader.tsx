@@ -38,6 +38,9 @@ export function AppHeader({ user }: { user: User | null }) {
 					</div>
 				) : (
 					<div className="flex items-center gap-1 sm:gap-2">
+						<Link to="/unlock" className={buttonClass("ghost", "max-lg:hidden")}>
+							Have a code?
+						</Link>
 						<Link to={`/signin?next=${encodeURIComponent(pathname)}`} className={buttonClass("ghost", "max-sm:hidden")}>
 							Sign in
 						</Link>

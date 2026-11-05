@@ -8,11 +8,13 @@ export default [
 	route("forgot-password", "routes/forgot-password.tsx"),
 	route("reset-password", "routes/reset-password.tsx"),
 	route("verify-email", "routes/verify-email.tsx"),
+	route("unlock", "routes/unlock.tsx"),
 
 	// Signed-in area with the app header.
 	layout("routes/app-layout.tsx", [
 		route("books", "routes/books.tsx"),
 		route("photos", "routes/photos.tsx"),
+		route("books/:id/access", "routes/book-access.tsx"),
 		route("settings", "routes/settings/layout.tsx", [
 			index("routes/settings/index.tsx"),
 			route("profile", "routes/settings/profile.tsx"),
