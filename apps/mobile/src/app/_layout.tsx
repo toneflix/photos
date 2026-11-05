@@ -55,6 +55,7 @@ export default function RootLayout() {
           <Stack.Screen name="photo/[id]" options={{ presentation: 'modal' }} />
           <Stack.Screen name="books/new" options={{ presentation: 'modal' }} />
           <Stack.Screen name="space-form" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="books/[id]/edit" />
         </Stack.Protected>
         <Stack.Screen name="explore/photos/[id]" />
         <Stack.Screen name="spaces/[slug]" />
