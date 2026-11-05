@@ -2,9 +2,9 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { readFile, readdir } from 'node:fs/promises'
 
 import { app } from '../src/core/bootstrap'
-import { createHmac } from 'node:crypto'
 import path from 'node:path'
 import request from 'parasito'
+import { totp, wrongCode } from './support/totp'
 
 const email = `account-${Date.now()}@toneflix.test`
 const desktop = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36'
@@ -18,21 +18,6 @@ const api = (method: 'get' | 'post' | 'put' | 'delete', path: string, body?: Rec
   if (token) call.set('Authorization', `Bearer ${token}`)
 
   return body ? call.send(body) : call
-}
-
-/** The current code an authenticator app would show for a base32 secret. */
-const totp = (secret: string) => {
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
-  const bits = [...secret].map((char) => alphabet.indexOf(char).toString(2).padStart(5, '0')).join('')
-  const key = Buffer.from(bits.match(/.{8}/g)!.map((byte) => parseInt(byte, 2)))
-  const counter = Buffer.alloc(8)
-
-  counter.writeBigUInt64BE(BigInt(Math.floor(Date.now() / 30000)))
-
-  const hash = createHmac('sha1', key).update(counter).digest()
-  const offset = hash[hash.length - 1] & 15
-
-  return String((hash.readUInt32BE(offset) & 0x7fffffff) % 1_000_000).padStart(6, '0')
 }
 
 /** The HTML of the newest email sent to `to` by the file mail transport. */
@@ -139,7 +124,7 @@ describe('account', () => {
     const challengeToken = login.body.data.challengeToken
     const [recoveryCode] = enabled.body.data.recoveryCodes
 
-    await api('post', '/auth/two-factor', { challengeToken, code: '000000' }, phone).expect(422)
+    await api('post', '/auth/two-factor', { challengeToken, code: wrongCode(secret) }, phone).expect(422)
     await api('post', '/auth/two-factor', { challengeToken, recoveryCode }, phone).expect(200)
     await api('post', '/auth/two-factor', { challengeToken, recoveryCode }, phone).expect(422)
     await api('post', '/auth/two-factor', { challengeToken, code: totp(secret) }, phone).expect(200)
