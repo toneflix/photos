@@ -1,4 +1,5 @@
-import { formdata, requestLogger, resora } from '@arkstack/driver-express/middlewares'
+import { requestLogger, resora } from '@arkstack/driver-express/middlewares'
+import { UploadMiddleware } from '@app/http/middlewares/UploadMiddleware'
 
 import { MiddlewareConfig } from '@arkstack/driver-express/types'
 import cors from 'cors'
@@ -11,6 +12,7 @@ import { useExpressUploadContext } from '@kanun-hq/plugin-file'
 
 export default (): MiddlewareConfig => {
   const cConf = corsConfig()
+  const uploads = new UploadMiddleware()
 
   return {
     global: [
@@ -25,7 +27,7 @@ export default (): MiddlewareConfig => {
         origin: cConf.allowed_origins.length > 0 ? cConf.allowed_origins : true,
         credentials: true,
       }),
-      formdata.any({ limits: { fileSize: 25 * 1024 * 1024, files: 1 } }),
+      (req, res, next) => uploads.handler(req, res, next),
       // Local disks sign file URLs as APP_URL/<path>, so serve stored photos and avatars from there.
       ...['photos', 'avatars'].map((folder) =>
         express.Router().use(

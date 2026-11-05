@@ -46,6 +46,9 @@ export default class Application extends Arkstack<Express, unknown, Handler> {
    * @param defer   Set to true to skip server startup
    */
   public async boot(port: number, defer = false) {
+    // Which proxies may report the visitor's IP in X-Forwarded-For: a hop count, or their addresses.
+    this.app.set('trust proxy', env('TRUST_PROXY', false))
+
     // Load public assets
     await this.driver.mountPublicAssets(this.app, path.join(Arkstack.rootDir(), 'public'))
 

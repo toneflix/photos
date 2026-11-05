@@ -111,10 +111,14 @@ describe('Search and filters', () => {
   const upload = async (name: string, caption: string, width: number, height: number) => {
     const form = new FormData()
 
-    form.append('photo', new Blob([pixel], { type: 'image/png' }), 'pixel.png')
+    // The API reads the size from the file, so stamp it into the PNG header.
+    const image = Buffer.from(pixel)
+
+    image.writeUInt32BE(width, 16)
+    image.writeUInt32BE(height, 20)
+
+    form.append('photo', new Blob([image], { type: 'image/png' }), 'pixel.png')
     form.append('caption', caption)
-    form.append('width', String(width))
-    form.append('height', String(height))
 
     const res = await request(app).post('/api/photos').set({ Accept: 'application/json', Authorization: `Bearer ${token}` }).send(form)
 

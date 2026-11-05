@@ -26,7 +26,7 @@ Router.post('/auth/logout', [AuthController, 'logout'], [auth])
 
 // Account settings
 Router.put('/account/profile', [AccountController, 'updateProfile'], [auth])
-Router.post('/account/avatar', [AccountController, 'updateAvatar'], [auth])
+Router.post('/account/avatar', [AccountController, 'updateAvatar'], [auth, limiter(20, 60)])
 Router.delete('/account/avatar', [AccountController, 'removeAvatar'], [auth])
 Router.put('/account/email', [AccountController, 'updateEmail'], [auth, limiter(10, 60)])
 Router.post('/account/email/verification', [AccountController, 'sendVerification'], [auth, limiter(3, 60)])
@@ -60,14 +60,16 @@ Router.get('/explore/spaces/:space', [ExploreController, 'space'], [limiter(120,
 Router.apiResource('/spaces', SpaceController, { middlewares: auth })
 
 // Photo library
-Router.apiResource('/photos', PhotoController, { middlewares: auth })
+Router.apiResource('/photos', PhotoController, {
+  middlewares: { index: auth, show: auth, create: [auth, limiter(60, 60)], update: auth, destroy: auth },
+})
 
 // Books. Opening, editing and adding to a book also work signed out with an access code that allows it.
 Router.apiResource('/books', BookController, {
   middlewares: { index: auth, create: auth, destroy: auth },
 })
 Router.put('/books/:book/pages', [BookController, 'savePages'])
-Router.post('/books/:book/photos', [BookController, 'addPhoto'], [limiter(120, 60)])
+Router.post('/books/:book/photos', [BookController, 'addPhoto'], [limiter(60, 60)])
 
 // Access codes that unlock a book
 Router.get('/books/:book/access-codes', [BookAccessCodeController, 'index'], [auth])
