@@ -53,7 +53,7 @@ export function createEndpoints(alova: PhotosAlova) {
         return alova.Post<ApiResponse<Photo>>('/photos', form)
       },
       update: (id: ID, data: Partial<Pick<Photo, 'caption' | 'takenAt'>>) =>
-        alova.Patch<ApiResponse<Photo>>(`/photos/${id}`, data),
+        alova.Put<ApiResponse<Photo>>(`/photos/${id}`, data),
       remove: (id: ID) => alova.Delete<ApiResponse<null>>(`/photos/${id}`),
     },
 
@@ -66,7 +66,7 @@ export function createEndpoints(alova: PhotosAlova) {
       update: (
         id: ID,
         data: Partial<Pick<Book, 'title' | 'description' | 'visibility' | 'coverPhotoId'> & { theme: BookTheme; paper: PaperColor }>,
-      ) => alova.Patch<ApiResponse<BookWithPages>>(`/books/${id}`, data),
+      ) => alova.Put<ApiResponse<BookWithPages>>(`/books/${id}`, data),
       /** Replace every page of the book, in order. */
       savePages: (id: ID, pages: BookPageInput[]) =>
         alova.Put<ApiResponse<BookWithPages>>(`/books/${id}/pages`, { pages }),
