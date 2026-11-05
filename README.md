@@ -61,6 +61,10 @@ Useful root scripts: `pnpm typecheck`, `pnpm build`, `pnpm test`, `pnpm lint`.
 - **Web** (`apps/web/wrangler.jsonc`): `API_URL` points the web app at the API. Run `pnpm --filter @photos/web cf-typegen` after changing bindings.
 - **Mobile** (`apps/mobile/.env`): `EXPO_PUBLIC_API_URL`, and `EXPO_PUBLIC_WEB_URL` (https) so the reset-password and verify-email links in emails open the app. The token is kept in the device keychain (`expo-secure-store`) and sessions are named after the device via Arkstack's `X-Device-Agent` header. For a quick preview in the browser, run `pnpm --filter @photos/mobile web` and add its origin to the API's `CORS_ALLOWED_ORIGINS`.
 
+## Deploying
+
+Pushing to the `deploy` branch deploys the API over SSH, deploys the web app to Cloudflare Workers and builds an Android APK. Both workflows can also be run by hand with options. See [docs/deploy.md](docs/deploy.md) for the API and [docs/deploy-apps.md](docs/deploy-apps.md) for the web and Android apps, including how to test them.
+
 ## Using the API client
 
 ```ts
