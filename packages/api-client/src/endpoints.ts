@@ -14,6 +14,7 @@ import type {
   PageQuery,
   PaginatedResponse,
   Photo,
+  PhotoLicense,
   PhotoVisibility,
   PublicBook,
   PublicPhoto,
@@ -76,7 +77,7 @@ export function createEndpoints(alova: PhotosAlova) {
       sendVerification: () => alova.Post<ApiResponse<User>>('/account/email/verification'),
       updatePassword: (data: { currentPassword: string; password: string; password_confirmation: string }) =>
         alova.Put<ApiResponse<User>>('/account/password', data),
-      updatePrivacy: (data: { defaultVisibility?: Visibility; showOwnerName?: boolean }) =>
+      updatePrivacy: (data: { defaultVisibility?: Visibility; showOwnerName?: boolean; defaultLicense?: PhotoLicense }) =>
         alova.Put<ApiResponse<User>>('/account/privacy', data),
       /** Make every book private. */
       lockBooks: () => alova.Post<ApiResponse<{ updated: number }>>('/account/privacy/lock-books'),
@@ -108,7 +109,7 @@ export function createEndpoints(alova: PhotosAlova) {
        */
       upload: (
         file: Blob | { uri: string; name: string; type: string },
-        meta: { caption?: string; width?: number; height?: number; takenAt?: string; spaceId?: ID } = {},
+        meta: { caption?: string; width?: number; height?: number; takenAt?: string; spaceId?: ID; license?: PhotoLicense } = {},
       ) => {
         const form = new FormData()
         const name = (file as { name?: string }).name
@@ -119,7 +120,7 @@ export function createEndpoints(alova: PhotosAlova) {
         }
         return alova.Post<ApiResponse<Photo>>('/photos', form)
       },
-      update: (id: ID, data: Partial<Pick<Photo, 'caption' | 'takenAt' | 'spaceId'> & { visibility: PhotoVisibility }>) =>
+      update: (id: ID, data: Partial<Pick<Photo, 'caption' | 'takenAt' | 'spaceId'> & { visibility: PhotoVisibility; license: PhotoLicense }>) =>
         alova.Put<ApiResponse<Photo>>(`/photos/${id}`, data),
       remove: (id: ID) => alova.Delete<ApiResponse<null>>(`/photos/${id}`),
     },
