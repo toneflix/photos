@@ -11,6 +11,8 @@ import type { Route } from "./+types/root";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
+	{ rel: "icon", href: "/favicon.png", type: "image/png" },
+	{ rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
 	{ rel: "preconnect", href: "https://fonts.googleapis.com" },
 	{
 		rel: "preconnect",
@@ -19,7 +21,7 @@ export const links: Route.LinksFunction = () => [
 	},
 	{
 		rel: "stylesheet",
-		href: "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+		href: "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Plus+Jakarta+Sans:wght@500..800&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
 	},
 ];
 
@@ -29,7 +31,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 			<head>
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-				<meta name="theme-color" content="#1d1915" />
+				<meta name="theme-color" content="#ffffff" />
 				<Meta />
 				<Links />
 			</head>
@@ -66,11 +68,11 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
 		<main className="mx-auto flex min-h-dvh max-w-xl flex-col items-center justify-center gap-4 p-6 text-center">
 			<h1 className="font-serif text-4xl">{message}</h1>
 			<p className="text-ink-500">{details}</p>
-			<a href="/books" className="mt-2 rounded-full bg-ink-900 px-5 py-2.5 text-sm font-medium text-paper-50">
+			<a href="/books" className="mt-2 rounded-full bg-ink-900 px-5 py-2.5 text-sm font-medium text-surface-50">
 				Back to your books
 			</a>
 			{stack && (
-				<pre className="mt-6 w-full overflow-x-auto rounded-lg bg-paper-100 p-4 text-left text-xs">
+				<pre className="mt-6 w-full overflow-x-auto rounded-lg bg-surface-100 p-4 text-left text-xs">
 					<code>{stack}</code>
 				</pre>
 			)}

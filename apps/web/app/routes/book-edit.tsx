@@ -233,7 +233,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 				<button
 					type="button"
 					onClick={() => addPage()}
-					className="paper flex h-full w-full flex-col items-center justify-center gap-2 text-ink-500 transition hover:text-ember-600"
+					className="paper flex h-full w-full flex-col items-center justify-center gap-2 text-ink-500 transition hover:text-brand-700"
 				>
 					<span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-dashed border-current text-2xl">+</span>
 					<span className="text-sm font-medium">Add a page</span>
@@ -272,7 +272,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 						}}
 					/>
 				)}
-				{isSelected && <div className="pointer-events-none absolute inset-0 ring-2 ring-ember-500 ring-inset" />}
+				{isSelected && <div className="pointer-events-none absolute inset-0 ring-2 ring-brand-500 ring-inset" />}
 			</div>
 		);
 	};
@@ -296,8 +296,8 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 		<PaperContext.Provider value={paper}>
 			<div className="flex h-dvh flex-col bg-[#ece6da]">
 				{/* Header */}
-				<header className="flex items-center gap-3 border-b border-paper-300/70 bg-paper-50 px-3 py-2.5 sm:px-5">
-					<Link to="/books" className="rounded-full p-2 text-ink-700 hover:bg-paper-200" aria-label="Back to your books">
+				<header className="flex items-center gap-3 border-b border-surface-300/70 bg-surface-50 px-3 py-2.5 sm:px-5">
+					<Link to="/books" className="rounded-full p-2 text-ink-700 hover:bg-surface-200" aria-label="Back to your books">
 						<svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
 							<path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
 						</svg>
@@ -325,10 +325,10 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 
 				<div className="flex min-h-0 flex-1 flex-col lg:flex-row">
 					{/* Page list: drag to reorder */}
-					<aside className="shrink-0 border-paper-300/70 bg-paper-50 lg:w-52 lg:border-r">
+					<aside className="shrink-0 border-surface-300/70 bg-surface-50 lg:w-52 lg:border-r">
 						<div className="flex items-center justify-between px-4 pt-3 pb-2">
 							<h2 className="text-xs font-semibold tracking-wide text-ink-500 uppercase">Pages · {pages.length}</h2>
-							<button type="button" onClick={() => addPage()} className="text-sm font-medium text-ember-600 hover:underline">
+							<button type="button" onClick={() => addPage()} className="text-sm font-medium text-brand-700 hover:underline">
 								+ Add
 							</button>
 						</div>
@@ -372,7 +372,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 										type="button"
 										onClick={() => select(i)}
 										className={`block w-20 cursor-grab overflow-hidden rounded-[3px] shadow-[0_2px_8px_rgb(0_0_0/0.12)] ring-2 transition active:cursor-grabbing lg:w-full ${
-											i === selected ? "ring-ember-500" : "ring-transparent hover:ring-paper-300"
+											i === selected ? "ring-brand-500" : "ring-transparent hover:ring-surface-300"
 										}`}
 										aria-label={`Page ${i + 1}`}
 										aria-current={i === selected}
@@ -407,7 +407,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 											type="button"
 											onClick={() => setLayout(layout)}
 											className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm ${
-												current.layout === layout ? "bg-ink-900 text-paper-50" : "text-ink-700 hover:bg-paper-100"
+												current.layout === layout ? "bg-ink-900 text-surface-50" : "text-ink-700 hover:bg-surface-100"
 											}`}
 											aria-pressed={current.layout === layout}
 										>
@@ -419,7 +419,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 
 								<div className="relative w-full max-w-[min(56rem,calc((100dvh-310px)*1.5))] min-w-64">
 									<div className="absolute -inset-x-3 -bottom-5 h-8 rounded-[50%] bg-black/25 blur-xl" />
-									<div className="relative grid aspect-[3/2] grid-cols-2 bg-paper-50 shadow-[0_18px_50px_rgb(60_40_20/0.25)]">
+									<div className="relative grid aspect-[3/2] grid-cols-2 bg-surface-50 shadow-[0_18px_50px_rgb(60_40_20/0.25)]">
 										<div className="relative overflow-hidden">
 											{renderSpreadPage(leftIndex, "left")}
 											<div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-black/15 to-transparent" />
@@ -467,7 +467,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 													onClick={() => choosePaper(color)}
 													title={`${PAPER_COLORS[color].label} paper`}
 													className={`h-7 w-7 rounded-full border border-black/15 shadow-inner transition ${
-														paper === color ? "ring-2 ring-ember-500 ring-offset-2 ring-offset-[#ece6da]" : "hover:scale-110"
+														paper === color ? "ring-2 ring-brand-500 ring-offset-2 ring-offset-[#ece6da]" : "hover:scale-110"
 													}`}
 													style={{ background: PAPER_COLORS[color].swatch }}
 												/>
@@ -493,11 +493,11 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 					</section>
 
 					{/* Photo tray: click or drag onto a page */}
-					<aside className="flex min-h-0 shrink-0 flex-col border-paper-300/70 bg-paper-50 lg:w-80 lg:border-l">
+					<aside className="flex min-h-0 shrink-0 flex-col border-surface-300/70 bg-surface-50 lg:w-80 lg:border-l">
 						<div className="flex items-center justify-between px-4 pt-3 pb-2">
 							<h2 className="text-xs font-semibold tracking-wide text-ink-500 uppercase">Your photos</h2>
 							{photos.some((p) => !usedIds.has(p.id)) && (
-								<button type="button" onClick={addUnused} className="text-sm font-medium text-ember-600 hover:underline">
+								<button type="button" onClick={addUnused} className="text-sm font-medium text-brand-700 hover:underline">
 									Add unused as pages
 								</button>
 							)}
@@ -517,7 +517,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 											e.dataTransfer.effectAllowed = "copy";
 										}}
 										onClick={() => placePhoto(photo)}
-										className="group relative block aspect-square w-full cursor-grab overflow-hidden rounded-lg bg-paper-200 shadow-sm active:cursor-grabbing"
+										className="group relative block aspect-square w-full cursor-grab overflow-hidden rounded-lg bg-surface-200 shadow-sm active:cursor-grabbing"
 										title={current ? "Drag onto a page, or click to place it" : "Start a page with this photo"}
 									>
 										<img src={photo.url} alt={photo.caption ?? ""} loading="lazy" draggable={false} className="h-full w-full object-cover transition group-hover:scale-105" />
@@ -544,7 +544,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 }
 
 function DropMarker() {
-	return <div className="pointer-events-none absolute -top-2 right-0 left-0 z-10 h-1 rounded-full bg-ember-500 lg:-top-2" />;
+	return <div className="pointer-events-none absolute -top-2 right-0 left-0 z-10 h-1 rounded-full bg-brand-500 lg:-top-2" />;
 }
 
 function SettingsDrawer({ book, bookPhotos, onClose }: { book: BookWithPages; bookPhotos: Photo[]; onClose: () => void }) {
@@ -577,9 +577,9 @@ function SettingsDrawer({ book, bookPhotos, onClose }: { book: BookWithPages; bo
 	return (
 		<div className="fixed inset-0 z-50 flex justify-end bg-ink-900/40" onClick={onClose}>
 			<div className="flex h-full w-full max-w-md flex-col overflow-y-auto bg-white shadow-2xl" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal aria-label="Book settings">
-				<div className="flex items-center justify-between border-b border-paper-200 px-6 py-4">
+				<div className="flex items-center justify-between border-b border-surface-200 px-6 py-4">
 					<h2 className="font-serif text-2xl">Book settings</h2>
-					<button type="button" onClick={onClose} className="rounded-full p-1 text-ink-500 hover:bg-paper-100" aria-label="Close">
+					<button type="button" onClick={onClose} className="rounded-full p-1 text-ink-500 hover:bg-surface-100" aria-label="Close">
 						<svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" /></svg>
 					</button>
 				</div>
@@ -599,7 +599,7 @@ function SettingsDrawer({ book, bookPhotos, onClose }: { book: BookWithPages; bo
 						<legend className="mb-1.5 text-sm font-medium text-ink-700">Cover</legend>
 						<div className="flex flex-wrap gap-2">
 							{(["classic", "linen", "midnight"] as BookTheme[]).map((t) => (
-								<button key={t} type="button" onClick={() => setTheme(t)} className={`rounded-full border px-3.5 py-1.5 text-sm capitalize ${theme === t ? "border-ink-900 bg-ink-900 text-paper-50" : "border-paper-300 hover:bg-paper-100"}`}>
+								<button key={t} type="button" onClick={() => setTheme(t)} className={`rounded-full border px-3.5 py-1.5 text-sm capitalize ${theme === t ? "border-ink-900 bg-ink-900 text-surface-50" : "border-surface-300 hover:bg-surface-100"}`}>
 									{t}
 								</button>
 							))}
@@ -609,11 +609,11 @@ function SettingsDrawer({ book, bookPhotos, onClose }: { book: BookWithPages; bo
 						<legend className="mb-1.5 text-sm font-medium text-ink-700">Cover photo</legend>
 						{uniquePhotos.length ? (
 							<div className="grid grid-cols-5 gap-2">
-								<button type="button" onClick={() => setCoverPhotoId(null)} className={`flex aspect-square items-center justify-center rounded-md border text-xs text-ink-500 ${coverPhotoId === null ? "border-ember-500 ring-2 ring-ember-500" : "border-paper-300"}`}>
+								<button type="button" onClick={() => setCoverPhotoId(null)} className={`flex aspect-square items-center justify-center rounded-md border text-xs text-ink-500 ${coverPhotoId === null ? "border-brand-500 ring-2 ring-brand-500" : "border-surface-300"}`}>
 									None
 								</button>
 								{uniquePhotos.map((p) => (
-									<button key={p.id} type="button" onClick={() => setCoverPhotoId(p.id)} className={`aspect-square overflow-hidden rounded-md ${coverPhotoId === p.id ? "ring-2 ring-ember-500 ring-offset-1" : ""}`}>
+									<button key={p.id} type="button" onClick={() => setCoverPhotoId(p.id)} className={`aspect-square overflow-hidden rounded-md ${coverPhotoId === p.id ? "ring-2 ring-brand-500 ring-offset-1" : ""}`}>
 										<img src={p.url} alt="" className="h-full w-full object-cover" loading="lazy" />
 									</button>
 								))}
@@ -631,7 +631,7 @@ function SettingsDrawer({ book, bookPhotos, onClose }: { book: BookWithPages; bo
 									["shared", "Anyone with the link"],
 								] as [Visibility, string][]
 							).map(([value, label]) => (
-								<label key={value} className="flex cursor-pointer items-center gap-3 rounded-xl border border-paper-300 px-4 py-3 text-sm has-[:checked]:border-ink-900">
+								<label key={value} className="flex cursor-pointer items-center gap-3 rounded-xl border border-surface-300 px-4 py-3 text-sm has-[:checked]:border-ink-900">
 									<input type="radio" name="visibility" checked={visibility === value || (value === "shared" && visibility === "public")} onChange={() => setVisibility(value)} className="accent-ink-900" />
 									{label}
 								</label>
@@ -655,7 +655,7 @@ function SettingsDrawer({ book, bookPhotos, onClose }: { book: BookWithPages; bo
 					</fieldset>
 					{fetcher.data && "ok" in fetcher.data && !fetcher.data.ok && <p className="text-sm text-red-700">{fetcher.data.error}</p>}
 				</div>
-				<div className="flex items-center justify-between gap-3 border-t border-paper-200 px-6 py-4">
+				<div className="flex items-center justify-between gap-3 border-t border-surface-200 px-6 py-4">
 					<Button
 						variant="danger"
 						onClick={() => {
@@ -677,7 +677,7 @@ function SettingsDrawer({ book, bookPhotos, onClose }: { book: BookWithPages; bo
 
 function IconButton({ label, path, onClick, disabled }: { label: string; path: string; onClick: () => void; disabled?: boolean }) {
 	return (
-		<button type="button" onClick={onClick} disabled={disabled} className="rounded p-0.5 hover:bg-paper-200 hover:text-ink-900 disabled:opacity-30" aria-label={label} title={label}>
+		<button type="button" onClick={onClick} disabled={disabled} className="rounded p-0.5 hover:bg-surface-200 hover:text-ink-900 disabled:opacity-30" aria-label={label} title={label}>
 			<svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
 				<path d={path} strokeLinecap="round" strokeLinejoin="round" />
 			</svg>

@@ -47,7 +47,7 @@ export default function Books({ loaderData, actionData }: Route.ComponentProps) 
 		<main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
 			<div className="flex flex-wrap items-end justify-between gap-4">
 				<div>
-					<h1 className="font-serif text-4xl text-ink-900">Your books</h1>
+					<h1 className="font-display font-bold tracking-tight text-4xl text-ink-900">Your books</h1>
 					<p className="mt-1 text-ink-500">
 						{total === 0 ? "Bind your photos into your first book." : `${total} ${total === 1 ? "book" : "books"} on your shelf.`}
 					</p>
@@ -62,7 +62,7 @@ export default function Books({ loaderData, actionData }: Route.ComponentProps) 
 			{creating && <NewBookForm error={actionData} onCancel={total ? () => setCreating(false) : undefined} />}
 
 			{books.length > 0 && (
-				<ul className="mt-8 grid grid-cols-3 gap-y-8 rounded-3xl bg-gradient-to-b from-[#efe6d6] to-[#e6dac5] px-3 pt-4 pb-8 shadow-[inset_0_2px_12px_rgb(80_50_20/0.12)] sm:grid-cols-4 sm:px-5 lg:grid-cols-6">
+				<ul className="mt-8 grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
 					{books.map((book) => (
 						<BookCard key={book.id} book={book} />
 					))}
@@ -78,56 +78,38 @@ export default function Books({ loaderData, actionData }: Route.ComponentProps) 
 	);
 }
 
-const SPINE: Record<BookTheme, string> = {
-	classic: "linear-gradient(to right, #3d1115, #5a1d22 40%, #451519)",
-	linen: "linear-gradient(to right, #b7aa8f, #d5c9b0 40%, #c2b59a)",
-	midnight: "linear-gradient(to right, #0a0f1c, #1c2540 40%, #111829)",
-};
-
-/** A book standing on the shelf, turned slightly to show its spine. */
+/** A book in the grid: its cover, with quick actions on hover. */
 function BookCard({ book }: { book: Book }) {
-	const depth = Math.max(10, Math.min(26, 8 + book.pageCount * 1.2));
-
 	return (
-		<li className="group relative flex flex-col px-2 pt-6 sm:px-5">
-			<Link to={`/books/${book.id}`} className="relative block outline-none" aria-label={`Open ${book.title}`} style={{ perspective: "1100px" }}>
-				<div className="shelf-book relative aspect-[3/4]">
-					{/* Spine */}
-					<div
-						className="absolute top-0 left-0 h-full overflow-hidden"
-						style={{ width: depth, transformOrigin: "left center", transform: "rotateY(90deg)", background: SPINE[book.theme] ?? SPINE.classic }}
-					/>
-					{/* Page block */}
-					<div
-						className="absolute top-[2%] right-0 h-[96%]"
-						style={{
-							width: depth - 2,
-							transformOrigin: "right center",
-							transform: "rotateY(-90deg)",
-							background: "repeating-linear-gradient(to right, #f4ecdc 0 1px, #ddd2bc 1px 2px)",
-						}}
-					/>
-					{/* Front cover */}
-					<div className="absolute inset-0 overflow-hidden rounded-r-[3px] shadow-[inset_-1px_0_0_rgb(255_255_255/0.15)]" style={{ containerType: "size" }}>
-						<CoverView book={{ ...book, coverPhoto: book.coverPhoto ?? null }} />
-						<div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 transition duration-500 group-hover:opacity-100" />
-					</div>
-				</div>
-				<div className="pointer-events-none absolute inset-x-2 -bottom-1 h-3 rounded-[50%] bg-black/40 blur-md transition group-hover:opacity-60" />
-			</Link>
-			<div className="shelf-plank relative z-10 -mx-2 mt-1 h-3.5 rounded-sm sm:-mx-5" />
-			<div className="mt-3 min-w-0">
-				<h2 className="line-clamp-2 font-serif text-sm leading-snug text-ink-900 sm:text-lg">{book.title}</h2>
-				<div className="mt-0.5 flex items-center justify-between gap-2 text-xs text-ink-500 sm:text-sm">
-					<p className="truncate">
-						{book.pageCount} {book.pageCount === 1 ? "page" : "pages"}
-						{book.visibility !== "private" && " · Shared"}
-					</p>
-					<Link to={`/books/${book.id}/edit`} className="shrink-0 font-medium text-ink-700 hover:text-ink-900 hover:underline">
+		<li className="group min-w-0">
+			<div className="relative">
+				<Link
+					to={`/books/${book.id}`}
+					className="relative block aspect-[3/4] overflow-hidden rounded-lg bg-surface-100 shadow-sm transition duration-300 group-hover:shadow-xl"
+					style={{ containerType: "size" }}
+					aria-label={`Open ${book.title}`}
+				>
+					<CoverView book={{ ...book, coverPhoto: book.coverPhoto ?? null }} />
+					<span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/20 opacity-0 transition group-hover:opacity-100" />
+				</Link>
+				<div className="absolute top-2 right-2 flex gap-1.5 opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100">
+					<Link
+						to={`/books/${book.id}/edit`}
+						className="rounded-lg bg-white/95 px-3 py-1.5 text-xs font-semibold text-ink-900 shadow hover:bg-white"
+					>
 						Edit
 					</Link>
 				</div>
+				{book.visibility !== "private" && (
+					<span className="absolute bottom-2 left-2 rounded-md bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur">
+						{book.visibility === "public" ? "Public" : "Shared"}
+					</span>
+				)}
 			</div>
+			<h2 className="mt-3 truncate font-display font-bold text-ink-900">{book.title}</h2>
+			<p className="text-sm text-ink-500">
+				{book.pageCount} {book.pageCount === 1 ? "page" : "pages"} · {new Date(book.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+			</p>
 		</li>
 	);
 }
@@ -150,9 +132,9 @@ function NewBookForm({
 	const [title, setTitle] = useState("");
 
 	return (
-		<Form method="post" className="mt-8 grid gap-8 rounded-3xl border border-paper-200 bg-white p-6 shadow-sm md:grid-cols-[1fr_200px] md:p-8">
+		<Form method="post" className="mt-8 grid gap-8 rounded-2xl border border-surface-200 bg-white p-6 shadow-sm md:grid-cols-[1fr_200px] md:p-8">
 			<div className="space-y-5">
-				<h2 className="font-serif text-2xl">A new book</h2>
+				<h2 className="font-display font-bold tracking-tight text-2xl">A new book</h2>
 				{error?.error && !Object.keys(error.fieldErrors).length && <Alert>{error.error}</Alert>}
 				<Field label="Title" error={error?.fieldErrors.title}>
 					<Input name="title" required maxLength={160} placeholder="Summer in Lagos" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
@@ -166,8 +148,8 @@ function NewBookForm({
 						{THEMES.map((t) => (
 							<label
 								key={t.value}
-								className={`cursor-pointer rounded-full border px-4 py-2 text-sm ${
-									theme === t.value ? "border-ink-900 bg-ink-900 text-paper-50" : "border-paper-300 hover:bg-paper-100"
+								className={`cursor-pointer rounded-full border px-4 py-2 text-sm font-medium ${
+									theme === t.value ? "border-ink-900 bg-ink-900 text-white" : "border-surface-300 hover:border-ink-500"
 								}`}
 							>
 								<input type="radio" name="theme" value={t.value} checked={theme === t.value} onChange={() => setTheme(t.value)} className="sr-only" />

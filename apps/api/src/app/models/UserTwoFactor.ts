@@ -12,6 +12,10 @@ export class UserTwoFactor extends BaseUserTwoFactor {
     recoveryCodeHashes: 'recovery_code_hashes',
   }
 
+  protected override casts = {
+    recoveryCodeHashes: 'json',
+  } as never
+
   user() {
     return this.belongsTo(User, 'userId', 'id')
   }

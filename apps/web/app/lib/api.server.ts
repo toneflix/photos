@@ -13,7 +13,23 @@ export async function getServerApi(request: Request, env: Env, token?: string | 
 		baseURL: env.API_URL,
 		cacheFor: null,
 		getToken: () => sessionToken,
+		headers: visitorHeaders(request),
 	}).api;
+}
+
+/**
+ * The visitor's browser and IP, so the API can name their signed-in device.
+ * Without these every session would look like the Worker itself.
+ */
+export function visitorHeaders(request: Request): Record<string, string> {
+	const headers: Record<string, string> = {};
+	const userAgent = request.headers.get("user-agent");
+	const ip = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for");
+
+	if (userAgent) headers["User-Agent"] = userAgent;
+	if (ip) headers["X-Forwarded-For"] = ip;
+
+	return headers;
 }
 
 /** Turn an API error into something a form can show. */

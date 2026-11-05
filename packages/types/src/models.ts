@@ -17,6 +17,13 @@ export interface User {
   id: ID
   name: string
   email: string
+  emailVerified: boolean
+  /** Signed URL, generated per response. */
+  avatarUrl: string | null
+  /** Visibility given to new books. */
+  defaultVisibility: Visibility
+  /** Whether people opening a shared or public book see the owner's name. */
+  showOwnerName: boolean
   createdAt: string
   updatedAt: string
 }
@@ -24,6 +31,44 @@ export interface User {
 export interface AuthToken {
   token: string
   expiresAt: string | null
+}
+
+/** A successful sign-in. */
+export interface SignedIn extends AuthToken {
+  twoFactor: false
+  user: User
+}
+
+/** The password was right but the account needs an authenticator or recovery code. */
+export interface TwoFactorChallenge {
+  twoFactor: true
+  challengeToken: string
+}
+
+export interface TwoFactorStatus {
+  enabled: boolean
+  enabledAt: string | null
+  method: 'authenticator' | 'sms' | null
+  recoveryCodesRemaining: number
+}
+
+export interface TwoFactorSetup {
+  secret: string
+  otpauthUrl: string
+}
+
+/** A signed-in device. */
+export interface Session {
+  id: ID
+  name: string
+  browser: string | null
+  os: string | null
+  deviceType: 'mobile' | 'tablet' | 'desktop' | 'bot' | 'unknown'
+  ipAddress: string | null
+  /** True for the device making the request. */
+  current: boolean
+  lastUsedAt: string | null
+  createdAt: string
 }
 
 /**

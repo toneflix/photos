@@ -4,29 +4,54 @@
 	--font-sans:
 		"Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
 		"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+	--font-display: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+	/* Book covers and printed pages keep a book face. */
 	--font-serif: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
 
-	/* Warm paper and ink palette. */
-	--color-paper-50: #fdfbf7;
-	--color-paper-100: #f8f4ec;
-	--color-paper-200: #efe8da;
-	--color-paper-300: #e2d7c2;
-	--color-ink-500: #6b6358;
-	--color-ink-700: #3d372f;
-	--color-ink-900: #1f1b16;
-	--color-ember-500: #b4532a;
-	--color-ember-600: #9a4422;
-	--color-ember-700: #7d3719;
+	/* A white canvas with neutral greys, so the photos carry the colour. */
+	--color-surface-50: #ffffff;
+	--color-surface-100: #f7f7f7;
+	--color-surface-200: #ededed;
+	--color-surface-300: #dfdfe0;
+	--color-ink-500: #7f7f7f;
+	--color-ink-700: #4a4d52;
+	--color-ink-900: #2c343e;
+
+	/* Toneflix blue, from the logo's #00afff → #00eaff gradient. */
+	--color-brand-50: #e6f7ff;
+	--color-brand-100: #c6edff;
+	--color-brand-200: #8fdcff;
+	--color-brand-300: #4ccbff;
+	--color-brand-400: #00eaff;
+	--color-brand-500: #00afff;
+	--color-brand-600: #008cd1;
+	--color-brand-700: #006ea6;
+	--color-brand-800: #00537d;
+
+	/* Toneflix gold, from the banner's #f6c101 → #bb8c01 glow. */
+	--color-gold-50: #fff9e1;
+	--color-gold-100: #fff0b0;
+	--color-gold-200: #ffe373;
+	--color-gold-300: #fdd236;
+	--color-gold-400: #f6c101;
+	--color-gold-500: #dba901;
+	--color-gold-600: #bb8c01;
+	--color-gold-700: #8c6901;
 }
 
 html,
 body {
-	@apply bg-paper-50 text-ink-900;
+	@apply bg-surface-50 text-ink-900 antialiased;
 }
 
 :focus-visible {
-	outline: 2px solid var(--color-ember-500);
+	outline: 2px solid var(--color-brand-500);
 	outline-offset: 2px;
+}
+
+/* The logo's blue sweep. */
+.bg-brand-sweep {
+	background-image: linear-gradient(120deg, var(--color-brand-500), var(--color-brand-400));
 }
 
 /* ---------------------------------------------------------------- Flipbook */
@@ -99,7 +124,7 @@ body {
 /* Page paper: a texture tile multiplied over the paper colour, plus soft light and vignetting. */
 .paper {
 	--paper-texture: url("/textures/paper-fine.webp");
-	color: var(--color-ink-700);
+	color: #3d372f;
 	background-color: #fdf9f0;
 	background-image:
 		radial-gradient(ellipse at 30% 20%, rgb(255 255 255 / 0.5), transparent 55%),
@@ -152,25 +177,6 @@ body {
 		radial-gradient(circle at 70% 15%, rgb(150 170 255 / 0.12), transparent 45%),
 		repeating-radial-gradient(circle at 50% 50%, rgb(255 255 255 / 0.02) 0 1px, transparent 1px 3px);
 	color: #d5dbe8;
-}
-
-/* ------------------------------------------------------------- Bookshelf */
-
-.shelf-plank {
-	background: linear-gradient(to bottom, #b98b5e 0%, #a0734a 35%, #7e5636 100%);
-	box-shadow:
-		inset 0 1px 0 rgb(255 255 255 / 0.25),
-		0 10px 18px -6px rgb(60 35 15 / 0.45);
-}
-
-.shelf-book {
-	transform-style: preserve-3d;
-	transform: rotateY(24deg);
-	transition: transform 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.group:hover .shelf-book,
-.group:focus-visible .shelf-book {
-	transform: rotateY(8deg) translateZ(30px) translateY(-6px);
 }
 
 /* Photos fade in as they load. */

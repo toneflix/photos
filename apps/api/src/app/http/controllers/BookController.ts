@@ -35,7 +35,7 @@ export default class BookController extends BaseController {
       userId: this.user.id,
       title: String(data.title).trim(),
       description: data.description || null,
-      visibility: data.visibility || 'private',
+      visibility: data.visibility || this.user.defaultVisibility || 'private',
       theme: data.theme || 'classic',
       paper: data.paper || 'ivory',
     })

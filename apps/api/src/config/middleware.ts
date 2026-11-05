@@ -26,17 +26,17 @@ export default (): MiddlewareConfig => {
         credentials: true,
       }),
       formdata.any({ limits: { fileSize: 25 * 1024 * 1024, files: 1 } }),
-      // Local disks sign photo URLs as APP_URL/<path>, so serve stored photos from there.
-      express
-        .Router()
-        .use(
-          '/photos',
-          express.static(path.join(Arkstack.rootDir(), 'storage/app/public/photos'), {
+      // Local disks sign file URLs as APP_URL/<path>, so serve stored photos and avatars from there.
+      ...['photos', 'avatars'].map((folder) =>
+        express.Router().use(
+          `/${folder}`,
+          express.static(path.join(Arkstack.rootDir(), 'storage/app/public', folder), {
             immutable: true,
             maxAge: '365d',
             fallthrough: false,
           }),
         ),
+      ),
     ],
     before: [
       resora(),

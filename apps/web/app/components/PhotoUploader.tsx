@@ -72,8 +72,8 @@ export function PhotoUploader({ action = "/photos", compact = false }: { action?
 				setDragging(false);
 				if (!busy) upload(e.dataTransfer.files);
 			}}
-			className={`rounded-2xl border-2 border-dashed transition ${
-				dragging ? "border-ember-500 bg-ember-500/5" : "border-paper-300 bg-white"
+			className={`rounded-xl border-2 border-dashed transition ${
+				dragging ? "border-brand-500 bg-brand-500/5" : "border-surface-300 bg-white"
 			} ${compact ? "p-4" : "p-8 sm:p-10"}`}
 		>
 			<input
@@ -89,7 +89,7 @@ export function PhotoUploader({ action = "/photos", compact = false }: { action?
 			/>
 			<div className={`flex items-center gap-4 ${compact ? "flex-row" : "flex-col text-center"}`}>
 				{!compact && (
-					<div className="flex h-14 w-14 items-center justify-center rounded-full bg-paper-100 text-ember-600">
+					<div className="flex h-14 w-14 items-center justify-center rounded-full bg-surface-100 text-brand-700">
 						<svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
 							<path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" strokeLinecap="round" strokeLinejoin="round" />
 						</svg>
@@ -104,7 +104,7 @@ export function PhotoUploader({ action = "/photos", compact = false }: { action?
 						<p className={`font-medium text-ink-900 ${compact ? "" : "text-lg"}`}>
 							{compact ? "Drop photos here or" : "Drop your photos here"}
 							{compact && (
-								<button type="button" onClick={() => input.current?.click()} className="ml-1 text-ember-600 underline underline-offset-2">
+								<button type="button" onClick={() => input.current?.click()} className="ml-1 text-brand-700 underline underline-offset-2">
 									choose files
 								</button>
 							)}
@@ -112,8 +112,8 @@ export function PhotoUploader({ action = "/photos", compact = false }: { action?
 					)}
 					{!compact && !busy && <p className="mt-1 text-sm text-ink-500">JPEG, PNG, WebP, GIF, AVIF or HEIC, up to 25 MB each.</p>}
 					{busy && (
-						<div className="mt-3 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-paper-200">
-							<div className="h-full bg-ember-500 transition-all" style={{ width: `${(progress!.done / progress!.total) * 100}%` }} />
+						<div className="mt-3 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-surface-200">
+							<div className="h-full bg-brand-sweep transition-all" style={{ width: `${(progress!.done / progress!.total) * 100}%` }} />
 						</div>
 					)}
 				</div>
@@ -122,7 +122,7 @@ export function PhotoUploader({ action = "/photos", compact = false }: { action?
 						type="button"
 						disabled={busy}
 						onClick={() => input.current?.click()}
-						className="rounded-full bg-ink-900 px-5 py-2.5 text-sm font-medium text-paper-50 hover:bg-ink-700 disabled:opacity-50"
+						className="rounded-full bg-ink-900 px-5 py-2.5 text-sm font-medium text-surface-50 hover:bg-ink-700 disabled:opacity-50"
 					>
 						Choose photos
 					</button>
@@ -131,7 +131,7 @@ export function PhotoUploader({ action = "/photos", compact = false }: { action?
 			{items.length > 0 && (busy || !compact) && (
 				<ul className={`mt-4 flex flex-wrap gap-2 ${compact ? "" : "justify-center"}`}>
 					{items.map((it) => (
-						<li key={it.key} className="relative h-12 w-12 overflow-hidden rounded-lg bg-paper-200">
+						<li key={it.key} className="relative h-12 w-12 overflow-hidden rounded-lg bg-surface-200">
 							<img src={it.preview} alt="" className={`h-full w-full object-cover transition ${it.status === "done" ? "" : "opacity-50"}`} />
 							{it.status === "uploading" && (
 								<span className="absolute inset-0 flex items-center justify-center text-ink-900">
