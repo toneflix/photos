@@ -61,9 +61,9 @@ export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
 
 export function Logo({ to = "/", light = false, compact = false }: { to?: string; light?: boolean; compact?: boolean }) {
 	return (
-		<Link to={to} className={`flex items-center gap-2.5 ${light ? "text-white" : "text-ink-900"}`}>
+		<Link to={to} aria-label="Toneflix Photos" className={`flex items-center gap-2.5 ${light ? "text-white" : "text-ink-900"}`}>
 			<img src="/brand/toneflix-mark.png" alt="" width="18" height="32" className="h-8 w-auto" />
-			<span className={`whitespace-nowrap font-display text-lg font-bold tracking-tight sm:text-xl ${compact ? "hidden sm:inline" : ""}`}>Toneflix Photos</span>
+			<span className={`whitespace-nowrap font-display text-lg font-bold tracking-tight sm:text-xl ${compact ? "hidden sm:inline" : ""}`}>Photos</span>
 		</Link>
 	);
 }
