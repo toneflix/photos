@@ -176,6 +176,9 @@ importers:
       '@photos/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@toneflix/flipbook-native':
+        specifier: ^0.2.1
+        version: 0.2.1(expo-screen-orientation@58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)))(react-native-svg@15.16.0(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
       alova:
         specifier: ^3.5.5
         version: 3.5.5
@@ -215,6 +218,9 @@ importers:
       expo-router:
         specifier: ~58.0.30
         version: 58.0.30(e7494fac654d26a8f69538da68ffcf85)
+      expo-screen-orientation:
+        specifier: ~58.0.4
+        version: 58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))
       expo-secure-store:
         specifier: ~58.0.2
         version: 58.0.2(expo@58.0.23)
@@ -2625,6 +2631,20 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
 
+  '@toneflix/flipbook-core@0.2.1':
+    resolution: {integrity: sha512-6WHffo3jQsT08qpouYTT8pRtxK2b+fuRYg8yUVejxmBBx+DPRrflJOKDHWsriYfZdJ3XNNrNZICkXahsiqcMcg==}
+
+  '@toneflix/flipbook-native@0.2.1':
+    resolution: {integrity: sha512-Ib6NGESnasAiddp4isNljGbY8kRt28hznel25B/9eUZg92TjoaTTn99ke+jH51DQwhNqn8vSFuSxjZbQsd9Orw==}
+    peerDependencies:
+      expo-screen-orientation: '*'
+      react: '>=18'
+      react-native: '>=0.74'
+      react-native-svg: '>=15'
+    peerDependenciesMeta:
+      expo-screen-orientation:
+        optional: true
+
   '@tootallnate/once@2.0.1':
     resolution: {integrity: sha512-HqmEUIGRJ5fSXchkVgR5F7qn48bDBzv0kWj/Kfu5e6uci4UlEeng4331LnBkWffb++Ei3FOVLxo8JJWMFBDMeQ==}
     engines: {node: '>= 10'}
@@ -4014,6 +4034,12 @@ packages:
         optional: true
       react-server-dom-webpack:
         optional: true
+
+  expo-screen-orientation@58.0.4:
+    resolution: {integrity: sha512-PN3nGluAC6vBY7Zs9jA9guZrKth7ynVHZjZNJZhrJrV7X+6rlvpr7LzktTNJveb2HZJUU94FySkKGrWePkkE2A==}
+    peerDependencies:
+      expo: '*'
+      react-native: '*'
 
   expo-secure-store@58.0.2:
     resolution: {integrity: sha512-VupWWEuQF6IiQ06McSymtn7/tehs8ifThhFwAU4UK8poomZcaa2S0UVt/y7G2XozBdkI3xpiPSx+r0pS2zsuYQ==}
@@ -9290,6 +9316,17 @@ snapshots:
       tailwindcss: 4.3.4
       vite: 8.3.5(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)
 
+  '@toneflix/flipbook-core@0.2.1': {}
+
+  '@toneflix/flipbook-native@0.2.1(expo-screen-orientation@58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)))(react-native-svg@15.16.0(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)':
+    dependencies:
+      '@toneflix/flipbook-core': 0.2.1
+      react: 19.3.0
+      react-native: 0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)
+      react-native-svg: 15.16.0(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
+    optionalDependencies:
+      expo-screen-orientation: 58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))
+
   '@tootallnate/once@2.0.1': {}
 
   '@ts-morph/common@0.29.0':
@@ -10710,6 +10747,11 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
       - '@types/react-dom'
+
+  expo-screen-orientation@58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)):
+    dependencies:
+      expo: 58.0.23(@babel/core@7.29.13)(@expo/dom-webview@58.0.2)(@expo/metro-runtime@58.0.17)(expo-router@58.0.30)(react-dom@19.3.0(react@19.3.0))(react-native-web@0.21.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-native-worklets@0.13.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
+      react-native: 0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)
 
   expo-secure-store@58.0.2(expo@58.0.23):
     dependencies:
