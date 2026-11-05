@@ -1,5 +1,23 @@
+import { Book } from './Book'
+import { BookPage } from './BookPage'
 import { Model } from '@arkstack/database'
+import { Storage } from '@arkstack/filesystem'
 import { User } from './User'
+import { randomUUID } from 'node:crypto'
+
+export interface UploadedPhoto {
+  buffer: Buffer
+  mimetype: string
+  originalname?: string
+  size: number
+}
+
+export interface PhotoDetails {
+  width?: number | null
+  height?: number | null
+  caption?: string | null
+  takenAt?: string | null
+}
 
 export class Photo extends Model {
   declare id: string
@@ -16,6 +34,17 @@ export class Photo extends Model {
   declare createdAt: Date
   declare updatedAt: Date
 
+  /** File extension for each accepted image type. */
+  static readonly EXTENSIONS: Record<string, string> = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'image/gif': 'gif',
+    'image/avif': 'avif',
+    'image/heic': 'heic',
+    'image/heif': 'heif',
+  }
+
   protected static override table = 'photos'
 
   protected static override columns = {
@@ -23,6 +52,65 @@ export class Photo extends Model {
     originalName: 'original_name',
     mimeType: 'mime_type',
     takenAt: 'taken_at',
+  }
+
+  protected override casts = {
+    size: 'number',
+    width: 'number',
+    height: 'number',
+  } as never
+
+  /** PHOTOS_DISK, or the `public` disk while the default disk is local. */
+  static disk(): string {
+    const fallback = String(env('FILESYSTEM_DISK', 'local'))
+
+    return String(env('PHOTOS_DISK', '') || (fallback === 'local' ? 'public' : fallback))
+  }
+
+  /** Store an upload under the owner's folder and record its path. */
+  static async upload(owner: User, file: UploadedPhoto, details: PhotoDetails = {}): Promise<Photo> {
+    const disk = Photo.disk()
+    const path = `photos/${owner.id}/${randomUUID()}.${Photo.EXTENSIONS[file.mimetype] ?? 'bin'}`
+
+    await Storage.disk(disk as never).put(path, new Uint8Array(file.buffer))
+
+    return Photo.query().create({
+      userId: owner.id,
+      disk,
+      path,
+      originalName: file.originalname?.slice(0, 255) || null,
+      mimeType: file.mimetype,
+      size: file.size,
+      width: details.width ?? null,
+      height: details.height ?? null,
+      caption: details.caption ?? null,
+      takenAt: details.takenAt ? new Date(details.takenAt) : null,
+    })
+  }
+
+  /** Only the path is stored; the URL is signed on every read because bucket URLs expire. */
+  url(): Promise<string> {
+    return Storage.disk(this.disk as never).getSignedUrl(this.path, { expiresIn: '6h' })
+  }
+
+  /** Delete the photo and its file, taking it out of every book first. */
+  async remove(): Promise<void> {
+    await Book.query().where({ userId: this.userId, coverPhotoId: this.id }).update({ coverPhotoId: null })
+
+    const pages = await BookPage.query()
+      .whereHas('book', (query) => query.where({ userId: this.userId }))
+      .get()
+
+    for (const page of pages.all()) {
+      if (!page.photoIds?.includes(this.id)) continue
+
+      await page.update({ photoIds: page.photoIds.filter((id) => id !== this.id) })
+    }
+
+    await this.delete()
+    await Storage.disk(this.disk as never)
+      .delete(this.path)
+      .catch(() => undefined)
   }
 
   user() {

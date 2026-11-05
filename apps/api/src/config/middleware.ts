@@ -26,13 +26,12 @@ export default (): MiddlewareConfig => {
         credentials: true,
       }),
       formdata.any({ limits: { fileSize: 25 * 1024 * 1024, files: 1 } }),
-      // Photos stored on the local `public` disk are served from /media.
-      // Production uses an S3-compatible bucket (PHOTOS_DISK=s3) and its own URLs.
+      // Local disks sign photo URLs as APP_URL/<path>, so serve stored photos from there.
       express
         .Router()
         .use(
-          '/media',
-          express.static(path.join(Arkstack.rootDir(), 'storage/app/public'), {
+          '/photos',
+          express.static(path.join(Arkstack.rootDir(), 'storage/app/public/photos'), {
             immutable: true,
             maxAge: '365d',
             fallthrough: false,

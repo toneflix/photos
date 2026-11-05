@@ -1,0 +1,23 @@
+import type { Photo } from '@app/models/Photo'
+import { Resource } from 'resora'
+
+export class PhotoResource extends Resource {
+  async data() {
+    const photo = this.resource as Photo
+
+    return {
+      id: photo.id,
+      userId: photo.userId,
+      url: await photo.url(),
+      thumbnailUrl: null,
+      width: photo.width,
+      height: photo.height,
+      mimeType: photo.mimeType,
+      size: photo.size,
+      caption: photo.caption,
+      takenAt: photo.takenAt,
+      createdAt: photo.createdAt,
+      updatedAt: photo.updatedAt,
+    }
+  }
+}

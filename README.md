@@ -48,15 +48,15 @@ Useful root scripts: `pnpm typecheck`, `pnpm build`, `pnpm test`, `pnpm lint`.
 | GET | `/api/auth/me` | |
 | POST | `/api/auth/logout` | |
 | GET, POST | `/api/photos` | List (paginated) / upload (multipart field `photo`, optional `width`, `height`, `caption`, `takenAt`) |
-| GET, PATCH, DELETE | `/api/photos/:id` | |
+| GET, PUT, DELETE | `/api/photos/:photo` | |
 | GET, POST | `/api/books` | |
-| GET | `/api/books/:id` | Book with every page. Works signed out for shared books. |
-| PATCH, DELETE | `/api/books/:id` | |
-| PUT | `/api/books/:id/pages` | Replaces all pages: `{ pages: [{ layout, caption, photoIds }] }` |
+| GET | `/api/books/:book` | Book with every page. Works signed out for shared books. |
+| PUT, DELETE | `/api/books/:book` | |
+| PUT | `/api/books/:book/pages` | Replaces all pages: `{ pages: [{ layout, caption, photoIds }] }` |
 
 ## Configuration
 
-- **API** (`apps/api/.env`): database, app key, mail and storage. In development photos go to the local `public` disk (`apps/api/storage/app/public`) and are served by the API under `/media`. In production set `PHOTOS_DISK=s3` with the `AWS_*` variables for any S3-compatible bucket (for example Cloudflare R2). Disks are defined in `apps/api/src/config/filesystem.ts`. Never store file URLs in the database (S3 URLs expire): store the storage path and return a URL from `getSignedUrl()` in API responses.
+- **API** (`apps/api/.env`): database, app key, mail and storage. In development photos go to the local `public` disk (`apps/api/storage/app/public`) and `getSignedUrl()` points at `APP_URL/photos/...`, which the API serves. In production set `PHOTOS_DISK=s3` with the `AWS_*` variables for any S3-compatible bucket (for example Cloudflare R2). Disks are defined in `apps/api/src/config/filesystem.ts`. Never store file URLs in the database (S3 URLs expire): store the storage path and return a URL from `getSignedUrl()` in API responses.
 - **Web** (`apps/web/wrangler.jsonc`): `API_URL` points the web app at the API. Run `pnpm --filter @photos/web cf-typegen` after changing bindings.
 - **Mobile** (`apps/mobile/.env`): `EXPO_PUBLIC_API_URL`.
 
