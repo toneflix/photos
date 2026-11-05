@@ -1,6 +1,7 @@
 import { Zip, ZipPassThrough, strToU8 } from 'fflate'
 import { Book } from '@app/models/Book'
 import { Photo } from '@app/models/Photo'
+import { Space } from '@app/models/Space'
 import { Storage } from '@arkstack/filesystem'
 import type { User } from '@app/models/User'
 
@@ -50,6 +51,7 @@ export class AccountArchive {
   private async write(zip: Zip) {
     const photos = (await Photo.query().where({ userId: this.user.id }).oldest('createdAt').get()).all()
     const books = (await Book.query().where({ userId: this.user.id }).oldest('createdAt').get()).all()
+    const spaces = (await Space.query().where({ userId: this.user.id }).oldest('createdAt').get()).all()
     const files = new Map(photos.map((photo) => [photo.id, `photos/${photo.id}${photo.path.slice(photo.path.lastIndexOf('.'))}`]))
 
     this.addJson(zip, 'account.json', {
@@ -64,9 +66,23 @@ export class AccountArchive {
 
     this.addJson(
       zip,
+      'spaces.json',
+      spaces.map((space) => ({
+        id: space.id,
+        name: space.name,
+        slug: space.slug,
+        description: space.description,
+        visibility: space.visibility,
+        createdAt: space.createdAt,
+      })),
+    )
+
+    this.addJson(
+      zip,
       'photos.json',
       photos.map((photo) => ({
         id: photo.id,
+        spaceId: photo.spaceId,
         file: files.get(photo.id),
         originalName: photo.originalName,
         mimeType: photo.mimeType,
@@ -86,6 +102,7 @@ export class AccountArchive {
 
       bookData.push({
         id: book.id,
+        spaceId: book.spaceId,
         title: book.title,
         description: book.description,
         visibility: book.visibility,

@@ -1,6 +1,7 @@
 import { BookPage } from './BookPage'
 import { Model } from '@arkstack/database'
 import { Photo } from './Photo'
+import { Space } from './Space'
 import { User } from './User'
 import { matches } from '@app/support/search'
 import type { QueryBuilder } from 'arkormx'
@@ -13,6 +14,8 @@ export interface BookFilters {
   theme?: string | null
   visibility?: string | null
   sort?: string | null
+  /** Only books in this space. */
+  space?: string | null
 }
 
 export interface PageInput {
@@ -24,6 +27,7 @@ export interface PageInput {
 export class Book extends Model {
   declare id: string
   declare userId: string
+  declare spaceId: string | null
   declare title: string
   declare description: string | null
   declare coverPhotoId: string | null
@@ -46,6 +50,7 @@ export class Book extends Model {
 
   protected static override columns = {
     userId: 'user_id',
+    spaceId: 'space_id',
     coverPhotoId: 'cover_photo_id',
     publishedAt: 'published_at',
   }
@@ -58,11 +63,18 @@ export class Book extends Model {
     return this.hasMany(BookPage, 'bookId')
   }
 
+  space() {
+    return this.belongsTo(Space, 'spaceId')
+  }
+
   cover() {
     return this.belongsTo(Photo, 'coverPhotoId')
   }
 
-  /** Public books with at least one page, for the Explore timeline. Words match titles, descriptions and shown owner names. */
+  /**
+   * Public books with at least one page, for Explore, or for one space's page when `filters.space` is its id.
+   * Words match titles, descriptions and shown owner names.
+   */
   static published(filters: BookFilters = {}) {
     const query = Book.query().where({ visibility: 'public' }).has('pages')
     const text = filters.q?.trim()
@@ -76,6 +88,9 @@ export class Book extends Model {
       )
     }
 
+    if (filters.space) query.where({ spaceId: filters.space })
+    else Space.listedOnly(query)
+
     return Book.narrow(query, filters, 'publishedAt')
   }
 
@@ -86,6 +101,7 @@ export class Book extends Model {
 
     if (text) query.where((match: QueryBuilder<Book>) => match.where(matches('title', text)).orWhere(matches('description', text)))
     if (filters.visibility) query.where({ visibility: filters.visibility as BookVisibility })
+    if (filters.space) query.where({ spaceId: filters.space })
 
     return Book.narrow(query, filters, 'updatedAt')
   }
