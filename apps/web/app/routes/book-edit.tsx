@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { data, Link, redirect, useFetcher, type ShouldRevalidateFunctionArgs } from "react-router";
 import type { BookPageInput, BookPagePhoto, BookTheme, BookWithPages, FrameStyle, PageLayout, PaperColor, Photo, Space, Visibility } from "@photos/types";
-import { FlipbookModel, FRAME_STYLES, PAGE_LAYOUTS, PAPER_COLORS } from "@photos/types";
+import { coverHasText, FlipbookModel, FRAME_STYLES, PAGE_LAYOUTS, PAPER_COLORS, type CoverDesign } from "@photos/types";
 import { BookLookProvider, CoverView, PageView, PHOTO_DRAG_TYPE, PLACED_LAYOUTS, PrintedPhoto, TitlePageView } from "@toneflix/flipbook-react";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { formError, getServerApi } from "~/lib/api.server";
@@ -10,6 +10,7 @@ import { readToken } from "~/lib/session.server";
 import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
+import { ClothPicker, CoverDesignPicker } from "~/components/book/CoverPickers";
 import { Button, Field, Input, Textarea, buttonClass, Spinner } from "~/components/ui";
 import type { Route } from "./+types/book-edit";
 
@@ -161,6 +162,11 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 	/** Set the frame of the selected page. Null follows the book's frame. */
 	const setFrame = (frame: FrameStyle | null) => {
 		change((prev) => prev.map((p, i) => (i === selected ? { ...p, frame } : p)));
+	};
+
+	/** Set the frame of one photo on the selected page. Null follows the page's frame. */
+	const setPhotoFrame = (index: number, frame: FrameStyle | null) => {
+		change((prev) => prev.map((p, i) => (i === selected ? { ...p, photos: p.photos.map((ph, j) => (j === index ? { ...ph, frame } : ph)) } : p)));
 	};
 
 	/** Make a frame the book's own and let every page follow it. */
@@ -519,11 +525,14 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 										</div>
 									</div>
 									<FramePicker
+										key={`${current.key}:${slot}`}
 										page={current}
+										slot={slot !== null && current.photos[slot] ? slot : null}
 										paper={paper}
 										bookFrame={bookFrame}
 										sample={current.photos[0] ?? photos[0] ?? null}
 										onPick={setFrame}
+										onPickPhoto={setPhotoFrame}
 										onUseEverywhere={frameWholeBook}
 									/>
 								</div>
@@ -613,26 +622,33 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 	);
 }
 
-/** Frame swatches for the selected page, each a tiny printed page showing the frame. */
+/**
+ * Frame swatches, each a tiny printed page showing the frame. They set the selected page's frame,
+ * or the selected photo's own frame when the picker is switched to that photo.
+ */
 function FramePicker({
 	page,
+	slot,
 	paper,
 	bookFrame,
 	sample,
 	onPick,
+	onPickPhoto,
 	onUseEverywhere,
 }: {
 	page: DraftPage;
+	slot: number | null;
 	paper: PaperColor;
 	bookFrame: FrameStyle;
 	sample: Photo | null;
 	onPick: (frame: FrameStyle | null) => void;
+	onPickPhoto: (slot: number, frame: FrameStyle | null) => void;
 	onUseEverywhere: (frame: FrameStyle) => void;
 }) {
-	const frameless = page.layout === "single" || page.layout === "text";
-	const shown = page.frame ?? bookFrame;
+	const photo = slot !== null ? page.photos[slot] : null;
+	const [forPhoto, setForPhoto] = useState(!!photo?.frame);
 
-	if (frameless) {
+	if (page.layout === "single" || page.layout === "text") {
 		return (
 			<p className="text-center text-xs text-ink-500">
 				{page.layout === "single" ? "Full-bleed photos print to the edge, so they have no frame." : "Pages of words have no frame."}
@@ -640,43 +656,76 @@ function FramePicker({
 		);
 	}
 
-	const swatch = (frame: FrameStyle, label: string, checked: boolean, value: FrameStyle | null) => (
-		<button
-			key={label}
-			type="button"
-			role="radio"
-			aria-checked={checked}
-			onClick={() => onPick(value)}
-			title={FRAME_STYLES[frame].description}
-			className="group flex flex-col items-center gap-1"
-		>
-			<span
-				className={`fb-paper fb-paper-${paper} relative block aspect-square w-full overflow-hidden rounded-md ring-2 transition ${
-					checked ? "ring-brand-500" : "ring-black/5 group-hover:ring-surface-300"
-				}`}
-				style={{ containerType: "size" }}
+	const pageFrame = page.frame ?? bookFrame;
+	const choosing =
+		forPhoto && photo
+			? { current: photo.frame, inherited: pageFrame, inheritLabel: "Page's frame" }
+			: { current: page.frame, inherited: bookFrame, inheritLabel: "Book's frame" };
+	const pick = (frame: FrameStyle | null) => (forPhoto && slot !== null ? onPickPhoto(slot, frame) : onPick(frame));
+	const shown = choosing.current ?? choosing.inherited;
+
+	const swatch = (frame: FrameStyle, label: string, value: FrameStyle | null) => {
+		const checked = choosing.current === value;
+
+		return (
+			<button
+				key={label}
+				type="button"
+				role="radio"
+				aria-checked={checked}
+				onClick={() => pick(value)}
+				title={FRAME_STYLES[frame].description}
+				className="group flex flex-col items-center gap-1"
 			>
-				<span className="absolute inset-[12%]">
-					<PrintedPhoto photo={FlipbookModel.photo(sample)} frame={frame} scale={3} />
+				<span
+					className={`fb-paper fb-paper-${paper} relative block aspect-square w-full overflow-hidden rounded-md ring-2 transition ${
+						checked ? "ring-brand-500" : "ring-black/5 group-hover:ring-surface-300"
+					}`}
+					style={{ containerType: "size" }}
+				>
+					<span className="absolute inset-[12%]">
+						<PrintedPhoto photo={FlipbookModel.photo(forPhoto && photo ? photo : sample)} frame={frame} scale={3} />
+					</span>
 				</span>
-			</span>
-			<span className={`text-[11px] leading-tight ${checked ? "font-medium text-ink-900" : "text-ink-500"}`}>{label}</span>
-		</button>
-	);
+				<span className={`text-[11px] leading-tight ${checked ? "font-medium text-ink-900" : "text-ink-500"}`}>{label}</span>
+			</button>
+		);
+	};
 
 	return (
 		<div className="rounded-xl bg-white p-3 shadow-sm">
-			<div className="mb-2 flex items-center justify-between gap-3 text-xs">
-				<span className="font-semibold tracking-wide text-ink-500 uppercase">Frame</span>
-				{page.frame !== null && page.frame !== bookFrame && (
+			<div className="mb-2 flex flex-wrap items-center justify-between gap-3 text-xs">
+				<div className="flex items-center gap-2">
+					<span className="font-semibold tracking-wide text-ink-500 uppercase">Frame</span>
+					{photo && slot !== null && (
+						<div className="flex rounded-full bg-surface-100 p-0.5" role="radiogroup" aria-label="Frame for">
+							{[
+								[false, "This page"],
+								[true, `Photo ${slot + 1}`],
+							].map(([value, label]) => (
+								<button
+									key={String(value)}
+									type="button"
+									role="radio"
+									aria-checked={forPhoto === value}
+									onClick={() => setForPhoto(value as boolean)}
+									className={`rounded-full px-2.5 py-1 font-medium ${forPhoto === value ? "bg-ink-900 text-surface-50" : "text-ink-700 hover:text-ink-900"}`}
+								>
+									{label}
+								</button>
+							))}
+						</div>
+					)}
+				</div>
+				{!forPhoto && page.frame !== null && page.frame !== bookFrame && (
 					<button type="button" onClick={() => onUseEverywhere(page.frame!)} className="font-medium text-brand-700 hover:underline">
 						Use {FRAME_STYLES[page.frame].label} on every page
 					</button>
 				)}
 			</div>
-			<div className="grid grid-cols-[repeat(auto-fill,minmax(3.5rem,1fr))] gap-x-2 gap-y-3" role="radiogroup" aria-label="Photo frame">
-				{swatch(bookFrame, "Book's frame", page.frame === null, null)}
-				{(Object.keys(FRAME_STYLES) as FrameStyle[]).map((frame) => swatch(frame, FRAME_STYLES[frame].label, page.frame === frame, frame))}
+			<div className="grid grid-cols-[repeat(auto-fill,minmax(3.5rem,1fr))] gap-x-2 gap-y-3" role="radiogroup" aria-label={forPhoto ? "Photo frame" : "Page frame"}>
+				{swatch(choosing.inherited, choosing.inheritLabel, null)}
+				{(Object.keys(FRAME_STYLES) as FrameStyle[]).map((frame) => swatch(frame, FRAME_STYLES[frame].label, frame))}
 			</div>
 			<p className="mt-1.5 text-xs text-ink-500">{FRAME_STYLES[shown].description}.</p>
 		</div>
@@ -692,13 +741,17 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 	const [title, setTitle] = useState(book.title);
 	const [description, setDescription] = useState(book.description ?? "");
 	const [theme, setTheme] = useState<BookTheme>(book.theme);
+	const [coverDesign, setCoverDesign] = useState<CoverDesign>(book.coverDesign);
+	const [coverText, setCoverText] = useState<boolean | null>(book.coverText);
 	const [visibility, setVisibility] = useState<Visibility>(book.visibility);
 	const [coverPhotoId, setCoverPhotoId] = useState<string | null>(book.coverPhotoId);
 	const [spaceId, setSpaceId] = useState(book.spaceId ?? "");
 	const [copied, setCopied] = useState(false);
 	const saving = fetcher.state !== "idle";
 	const uniquePhotos = useMemo(() => [...new Map(bookPhotos.map((p) => [p.id, p])).values()], [bookPhotos]);
-	const coverPhoto = uniquePhotos.find((p) => p.id === coverPhotoId) ?? null;
+	const coverPhoto = uniquePhotos.find((p) => p.id === coverPhotoId) ?? uniquePhotos[0] ?? null;
+	const cover = { ...book, title: title || "Untitled", description, theme, coverDesign, coverText, coverPhoto };
+	const titled = coverHasText(FlipbookModel.cover(cover));
 	const submitted = useRef(false);
 
 	useEffect(() => {
@@ -710,7 +763,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 		fetcher.submit(
 			{
 				intent: "update",
-				changes: { title, description: description || null, theme, coverPhotoId, ...(book.isOwner ? { visibility, spaceId: spaceId || null } : {}) },
+				changes: { title, description: description || null, theme, coverDesign, coverText, coverPhotoId, ...(book.isOwner ? { visibility, spaceId: spaceId || null } : {}) },
 			},
 			{ method: "post", encType: "application/json" },
 		);
@@ -738,7 +791,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 				<div className="flex-1 space-y-6 px-6 py-6">
 					<div className="mx-auto w-40">
 						<div className="relative aspect-[3/4] overflow-hidden rounded-r-md shadow-lg" style={{ containerType: "size" }}>
-							<CoverView book={FlipbookModel.cover({ ...book, title: title || "Untitled", description, theme, coverPhoto })} />
+							<CoverView book={FlipbookModel.cover(cover)} />
 						</div>
 					</div>
 					<Field label="Title">
@@ -747,21 +800,23 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 					<Field label="Title page text">
 						<Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} maxLength={2000} />
 					</Field>
-					<fieldset>
-						<legend className="mb-1.5 text-sm font-medium text-ink-700">Cover</legend>
-						<div className="flex flex-wrap gap-2">
-							{(["classic", "linen", "midnight"] as BookTheme[]).map((t) => (
-								<button
-									key={t}
-									type="button"
-									onClick={() => setTheme(t)}
-									className={`rounded-full border px-3.5 py-1.5 text-sm capitalize ${theme === t ? "border-ink-900 bg-ink-900 text-surface-50" : "border-surface-300 hover:bg-surface-100"}`}
-								>
-									{t}
-								</button>
-							))}
-						</div>
-					</fieldset>
+					<CoverDesignPicker
+						book={cover}
+						onChange={(design) => {
+							setCoverDesign(design);
+							setCoverText(null);
+						}}
+					/>
+					<label className="flex cursor-pointer items-center gap-3 text-sm text-ink-700">
+						<input
+							type="checkbox"
+							checked={titled}
+							onChange={(e) => setCoverText(e.target.checked === coverHasText({ coverDesign }) ? null : e.target.checked)}
+							className="h-4 w-4 accent-ink-900"
+						/>
+						Print the title on the cover
+					</label>
+					<ClothPicker value={theme} onChange={setTheme} />
 					<fieldset>
 						<legend className="mb-1.5 text-sm font-medium text-ink-700">Cover photo</legend>
 						{uniquePhotos.length ? (
@@ -771,7 +826,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 									onClick={() => setCoverPhotoId(null)}
 									className={`flex aspect-square items-center justify-center rounded-md border text-xs text-ink-500 ${coverPhotoId === null ? "border-brand-500 ring-2 ring-brand-500" : "border-surface-300"}`}
 								>
-									None
+									First photo
 								</button>
 								{uniquePhotos.map((p) => (
 									<button
