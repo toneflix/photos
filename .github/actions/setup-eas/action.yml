@@ -1,0 +1,84 @@
+name: Set up EAS
+description: Installs the mobile app's dependencies and EAS CLI, and passes the build settings to the EAS build profiles.
+
+inputs:
+  expo-token:
+    description: Expo access token
+    required: true
+  builder:
+    description: eas (EAS servers) or runner (build on this GitHub runner)
+    default: eas
+  eas-project-id:
+    description: EAS project ID
+    required: true
+  eas-owner:
+    description: Expo account that owns the EAS project
+    default: ''
+  api-url:
+    description: Public API address the app talks to
+    required: true
+  web-url:
+    description: Public web app address, used for app links
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Check settings
+      shell: bash
+      env:
+        EXPO_TOKEN: ${{ inputs.expo-token }}
+        EAS_PROJECT_ID: ${{ inputs.eas-project-id }}
+        API_URL: ${{ inputs.api-url }}
+      run: |
+        missing=""
+        [ -n "$EXPO_TOKEN" ] || missing="$missing EXPO_TOKEN(secret)"
+        [ -n "$EAS_PROJECT_ID" ] || missing="$missing EAS_PROJECT_ID(variable)"
+        [ -n "$API_URL" ] || missing="$missing API_URL(variable)"
+
+        if [ -n "$missing" ]; then
+          echo "Missing repository settings:$missing" >&2
+          exit 1
+        fi
+
+    - uses: pnpm/action-setup@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 24
+        cache: pnpm
+    - shell: bash
+      run: pnpm install --frozen-lockfile --filter '@photos/mobile...'
+
+    - if: inputs.builder == 'runner'
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+
+    - uses: expo/expo-github-action@v8
+      with:
+        eas-version: latest
+        token: ${{ inputs.expo-token }}
+
+    - name: Pass build settings to EAS
+      shell: bash
+      working-directory: apps/mobile
+      env:
+        EAS_PROJECT_ID: ${{ inputs.eas-project-id }}
+        EAS_OWNER: ${{ inputs.eas-owner }}
+        API_URL: ${{ inputs.api-url }}
+        WEB_URL: ${{ inputs.web-url }}
+      run: |
+        jq --arg id "$EAS_PROJECT_ID" --arg owner "$EAS_OWNER" --arg api "$API_URL" --arg web "$WEB_URL" \
+          '.build.base.env = ({ EAS_PROJECT_ID: $id, EXPO_PUBLIC_API_URL: $api }
+            + (if $owner != "" then { EAS_OWNER: $owner } else {} end)
+            + (if $web != "" then { EXPO_PUBLIC_WEB_URL: $web } else {} end))' \
+          eas.json > eas.tmp.json
+        mv eas.tmp.json eas.json
+
+        {
+          echo "EAS_PROJECT_ID=$EAS_PROJECT_ID"
+          echo "EXPO_PUBLIC_API_URL=$API_URL"
+          [ -z "$EAS_OWNER" ] || echo "EAS_OWNER=$EAS_OWNER"
+          [ -z "$WEB_URL" ] || echo "EXPO_PUBLIC_WEB_URL=$WEB_URL"
+        } >> "$GITHUB_ENV"
