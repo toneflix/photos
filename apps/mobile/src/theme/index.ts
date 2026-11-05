@@ -32,10 +32,12 @@ export const colors = {
   emerald50: '#ecfdf5',
   emerald200: '#a7f3d0',
   emerald600: '#059669',
+  emerald700: '#047857',
   emerald900: '#064e3b',
 
   amber50: '#fffbeb',
   amber200: '#fde68a',
+  amber700: '#b45309',
   amber900: '#78350f',
 } as const
 

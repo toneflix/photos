@@ -31,6 +31,9 @@ export default function Welcome() {
           <Text variant="link" accessibilityRole="button" style={styles.browse} onPress={() => router.push('/discover')}>
             Browse photos on Explore
           </Text>
+          <Text variant="link" accessibilityRole="button" style={styles.browse} onPress={() => router.push('/unlock')}>
+            Have a code? Open a book
+          </Text>
         </View>
       </View>
     </View>
