@@ -78,6 +78,14 @@ export function Alert({ children }: { children: ReactNode }) {
 	);
 }
 
+export function Notice({ children }: { children: ReactNode }) {
+	return (
+		<div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+			{children}
+		</div>
+	);
+}
+
 export function Spinner({ className = "h-4 w-4" }: { className?: string }) {
 	return (
 		<svg viewBox="0 0 24 24" className={`animate-spin ${className}`} aria-hidden>
