@@ -1,0 +1,67 @@
+import { data, Form, Link, redirect, useNavigation } from "react-router";
+import { cloudflareContext } from "~/lib/cloudflare";
+import { formError, getServerApi } from "~/lib/api.server";
+import { commitToken, optionalUser } from "~/lib/session.server";
+import { Alert, Button, Field, Input } from "~/components/ui";
+import { AuthFrame } from "~/components/AuthFrame";
+import type { Route } from "./+types/signup";
+
+export const meta = () => [{ title: "Create an account · Toneflix Photos" }];
+
+export async function loader({ request, context }: Route.LoaderArgs) {
+	if (await optionalUser(request, context)) throw redirect("/books");
+	return null;
+}
+
+export async function action({ request, context }: Route.ActionArgs) {
+	const { env } = context.get(cloudflareContext);
+	const form = await request.formData();
+	const name = String(form.get("name") ?? "");
+	const email = String(form.get("email") ?? "");
+	const password = String(form.get("password") ?? "");
+
+	try {
+		const api = await getServerApi(request, env, null);
+		const { data: session } = await api.auth.register({ name, email, password });
+		return redirect("/photos?welcome=1", {
+			headers: { "Set-Cookie": await commitToken(request, session.token) },
+		});
+	} catch (error) {
+		const result = formError(error);
+		return data({ ...result, name, email }, { status: result.status === 503 ? 503 : 422 });
+	}
+}
+
+export default function SignUp({ actionData }: Route.ComponentProps) {
+	const busy = useNavigation().state !== "idle";
+
+	return (
+		<AuthFrame
+			title="Start your first book"
+			subtitle={
+				<>
+					Already have an account?{" "}
+					<Link to="/signin" className="font-medium text-ember-600 hover:underline">
+						Sign in
+					</Link>
+				</>
+			}
+		>
+			<Form method="post" className="space-y-5">
+				{actionData?.error && !Object.keys(actionData.fieldErrors).length && <Alert>{actionData.error}</Alert>}
+				<Field label="Your name" error={actionData?.fieldErrors.name}>
+					<Input name="name" autoComplete="name" required defaultValue={actionData?.name} autoFocus />
+				</Field>
+				<Field label="Email" error={actionData?.fieldErrors.email}>
+					<Input name="email" type="email" autoComplete="email" required defaultValue={actionData?.email} />
+				</Field>
+				<Field label="Password" error={actionData?.fieldErrors.password} hint="At least 8 characters.">
+					<Input name="password" type="password" autoComplete="new-password" minLength={8} required />
+				</Field>
+				<Button type="submit" className="w-full py-3" disabled={busy}>
+					{busy ? "Creating your account…" : "Create account"}
+				</Button>
+			</Form>
+		</AuthFrame>
+	);
+}

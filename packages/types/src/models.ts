@@ -1,10 +1,16 @@
 /**
- * Core domain models. These are first drafts for the scaffold and will be
- * finalised against the product specs while building the API.
+ * Core domain models, as the API returns them (camelCase keys, ISO dates).
  */
 
-export type ID = number
+/** Records use UUID primary keys. */
+export type ID = string
 
+/**
+ * Who can open a book.
+ * - private: only the owner.
+ * - shared: anyone with the link.
+ * - public: anyone with the link (and, later, listed publicly).
+ */
 export type Visibility = 'private' | 'shared' | 'public'
 
 export interface User {
@@ -45,6 +51,39 @@ export interface Photo {
   updatedAt: string
 }
 
+/**
+ * How the photos on a page are arranged.
+ * - single: one photo, full bleed.
+ * - framed: one photo on a matte with its caption below.
+ * - pair: two photos side by side (or stacked on tall pages).
+ * - grid: up to four photos in a 2×2 grid.
+ * - collage: one large photo over two smaller ones.
+ * - text: no photos, just the caption set as a page of writing.
+ */
+export type PageLayout = 'single' | 'framed' | 'pair' | 'grid' | 'collage' | 'text'
+
+export const PAGE_LAYOUTS: Record<PageLayout, { label: string; maxPhotos: number }> = {
+  single: { label: 'Full bleed', maxPhotos: 1 },
+  framed: { label: 'Framed', maxPhotos: 1 },
+  pair: { label: 'Pair', maxPhotos: 2 },
+  grid: { label: 'Grid', maxPhotos: 4 },
+  collage: { label: 'Collage', maxPhotos: 3 },
+  text: { label: 'Words', maxPhotos: 0 },
+}
+
+/** The look of a book's cover and paper. */
+export type BookTheme = 'classic' | 'linen' | 'midnight'
+
+/** The colour of the pages inside a book. */
+export type PaperColor = 'ivory' | 'white' | 'kraft' | 'charcoal'
+
+export const PAPER_COLORS: Record<PaperColor, { label: string; swatch: string }> = {
+  ivory: { label: 'Ivory', swatch: '#fbf8f1' },
+  white: { label: 'White', swatch: '#ffffff' },
+  kraft: { label: 'Kraft', swatch: '#d8c4a2' },
+  charcoal: { label: 'Charcoal', swatch: '#2a2826' },
+}
+
 /** A photo book: an ordered collection of photos laid out on pages. */
 export interface Book {
   id: ID
@@ -54,6 +93,8 @@ export interface Book {
   coverPhotoId: ID | null
   coverPhoto?: Photo | null
   visibility: Visibility
+  theme: BookTheme
+  paper: PaperColor
   pageCount: number
   createdAt: string
   updatedAt: string
@@ -64,6 +105,22 @@ export interface BookPage {
   id: ID
   bookId: ID
   position: number
-  layout: string
+  layout: PageLayout
+  caption: string | null
   photos: Photo[]
+}
+
+/** A book with all of its pages, as returned by `GET /books/:id`. */
+export interface BookWithPages extends Book {
+  pages: BookPage[]
+  /** True when the signed-in user owns the book and may edit it. */
+  canEdit: boolean
+  owner: Pick<User, 'id' | 'name'>
+}
+
+/** One page as sent to `PUT /books/:id/pages`. */
+export interface BookPageInput {
+  layout: PageLayout
+  caption?: string | null
+  photoIds: ID[]
 }
