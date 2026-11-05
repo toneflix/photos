@@ -1,6 +1,7 @@
 import type { ColorValue } from 'react-native'
 import { Tabs } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AppHeader } from '@/components/AppHeader'
 import { colors, fonts } from '@/theme'
 
@@ -14,13 +15,16 @@ const icon =
 
 /** The signed-in app: books, photos, spaces, Explore and the account, under the shared header. */
 export default function TabsLayout() {
+  const insets = useSafeAreaInsets()
+
   return (
     <Tabs
       screenOptions={{
         header: () => <AppHeader />,
         tabBarActiveTintColor: colors.ink900,
         tabBarInactiveTintColor: colors.ink500,
-        tabBarLabelStyle: { fontFamily: fonts.semibold, fontSize: 11 },
+        tabBarStyle: { height: 64 + insets.bottom, paddingTop: 4, paddingBottom: insets.bottom + 4 },
+        tabBarLabelStyle: { fontFamily: fonts.semibold, fontSize: 11, lineHeight: 14 },
         sceneStyle: { backgroundColor: colors.white },
       }}
     >
