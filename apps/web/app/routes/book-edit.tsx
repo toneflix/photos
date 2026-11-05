@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { data, Link, redirect, useFetcher, type ShouldRevalidateFunctionArgs } from "react-router";
-import type { BookPageInput, BookTheme, BookWithPages, PageLayout, PaperColor, Photo, Space, Visibility } from "@photos/types";
-import { PAGE_LAYOUTS, PAPER_COLORS } from "@photos/types";
+import type { BookPageInput, BookTheme, BookWithPages, FrameStyle, PageLayout, PaperColor, Photo, Space, Visibility } from "@photos/types";
+import { FRAME_STYLES, PAGE_LAYOUTS, PAPER_COLORS } from "@photos/types";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { formError, getServerApi } from "~/lib/api.server";
 import { BookCodes } from "~/lib/book-codes.server";
 import { readToken } from "~/lib/session.server";
 import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { CoverView, PageView, PaperContext, PHOTO_DRAG_TYPE, TitlePageView } from "~/components/flipbook/PageView";
+import { FrameContext, PrintedPhoto } from "~/components/flipbook/PrintedPhoto";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
 import { Button, Field, Input, Textarea, buttonClass, Spinner } from "~/components/ui";
@@ -85,12 +86,12 @@ export function shouldRevalidate({ actionResult, defaultShouldRevalidate }: Shou
 	return defaultShouldRevalidate;
 }
 
-type DraftPage = { key: string; layout: PageLayout; caption: string; photos: Photo[] };
+type DraftPage = { key: string; layout: PageLayout; frame: FrameStyle | null; caption: string; photos: Photo[] };
 
 let keySeq = 0;
 const newKey = () => `p${Date.now().toString(36)}${(keySeq++).toString(36)}`;
 
-const toDraft = (book: BookWithPages): DraftPage[] => book.pages.map((p) => ({ key: p.id, layout: p.layout, caption: p.caption ?? "", photos: p.photos }));
+const toDraft = (book: BookWithPages): DraftPage[] => book.pages.map((p) => ({ key: p.id, layout: p.layout, frame: p.frame ?? null, caption: p.caption ?? "", photos: p.photos }));
 
 export default function BookEditor({ loaderData }: Route.ComponentProps) {
 	const { book, photos } = loaderData;
@@ -101,12 +102,13 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 	const [dirty, setDirty] = useState(false);
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [paper, setPaper] = useState<PaperColor>(book.paper ?? "ivory");
+	const [bookFrame, setBookFrame] = useState<FrameStyle>(book.frame ?? "none");
 	const [dragPage, setDragPage] = useState<number | null>(null);
 	const [dropAt, setDropAt] = useState<number | null>(null);
 
 	const saver = useFetcher<typeof action>();
-	const paperSaver = useFetcher<typeof action>();
-	const saving = saver.state !== "idle" || paperSaver.state !== "idle";
+	const lookSaver = useFetcher<typeof action>();
+	const saving = saver.state !== "idle" || lookSaver.state !== "idle";
 	const saveError = saver.data && "ok" in saver.data && !saver.data.ok ? saver.data.error : null;
 
 	const current = pages[selected];
@@ -126,7 +128,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 			saver.submit(
 				{
 					intent: "pages",
-					pages: pages.map((p) => ({ layout: p.layout, caption: p.caption || null, photoIds: p.photos.map((ph) => ph.id) })),
+					pages: pages.map((p) => ({ layout: p.layout, frame: p.frame, caption: p.caption || null, photoIds: p.photos.map((ph) => ph.id) })),
 				},
 				{ method: "post", encType: "application/json" },
 			);
@@ -145,7 +147,19 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 
 	const choosePaper = (color: PaperColor) => {
 		setPaper(color);
-		paperSaver.submit({ intent: "update", changes: { paper: color } }, { method: "post", encType: "application/json" });
+		lookSaver.submit({ intent: "update", changes: { paper: color } }, { method: "post", encType: "application/json" });
+	};
+
+	/** Set the frame of the selected page. Null follows the book's frame. */
+	const setFrame = (frame: FrameStyle | null) => {
+		change((prev) => prev.map((p, i) => (i === selected ? { ...p, frame } : p)));
+	};
+
+	/** Make a frame the book's own and let every page follow it. */
+	const frameWholeBook = (frame: FrameStyle) => {
+		setBookFrame(frame);
+		change((prev) => prev.map((p) => ({ ...p, frame: null })));
+		lookSaver.submit({ intent: "update", changes: { frame } }, { method: "post", encType: "application/json" });
 	};
 
 	const select = (index: number) => {
@@ -157,7 +171,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 		const at = pages.length ? selected + 1 : 0;
 		change((prev) => {
 			const next = [...prev];
-			next.splice(at, 0, { key: newKey(), layout, caption: "", photos: withPhotos });
+			next.splice(at, 0, { key: newKey(), layout, frame: null, caption: "", photos: withPhotos });
 			return next;
 		});
 		select(at);
@@ -222,7 +236,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 		while (i < unused.length) {
 			const layout = layouts[n++ % layouts.length];
 			const count = PAGE_LAYOUTS[layout].maxPhotos;
-			added.push({ key: newKey(), layout, caption: "", photos: unused.slice(i, i + count) });
+			added.push({ key: newKey(), layout, frame: null, caption: "", photos: unused.slice(i, i + count) });
 			i += count;
 		}
 		change((prev) => [...prev, ...added]);
@@ -262,7 +276,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 		return (
 			<div className="relative h-full" style={{ containerType: "size" }}>
 				<PageView
-					page={{ layout: page.layout, caption: page.caption, photos: page.photos }}
+					page={page}
 					number={index + 1}
 					side={side}
 					onSlotClick={isSelected ? setSlot : undefined}
@@ -312,6 +326,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 
 	return (
 		<PaperContext.Provider value={paper}>
+		<FrameContext.Provider value={bookFrame}>
 			<div className="flex h-dvh flex-col bg-[#ece6da]">
 				{/* Header */}
 				<header className="flex items-center gap-3 border-b border-surface-300/70 bg-surface-50 px-3 py-2.5 sm:px-5">
@@ -400,7 +415,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 										aria-current={i === selected}
 									>
 										<div className="relative aspect-[3/4]" style={{ containerType: "size" }}>
-											<PageView page={{ layout: page.layout, caption: page.caption, photos: page.photos }} />
+											<PageView page={page} />
 										</div>
 									</button>
 									<div className="mt-1 flex items-center justify-between text-xs text-ink-500">
@@ -453,7 +468,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 									</div>
 								</div>
 
-								<div className="mt-2 flex w-full max-w-xl flex-col gap-3">
+								<div className="mt-2 flex w-full max-w-xl shrink-0 flex-col gap-3">
 									{slot !== null && current.photos[slot] && (
 										<div className="flex items-center justify-between rounded-xl bg-white px-3 py-2 text-sm shadow-sm">
 											<span className="text-ink-500">Photo {slot + 1} is selected. Pick or drop another to replace it.</span>
@@ -496,6 +511,14 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 											))}
 										</div>
 									</div>
+									<FramePicker
+										page={current}
+										paper={paper}
+										bookFrame={bookFrame}
+										sample={current.photos[0] ?? photos[0] ?? null}
+										onPick={setFrame}
+										onUseEverywhere={frameWholeBook}
+									/>
 								</div>
 							</>
 						) : (
@@ -579,7 +602,78 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 					/>
 				)}
 			</div>
+		</FrameContext.Provider>
 		</PaperContext.Provider>
+	);
+}
+
+/** Frame swatches for the selected page, each a tiny printed page showing the frame. */
+function FramePicker({
+	page,
+	paper,
+	bookFrame,
+	sample,
+	onPick,
+	onUseEverywhere,
+}: {
+	page: DraftPage;
+	paper: PaperColor;
+	bookFrame: FrameStyle;
+	sample: Photo | null;
+	onPick: (frame: FrameStyle | null) => void;
+	onUseEverywhere: (frame: FrameStyle) => void;
+}) {
+	const frameless = page.layout === "single" || page.layout === "text";
+	const shown = page.frame ?? bookFrame;
+
+	if (frameless) {
+		return (
+			<p className="text-center text-xs text-ink-500">
+				{page.layout === "single" ? "Full-bleed photos print to the edge, so they have no frame." : "Pages of words have no frame."}
+			</p>
+		);
+	}
+
+	const swatch = (frame: FrameStyle, label: string, checked: boolean, value: FrameStyle | null) => (
+		<button
+			key={label}
+			type="button"
+			role="radio"
+			aria-checked={checked}
+			onClick={() => onPick(value)}
+			title={FRAME_STYLES[frame].description}
+			className="group flex flex-col items-center gap-1"
+		>
+			<span
+				className={`paper paper-${paper} relative block aspect-square w-full overflow-hidden rounded-md ring-2 transition ${
+					checked ? "ring-brand-500" : "ring-black/5 group-hover:ring-surface-300"
+				}`}
+				style={{ containerType: "size" }}
+			>
+				<span className="absolute inset-[12%]">
+					<PrintedPhoto photo={sample} frame={frame} scale={3} />
+				</span>
+			</span>
+			<span className={`text-[11px] leading-tight ${checked ? "font-medium text-ink-900" : "text-ink-500"}`}>{label}</span>
+		</button>
+	);
+
+	return (
+		<div className="rounded-xl bg-white p-3 shadow-sm">
+			<div className="mb-2 flex items-center justify-between gap-3 text-xs">
+				<span className="font-semibold tracking-wide text-ink-500 uppercase">Frame</span>
+				{page.frame !== null && page.frame !== bookFrame && (
+					<button type="button" onClick={() => onUseEverywhere(page.frame!)} className="font-medium text-brand-700 hover:underline">
+						Use {FRAME_STYLES[page.frame].label} on every page
+					</button>
+				)}
+			</div>
+			<div className="grid grid-cols-[repeat(auto-fill,minmax(3.5rem,1fr))] gap-x-2 gap-y-3" role="radiogroup" aria-label="Photo frame">
+				{swatch(bookFrame, "Book's frame", page.frame === null, null)}
+				{(Object.keys(FRAME_STYLES) as FrameStyle[]).map((frame) => swatch(frame, FRAME_STYLES[frame].label, page.frame === frame, frame))}
+			</div>
+			<p className="mt-1.5 text-xs text-ink-500">{FRAME_STYLES[shown].description}.</p>
+		</div>
 	);
 }
 
