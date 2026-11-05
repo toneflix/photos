@@ -10,8 +10,6 @@ export class UserTwoFactor extends BaseUserTwoFactor {
     smsCodePurpose: 'sms_code_purpose',
     enabledAt: 'enabled_at',
     recoveryCodeHashes: 'recovery_code_hashes',
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
   }
 
   user() {
