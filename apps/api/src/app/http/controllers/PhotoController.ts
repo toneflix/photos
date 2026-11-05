@@ -1,4 +1,5 @@
 import { SORTS } from '@app/support/search'
+import { UUID } from '@app/support/rules'
 import { perPage } from '@arkstack/common'
 import { BaseController } from './BaseController'
 import { Photo } from '@app/models/Photo'
@@ -15,6 +16,7 @@ export default class PhotoController extends BaseController {
       orientation: `nullable|in:${Photo.ORIENTATIONS.join(',')}`,
       visibility: `nullable|in:${Photo.VISIBILITIES.join(',')}`,
       sort: `nullable|in:${SORTS.join(',')}`,
+      space: ['nullable', UUID],
     })
 
     const photos = await Photo.library(this.user, filters).paginate(perPage(this.query, { perPage: 60, maxPerPage: 200 }))
@@ -29,9 +31,12 @@ export default class PhotoController extends BaseController {
       height: 'nullable|integer|min:1',
       caption: 'nullable|string|max:2000',
       takenAt: 'nullable|date',
+      spaceId: ['nullable', UUID],
     })
 
+    const space = data.spaceId ? await this.user.spaces().findOrFail(data.spaceId) : null
     const photo = await Photo.upload(this.user, data.photo, {
+      spaceId: space?.id ?? null,
       width: data.width ? Number(data.width) : null,
       height: data.height ? Number(data.height) : null,
       caption: data.caption || null,
@@ -56,8 +61,10 @@ export default class PhotoController extends BaseController {
       caption: 'nullable|string|max:2000',
       takenAt: 'nullable|date',
       visibility: `nullable|in:${Photo.VISIBILITIES.join(',')}`,
+      spaceId: ['nullable', UUID],
     })
 
+    if ('spaceId' in data) photo.spaceId = data.spaceId ? (await this.user.spaces().findOrFail(data.spaceId)).id : null
     if (data.visibility) photo.setVisibility(data.visibility)
     if ('caption' in data) photo.caption = data.caption || null
     if ('takenAt' in data) photo.takenAt = data.takenAt ? new Date(data.takenAt) : null

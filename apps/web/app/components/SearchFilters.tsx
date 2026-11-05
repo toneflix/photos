@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { Form, Link, useLocation, useNavigation, useSubmit } from "react-router";
+import type { Space } from "@photos/types";
 
 export interface FilterField {
 	name: string;
@@ -167,3 +168,12 @@ export const BOOK_VISIBILITY_FILTER: FilterField = {
 		{ value: "public", label: "Public" },
 	],
 };
+
+/** Narrow your library to one of your spaces. */
+export function spaceFilter(spaces: Space[]): FilterField {
+	return {
+		name: "space",
+		label: "Space",
+		options: [{ value: "", label: "All spaces" }, ...spaces.map((space) => ({ value: space.id, label: space.name }))],
+	};
+}

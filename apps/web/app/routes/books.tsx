@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { data, Form, Link, redirect, useNavigation } from "react-router";
-import type { Book, BookTheme } from "@photos/types";
+import type { Book, BookTheme, Space } from "@photos/types";
 import { formError } from "~/lib/api.server";
 import { requireUser } from "~/lib/session.server";
 import { useInfiniteList } from "~/lib/use-infinite-list";
 import { CoverView } from "~/components/flipbook/PageView";
+import { SpacePicker } from "~/components/spaces/SpacePicker";
 import { Alert, Button, Field, Input, Spinner, Textarea } from "~/components/ui";
-import { BOOK_VISIBILITY_FILTER, SORT_FILTER, SearchFilters, THEME_FILTER, filterParam, searchText } from "~/components/SearchFilters";
+import { BOOK_VISIBILITY_FILTER, SORT_FILTER, SearchFilters, THEME_FILTER, filterParam, searchText, spaceFilter } from "~/components/SearchFilters";
 import type { Route } from "./+types/books";
 
 export const meta = () => [{ title: "Your books · Toneflix Photos" }];
@@ -15,6 +16,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 	const { api } = await requireUser(request, context);
 	const url = new URL(request.url);
 	const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+	const { data: spaces } = await api.spaces.list({ per_page: 100 });
+	const space = spaces.find((item) => item.id === url.searchParams.get("space")) ?? null;
 	const filters = {
 		q: searchText(url),
 		theme: filterParam(url, "theme", ["classic", "linen", "midnight"] as const),
@@ -22,9 +25,17 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 		sort: filterParam(url, "sort", ["latest", "oldest"] as const),
 	};
 
-	const { data: items, meta } = await api.books.list({ ...filters, page, per_page: BOOKS_PER_PAGE });
+	const { data: items, meta } = await api.books.list({ ...filters, space: space?.id, page, per_page: BOOKS_PER_PAGE });
 
-	return { items, page: meta.current_page, lastPage: meta.last_page, total: meta.total, filtered: Object.values(filters).some(Boolean) };
+	return {
+		items,
+		page: meta.current_page,
+		lastPage: meta.last_page,
+		total: meta.total,
+		spaces,
+		space,
+		filtered: Object.values(filters).some(Boolean),
+	};
 }
 
 /** Four shelves of six books per request. */
@@ -39,6 +50,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 			title: String(form.get("title") ?? ""),
 			description: String(form.get("description") ?? "") || null,
 			theme: (String(form.get("theme") ?? "classic") as BookTheme) || "classic",
+			spaceId: String(form.get("spaceId") ?? "") || null,
 		});
 		return redirect(`/books/${book.id}/edit`);
 	} catch (error) {
@@ -48,7 +60,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
 export default function Books({ loaderData, actionData }: Route.ComponentProps) {
 	const { items: books, hasMore, loading, sentinel } = useInfiniteList(loaderData, "/books");
-	const { total, filtered } = loaderData;
+	const { total, spaces, space, filtered } = loaderData;
 	const [creating, setCreating] = useState((total === 0 && !filtered) || !!actionData);
 
 	return (
@@ -59,9 +71,11 @@ export default function Books({ loaderData, actionData }: Route.ComponentProps) 
 					<p className="mt-1 text-ink-500">
 						{filtered
 							? `${total} ${total === 1 ? "book" : "books"} found.`
-							: total === 0
-								? "Bind your photos into your first book."
-								: `${total} ${total === 1 ? "book" : "books"} on your shelf.`}
+							: space
+								? `${total} ${total === 1 ? "book" : "books"} in ${space.name}.`
+								: total === 0
+									? "Bind your photos into your first book."
+									: `${total} ${total === 1 ? "book" : "books"} on your shelf.`}
 					</p>
 				</div>
 				{!creating && (
@@ -71,11 +85,22 @@ export default function Books({ loaderData, actionData }: Route.ComponentProps) 
 				)}
 			</div>
 
-			{creating && <NewBookForm error={actionData} onCancel={total || filtered ? () => setCreating(false) : undefined} />}
+			{creating && (
+				<NewBookForm
+					key={space?.id ?? ""}
+					error={actionData}
+					spaces={spaces}
+					spaceId={space?.id}
+					onCancel={total || filtered || space ? () => setCreating(false) : undefined}
+				/>
+			)}
 
-			{(total > 0 || filtered) && (
+			{(total > 0 || filtered || spaces.length > 0) && (
 				<div className="mt-8">
-					<SearchFilters placeholder="Search your books by title or description" filters={[THEME_FILTER, BOOK_VISIBILITY_FILTER, SORT_FILTER]} />
+					<SearchFilters
+						placeholder="Search your books by title or description"
+						filters={[...(spaces.length ? [spaceFilter(spaces)] : []), THEME_FILTER, BOOK_VISIBILITY_FILTER, SORT_FILTER]}
+					/>
 				</div>
 			)}
 
@@ -142,9 +167,13 @@ const THEMES: { value: BookTheme; label: string }[] = [
 
 function NewBookForm({
 	error,
+	spaces,
+	spaceId,
 	onCancel,
 }: {
 	error?: { error: string; fieldErrors: Record<string, string> };
+	spaces: Space[];
+	spaceId?: string;
 	onCancel?: () => void;
 }) {
 	const busy = useNavigation().state !== "idle";
@@ -178,6 +207,11 @@ function NewBookForm({
 						))}
 					</div>
 				</fieldset>
+				{spaces.length > 0 && (
+					<Field label="Space">
+						<SpacePicker spaces={spaces} name="spaceId" defaultValue={spaceId ?? ""} />
+					</Field>
+				)}
 				<div className="flex gap-2 pt-2">
 					<Button type="submit" disabled={busy}>
 						{busy ? "Creating…" : "Create book"}

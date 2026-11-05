@@ -8,6 +8,7 @@ export class PhotoResource extends Resource {
     return {
       id: photo.id,
       userId: photo.userId,
+      spaceId: photo.spaceId,
       url: await photo.url(),
       thumbnailUrl: null,
       width: photo.width,

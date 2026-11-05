@@ -31,6 +31,13 @@ export async function handlePhotoIntent(api: PhotosEndpoints, form: FormData) {
 			return { ok: true as const, photo };
 		}
 
+		if (intent === "space") {
+			const { data: photo } = await api.photos.update(String(form.get("photoId")), {
+				spaceId: String(form.get("spaceId") ?? "") || null,
+			});
+			return { ok: true as const, photo };
+		}
+
 		if (intent === "visibility") {
 			const { data: photo } = await api.photos.update(String(form.get("photoId")), {
 				visibility: form.get("visibility") === "public" ? "public" : "private",
@@ -42,7 +49,7 @@ export async function handlePhotoIntent(api: PhotosEndpoints, form: FormData) {
 			const ids = form.getAll("photoIds").map(String).filter(Boolean);
 			if (!ids.length) return data({ ok: false as const, error: "Choose some photos first" }, { status: 422 });
 			const title = String(form.get("title") ?? "").trim() || "Untitled book";
-			const { data: book } = await api.books.create({ title });
+			const { data: book } = await api.books.create({ title, spaceId: String(form.get("spaceId") ?? "") || null });
 			await api.books.savePages(book.id, autoLayout(ids));
 			return redirect(`/books/${book.id}/edit`);
 		}

@@ -1,6 +1,7 @@
 import { Book } from './Book'
 import { BookPage } from './BookPage'
 import { Model } from '@arkstack/database'
+import { Space } from './Space'
 import { Storage } from '@arkstack/filesystem'
 import { User } from './User'
 import { matches } from '@app/support/search'
@@ -15,6 +16,8 @@ export interface PhotoFilters {
   orientation?: string | null
   visibility?: string | null
   sort?: string | null
+  /** Only photos in this space. */
+  space?: string | null
 }
 
 export interface UploadedPhoto {
@@ -29,11 +32,13 @@ export interface PhotoDetails {
   height?: number | null
   caption?: string | null
   takenAt?: string | null
+  spaceId?: string | null
 }
 
 export class Photo extends Model {
   declare id: string
   declare userId: string
+  declare spaceId: string | null
   declare disk: string
   declare path: string
   declare originalName: string | null
@@ -66,6 +71,7 @@ export class Photo extends Model {
 
   protected static override columns = {
     userId: 'user_id',
+    spaceId: 'space_id',
     originalName: 'original_name',
     mimeType: 'mime_type',
     takenAt: 'taken_at',
@@ -94,6 +100,7 @@ export class Photo extends Model {
 
     return Photo.query().create({
       userId: owner.id,
+      spaceId: details.spaceId ?? null,
       disk,
       path,
       originalName: file.originalname?.slice(0, 255) || null,
@@ -106,7 +113,10 @@ export class Photo extends Model {
     })
   }
 
-  /** Public photos for the Explore timeline. Words match captions and the names of owners who show their name. */
+  /**
+   * Public photos for Explore, or for one space's page when `filters.space` is its id.
+   * Words match captions and the names of owners who show their name.
+   */
   static published(filters: PhotoFilters = {}) {
     const query = Photo.query().where({ visibility: 'public' })
     const text = filters.q?.trim()
@@ -119,6 +129,9 @@ export class Photo extends Model {
       )
     }
 
+    if (filters.space) query.where({ spaceId: filters.space })
+    else Space.listedOnly(query)
+
     return Photo.narrow(query, filters, 'publishedAt')
   }
 
@@ -129,6 +142,7 @@ export class Photo extends Model {
 
     if (text) query.where(matches('caption', text))
     if (filters.visibility) query.where({ visibility: filters.visibility as PhotoVisibility })
+    if (filters.space) query.where({ spaceId: filters.space })
 
     return Photo.narrow(query, filters, 'createdAt')
   }
@@ -164,8 +178,7 @@ export class Photo extends Model {
 
     if (!firstPage.size) return []
 
-    const books = await Book.query()
-      .whereIn('id', [...firstPage.keys()] as never)
+    const books = await Space.listedOnly(Book.query().whereIn('id', [...firstPage.keys()] as never))
       .latest('publishedAt')
       .get()
 
@@ -197,7 +210,18 @@ export class Photo extends Model {
       .catch(() => undefined)
   }
 
+  /** Whether the photo's space lets `viewer` see it. Photos outside a space always do. */
+  async isListedFor(viewer: User | null): Promise<boolean> {
+    const space = await this.space().first()
+
+    return !space || space.isVisibleTo(viewer)
+  }
+
   user() {
     return this.belongsTo(User, 'userId')
+  }
+
+  space() {
+    return this.belongsTo(Space, 'spaceId')
   }
 }

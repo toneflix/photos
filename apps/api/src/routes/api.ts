@@ -3,6 +3,7 @@ import AuthController from 'src/app/http/controllers/AuthController'
 import BookController from 'src/app/http/controllers/BookController'
 import ExploreController from 'src/app/http/controllers/ExploreController'
 import PhotoController from 'src/app/http/controllers/PhotoController'
+import SpaceController from 'src/app/http/controllers/SpaceController'
 import SessionController from 'src/app/http/controllers/SessionController'
 import TwoFactorController from 'src/app/http/controllers/TwoFactorController'
 import { Router } from '@arkstack/driver-express'
@@ -50,6 +51,11 @@ Router.delete('/account/two-factor', [TwoFactorController, 'disable'], [auth, li
 Router.get('/explore/photos', [ExploreController, 'photos'], [limiter(120, 60)])
 Router.get('/explore/photos/:photo', [ExploreController, 'photo'], [limiter(120, 60)])
 Router.get('/explore/books', [ExploreController, 'books'], [limiter(120, 60)])
+Router.get('/explore/spaces', [ExploreController, 'spaces'], [limiter(120, 60)])
+Router.get('/explore/spaces/:space', [ExploreController, 'space'], [limiter(120, 60)])
+
+// Spaces: a creator's collections of photos and books
+Router.apiResource('/spaces', SpaceController, { middlewares: auth })
 
 // Photo library
 Router.apiResource('/photos', PhotoController, { middlewares: auth })

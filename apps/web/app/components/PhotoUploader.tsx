@@ -8,9 +8,9 @@ type Item = { key: string; preview: string; status: "waiting" | "uploading" | "d
 
 /**
  * Drag-and-drop (or pick) photos and upload them one at a time through the
- * given route action, which forwards them to the API.
+ * given route action, which forwards them to the API. Uploads go into `spaceId` when given.
  */
-export function PhotoUploader({ action = "/photos", compact = false }: { action?: string; compact?: boolean }) {
+export function PhotoUploader({ action = "/photos", compact = false, spaceId }: { action?: string; compact?: boolean; spaceId?: string }) {
 	const fetcher = useFetcher();
 	const input = useRef<HTMLInputElement>(null);
 	const [dragging, setDragging] = useState(false);
@@ -41,6 +41,7 @@ export function PhotoUploader({ action = "/photos", compact = false }: { action?
 				const form = new FormData();
 				form.set("intent", "upload");
 				form.set("photo", file, file.name);
+				if (spaceId) form.set("spaceId", spaceId);
 				if (size) {
 					form.set("width", String(size.width));
 					form.set("height", String(size.height));
