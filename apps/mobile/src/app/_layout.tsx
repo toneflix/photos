@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { SplashScreen, Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { useFonts } from 'expo-font'
+import * as ScreenOrientation from 'expo-screen-orientation'
 import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular'
 import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium'
 import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold'
@@ -15,6 +16,8 @@ import { session, useSession } from '@/lib/session'
 import { colors } from '@/theme'
 
 SplashScreen.preventAutoHideAsync()
+// Upright everywhere; the flipbook turns the screen sideways while a book is open.
+ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => undefined)
 session.restore(async () => (await api.auth.me()).data)
 
 export default function RootLayout() {

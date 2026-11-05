@@ -1,9 +1,9 @@
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { FRAME_STYLES, type FrameStyle, type Photo } from '@photos/types'
+import { PrintedPhoto, usePaper } from '@toneflix/flipbook-native'
 import { Text } from '@/components/ui'
+import { FlipbookModel } from '@/lib/flipbook'
 import { colors, fonts, radius } from '@/theme'
-import { usePaper } from './paper'
-import { PrintedPhoto } from './PrintedPhoto'
 
 const SWATCH = 64
 const FRAMES = Object.keys(FRAME_STYLES) as FrameStyle[]
@@ -54,7 +54,7 @@ function Swatch({ frame, label, checked, sample, onPress }: { frame: FrameStyle;
     <Pressable onPress={onPress} accessibilityRole="radio" accessibilityState={{ checked }} accessibilityLabel={label} style={styles.swatch}>
       <View style={[styles.tile, { backgroundColor: look.background }, checked && styles.checked]}>
         <View style={styles.inset}>
-          <PrintedPhoto photo={sample} frame={frame} unit={SWATCH * 0.03} />
+          <PrintedPhoto photo={FlipbookModel.photo(sample)} frame={frame} unit={SWATCH * 0.03} />
         </View>
       </View>
       <Text numberOfLines={2} style={[styles.label, checked && styles.labelChecked]}>

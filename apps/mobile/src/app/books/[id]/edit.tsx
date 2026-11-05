@@ -7,16 +7,17 @@ import * as ImagePicker from 'expo-image-picker'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { usePagination, useRequest } from 'alova/client'
 import { PAGE_LAYOUTS, PAPER_COLORS, type BookWithPages, type FrameStyle, type PageLayout, type PaperColor, type Photo } from '@photos/types'
+import { BookLookProvider, PAGE_RATIO, PageView } from '@toneflix/flipbook-native'
 import { BookSettings, type BookChanges } from '@/components/book/BookSettings'
 import { FramePicker } from '@/components/book/FramePicker'
 import { LayoutIcon } from '@/components/book/LayoutIcon'
-import { PAGE_RATIO, PageView } from '@/components/book/PageView'
-import { BookLookContext } from '@/components/book/paper'
+import { BOOK_FONTS } from '@/components/book/look'
 import { Button, Callout, Input, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { BookDraft } from '@/lib/book-draft'
 import { useBookCode } from '@/lib/book-codes'
 import { confirm } from '@/lib/confirm'
+import { FlipbookModel } from '@/lib/flipbook'
 import { FormProblem } from '@/lib/forms'
 import { bookLists, photoLists } from '@/lib/lists'
 import { useSpaces } from '@/lib/spaces'
@@ -231,7 +232,7 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
   )
 
   return (
-    <BookLookContext.Provider value={{ paper: book.paper ?? 'ivory', frame: book.frame ?? 'none' }}>
+    <BookLookProvider paper={book.paper ?? 'ivory'} frame={book.frame ?? 'none'} fonts={BOOK_FONTS}>
       <View style={[styles.screen, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} hitSlop={8}>
@@ -254,7 +255,7 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
               <View style={styles.stage}>
                 <PageArrow icon="chevron-back" label="Previous page" disabled={selected === 0} onPress={() => select(selected - 1)} />
                 <View style={styles.sheet}>
-                  <PageView page={current} width={pageWidth} number={selected + 1} onSlotPress={setSlot} activeSlot={slot} />
+                  <PageView page={FlipbookModel.page(current)} width={pageWidth} number={selected + 1} onSlotPress={setSlot} activeSlot={slot} accent={colors.brand500} />
                 </View>
                 <PageArrow icon="chevron-forward" label="Next page" disabled={selected >= draft.length - 1} onPress={() => select(selected + 1)} />
               </View>
@@ -292,7 +293,7 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
             renderItem={({ item: page, index }) => (
               <Pressable onPress={() => select(index)} accessibilityRole="button" accessibilityLabel={`Page ${index + 1}`} accessibilityState={{ selected: index === selected }} style={styles.thumbWrap}>
                 <View style={[styles.thumb, index === selected && styles.thumbOn]}>
-                  <PageView page={page} width={THUMB} />
+                  <PageView page={FlipbookModel.page(page)} width={THUMB} />
                 </View>
                 <Text style={[styles.thumbNumber, index === selected && styles.thumbNumberOn]}>{index + 1}</Text>
               </Pressable>
@@ -432,7 +433,7 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
           />
         )}
       </View>
-    </BookLookContext.Provider>
+    </BookLookProvider>
   )
 }
 
