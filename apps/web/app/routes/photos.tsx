@@ -5,6 +5,7 @@ import { requireUser } from "~/lib/session.server";
 import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { Button, Input, Textarea, buttonClass } from "~/components/ui";
+import { ORIENTATION_FILTER, PHOTO_VISIBILITY_FILTER, SORT_FILTER, SearchFilters, filterParam, searchText } from "~/components/SearchFilters";
 import type { Route } from "./+types/photos";
 
 export const meta = () => [{ title: "Your photos · Toneflix Photos" }];
@@ -13,9 +14,17 @@ const PER_PAGE = 120;
 
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const { api } = await requireUser(request, context);
-	const pages = Math.max(1, Number(new URL(request.url).searchParams.get("pages")) || 1);
-	const result = await api.photos.list({ page: 1, per_page: Math.min(PER_PAGE * pages, 600) });
-	return { photos: result.data, total: result.meta.total, pages };
+	const url = new URL(request.url);
+	const pages = Math.max(1, Number(url.searchParams.get("pages")) || 1);
+	const filters = {
+		q: searchText(url),
+		orientation: filterParam(url, "orientation", ["landscape", "portrait", "square"] as const),
+		visibility: filterParam(url, "visibility", ["private", "public"] as const),
+		sort: filterParam(url, "sort", ["latest", "oldest"] as const),
+	};
+	const result = await api.photos.list({ ...filters, page: 1, per_page: Math.min(PER_PAGE * pages, 600) });
+
+	return { photos: result.data, total: result.meta.total, pages, filtered: Object.values(filters).some(Boolean), oldest: filters.sort === "oldest" };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
@@ -24,7 +33,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 /** Group photos by the month they were taken (or uploaded). */
-function groupByMonth(photos: Photo[]) {
+function groupByMonth(photos: Photo[], oldest = false) {
 	const groups = new Map<string, { label: string; photos: Photo[] }>();
 	for (const photo of photos) {
 		const date = new Date(photo.takenAt ?? photo.createdAt);
@@ -33,16 +42,20 @@ function groupByMonth(photos: Photo[]) {
 		if (!groups.has(key)) groups.set(key, { label, photos: [] });
 		groups.get(key)!.photos.push(photo);
 	}
-	return [...groups.entries()].sort(([a], [b]) => b.localeCompare(a)).map(([, g]) => g);
+	return [...groups.entries()].sort(([a], [b]) => (oldest ? a.localeCompare(b) : b.localeCompare(a))).map(([, g]) => g);
 }
 
 export default function Photos({ loaderData }: Route.ComponentProps) {
-	const { photos, total, pages } = loaderData;
+	const { photos, total, pages, filtered, oldest } = loaderData;
 	const [params] = useSearchParams();
 	const [open, setOpen] = useState<Photo | null>(null);
 	const [selecting, setSelecting] = useState(false);
 	const [picked, setPicked] = useState<string[]>([]);
-	const groups = useMemo(() => groupByMonth(photos), [photos]);
+	const groups = useMemo(() => groupByMonth(photos, oldest), [photos, oldest]);
+
+	const more = new URLSearchParams(params);
+
+	more.set("pages", String(pages + 1));
 
 	const toggle = (id: string) => setPicked((list) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]));
 	const stopSelecting = () => {
@@ -56,7 +69,11 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 				<div>
 					<h1 className="font-display font-bold tracking-tight text-4xl text-ink-900">Your photos</h1>
 					<p className="mt-1 text-ink-500">
-						{total === 0 ? "Everything you upload is kept safe here." : `${total} ${total === 1 ? "photo" : "photos"} kept safe.`}
+						{filtered
+							? `${total} ${total === 1 ? "photo" : "photos"} found.`
+							: total === 0
+								? "Everything you upload is kept safe here."
+								: `${total} ${total === 1 ? "photo" : "photos"} kept safe.`}
 					</p>
 				</div>
 				{total > 0 &&
@@ -77,11 +94,19 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 				</p>
 			)}
 
-			{!selecting && (
+			{!selecting && !filtered && (
 				<div className="mt-8">
 					<PhotoUploader action="/photos" compact={total > 0} />
 				</div>
 			)}
+
+			{(total > 0 || filtered) && (
+				<div className="mt-8">
+					<SearchFilters placeholder="Search your photos by caption" filters={[ORIENTATION_FILTER, PHOTO_VISIBILITY_FILTER, SORT_FILTER]} />
+				</div>
+			)}
+
+			{filtered && total === 0 && <p className="mt-10 text-center text-ink-500">No photos match. Try other words or clear the filters.</p>}
 
 			{groups.map((group) => (
 				<section key={group.label} className="mt-10">
@@ -152,7 +177,7 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 
 			{photos.length < total && (
 				<div className="mt-8 text-center">
-					<Link to={`?pages=${pages + 1}`} preventScrollReset className={buttonClass("secondary")}>
+					<Link to={`?${more}`} preventScrollReset className={buttonClass("secondary")}>
 						Show more photos
 					</Link>
 				</div>

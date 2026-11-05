@@ -7,6 +7,7 @@ import { CoverView } from "~/components/flipbook/PageView";
 import { Empty } from "~/components/explore/Empty";
 import { Owner } from "~/components/explore/Owner";
 import { Spinner } from "~/components/ui";
+import { SORT_FILTER, SearchFilters, THEME_FILTER, filterParam, searchText } from "~/components/SearchFilters";
 import type { Route } from "./+types/books";
 
 export const meta = () => [
@@ -17,20 +18,35 @@ export const meta = () => [
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const { env } = context.get(cloudflareContext);
 	const api = await getServerApi(request, env);
-	const page = Math.max(1, Number(new URL(request.url).searchParams.get("page")) || 1);
+	const url = new URL(request.url);
+	const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+	const filters = {
+		q: searchText(url),
+		theme: filterParam(url, "theme", ["classic", "linen", "midnight"] as const),
+		sort: filterParam(url, "sort", ["latest", "oldest"] as const),
+	};
 
-	const { data: items, meta } = await api.explore.books({ page, per_page: 24 });
+	const { data: items, meta } = await api.explore.books({ ...filters, page, per_page: 24 });
 
-	return { items, page: meta.current_page, lastPage: meta.last_page };
+	return { items, page: meta.current_page, lastPage: meta.last_page, total: meta.total, filtered: Object.values(filters).some(Boolean) };
 }
 
 export default function ExploreBooks({ loaderData }: Route.ComponentProps) {
 	const { items: books, hasMore, loading, sentinel } = useInfiniteList(loaderData, "/explore/books");
 
-	if (!books.length) return <Empty>No public books yet. Set a book to Public in its editor and it shows up here.</Empty>;
-
 	return (
 		<>
+			<SearchFilters placeholder="Search books by title, story or author" filters={[THEME_FILTER, SORT_FILTER]} />
+			<p className="mt-5 mb-4 text-sm text-ink-500">
+				{loaderData.filtered ? `${loaderData.total} ${loaderData.total === 1 ? "book" : "books"} found` : ""}
+			</p>
+			{!books.length && (
+				<Empty>
+					{loaderData.filtered
+						? "No books match. Try other words or clear the filters."
+						: "No public books yet. Set a book to Public in its editor and it shows up here."}
+				</Empty>
+			)}
 			<ul className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
 				{books.map((book) => (
 					<PublicBookCard key={book.id} book={book} />
