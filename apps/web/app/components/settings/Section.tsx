@@ -1,5 +1,15 @@
 import type { ReactNode } from "react";
 
+/** The heading of one settings page. */
+export function PageHeader({ title, description }: { title: string; description?: ReactNode }) {
+	return (
+		<header className="mb-8">
+			<h1 className="font-serif text-4xl text-ink-900">{title}</h1>
+			{description && <p className="mt-2 max-w-2xl text-ink-500">{description}</p>}
+		</header>
+	);
+}
+
 /** One card on a settings page. */
 export function Section({
 	title,
@@ -7,7 +17,7 @@ export function Section({
 	tone = "default",
 	children,
 }: {
-	title: string;
+	title?: string;
 	description?: ReactNode;
 	tone?: "default" | "danger";
 	children: ReactNode;
@@ -16,9 +26,9 @@ export function Section({
 		<section
 			className={`rounded-3xl border bg-white p-6 shadow-sm sm:p-8 ${tone === "danger" ? "border-red-200" : "border-paper-200"}`}
 		>
-			<h2 className={`font-serif text-2xl ${tone === "danger" ? "text-red-800" : "text-ink-900"}`}>{title}</h2>
+			{title && <h2 className={`font-serif text-2xl ${tone === "danger" ? "text-red-800" : "text-ink-900"}`}>{title}</h2>}
 			{description && <p className="mt-1 text-sm text-ink-500">{description}</p>}
-			<div className="mt-6">{children}</div>
+			<div className={title || description ? "mt-6" : ""}>{children}</div>
 		</section>
 	);
 }
