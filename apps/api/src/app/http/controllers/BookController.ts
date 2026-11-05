@@ -11,6 +11,7 @@ import { UUID } from '@app/support/rules'
 const VISIBILITY = `in:${Book.VISIBILITIES.join(',')}`
 const THEME = `in:${Book.THEMES.join(',')}`
 const PAPER = `in:${Book.PAPERS.join(',')}`
+const FRAME = `in:${Book.FRAMES.join(',')}`
 
 /**
  * Photo books and their pages.
@@ -37,6 +38,7 @@ export default class BookController extends BaseController {
       visibility: `nullable|${VISIBILITY}`,
       theme: `nullable|${THEME}`,
       paper: `nullable|${PAPER}`,
+      frame: `nullable|${FRAME}`,
       spaceId: ['nullable', UUID],
     })
 
@@ -51,6 +53,7 @@ export default class BookController extends BaseController {
       publishedAt: visibility === 'public' ? new Date() : null,
       theme: data.theme || 'classic',
       paper: data.paper || 'ivory',
+      frame: data.frame || 'none',
     })
 
     return new BookDetailResource(book)
@@ -77,6 +80,7 @@ export default class BookController extends BaseController {
       visibility: `nullable|${VISIBILITY}`,
       theme: `nullable|${THEME}`,
       paper: `nullable|${PAPER}`,
+      frame: `nullable|${FRAME}`,
       coverPhotoId: ['nullable', UUID],
       spaceId: ['nullable', UUID],
     })
@@ -88,6 +92,7 @@ export default class BookController extends BaseController {
     if (data.visibility) book.setVisibility(data.visibility)
     if (data.theme) book.theme = data.theme
     if (data.paper) book.paper = data.paper
+    if (data.frame) book.frame = data.frame
     if ('spaceId' in data) book.spaceId = data.spaceId ? (await access.viewer!.spaces().findOrFail(data.spaceId)).id : null
     if ('coverPhotoId' in data) {
       book.coverPhotoId = data.coverPhotoId ? ((await book.ownedPhotoIds([data.coverPhotoId]))[0] ?? null) : null
@@ -115,6 +120,7 @@ export default class BookController extends BaseController {
     const data = await this.validate({
       pages: `present|array|max:${Book.MAX_PAGES}`,
       'pages.*.layout': `nullable|in:${Object.keys(Book.LAYOUTS).join(',')}`,
+      'pages.*.frame': `nullable|${FRAME}`,
       'pages.*.caption': 'nullable|string|max:500',
       'pages.*.photoIds': 'nullable|array',
       'pages.*.photoIds.*': [UUID],

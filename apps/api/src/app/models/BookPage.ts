@@ -6,6 +6,8 @@ export class BookPage extends Model {
   declare bookId: string
   declare position: number
   declare layout: string
+  /** Null when the page uses the book's frame. */
+  declare frame: string | null
   declare caption: string | null
   declare photoIds: string[]
   declare createdAt: Date

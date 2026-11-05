@@ -110,11 +110,13 @@ export class AccountArchive {
         visibility: book.visibility,
         theme: book.theme,
         paper: book.paper,
+        frame: book.frame,
         cover: book.coverPhotoId ? (files.get(book.coverPhotoId) ?? null) : null,
         createdAt: book.createdAt,
         updatedAt: book.updatedAt,
         pages: pages.map((page) => ({
           layout: page.layout,
+          frame: page.frame,
           caption: page.caption,
           photos: (page.photoIds ?? []).flatMap((id) => files.get(id) ?? []),
         })),

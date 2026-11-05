@@ -167,6 +167,40 @@ export const PAPER_COLORS: Record<PaperColor, { label: string; swatch: string }>
   charcoal: { label: 'Charcoal', swatch: '#2a2826' },
 }
 
+/** How a photo is set on its page. Every style is printed into the paper, never raised off it. */
+export type FrameStyle =
+  | 'none'
+  | 'hairline'
+  | 'double'
+  | 'mat'
+  | 'corners'
+  | 'deckle'
+  | 'plate'
+  | 'feather'
+  | 'oval'
+  | 'botanical'
+  | 'watercolor'
+  | 'arcs'
+  | 'gilt'
+  | 'woodgrain'
+
+export const FRAME_STYLES: Record<FrameStyle, { label: string; description: string }> = {
+  none: { label: 'Plain', description: 'The photo printed straight onto the page' },
+  hairline: { label: 'Hairline', description: 'A fine printed rule around the photo' },
+  double: { label: 'Double rule', description: 'Two printed rules, like a classic album keyline' },
+  mat: { label: 'Gallery mat', description: 'A wide printed mat with a thin frame line' },
+  corners: { label: 'Photo corners', description: 'Printed album corners holding the photo' },
+  deckle: { label: 'Deckled edge', description: 'A vintage print with a scalloped border' },
+  plate: { label: 'Plate mark', description: 'The photo sits in a plate pressed into the paper' },
+  feather: { label: 'Soft edge', description: 'The photo fades into the paper at its edges' },
+  oval: { label: 'Oval', description: 'An oval cameo inside a fine printed ring' },
+  botanical: { label: 'Botanical', description: 'Line-drawn sprigs of leaves around a fine rule' },
+  watercolor: { label: 'Watercolour', description: 'A wash of soft colour printed around a mat' },
+  arcs: { label: 'Rainbow arcs', description: 'A printed border of little rainbow arcs around a mat' },
+  gilt: { label: 'Gilt', description: 'An engraved border printed in gold ink' },
+  woodgrain: { label: 'Woodgrain', description: 'A printed woodgrain border around a mat' },
+}
+
 /** A photo book: an ordered collection of photos laid out on pages. */
 export interface Book {
   id: ID
@@ -180,6 +214,8 @@ export interface Book {
   visibility: Visibility
   theme: BookTheme
   paper: PaperColor
+  /** How photos are set on pages that don't choose their own frame. */
+  frame: FrameStyle
   pageCount: number
   /** When the book last became public. */
   publishedAt: string | null
@@ -234,6 +270,8 @@ export interface BookPage {
   bookId: ID
   position: number
   layout: PageLayout
+  /** This page's frame, or null to use the book's. */
+  frame: FrameStyle | null
   caption: string | null
   photos: Photo[]
 }
@@ -300,6 +338,7 @@ export interface BookAccessCodeInput {
 /** One page as sent to `PUT /books/:id/pages`. */
 export interface BookPageInput {
   layout: PageLayout
+  frame?: FrameStyle | null
   caption?: string | null
   photoIds: ID[]
 }
