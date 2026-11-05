@@ -23,7 +23,11 @@ describe('starter template', () => {
     await request(app).get('/api').contains('{"status":"OK"}')
   })
 
-  it('can test an api route', async () => {
-    await request(app).get('/api/users').contains('"status":"success","message":"OK"')
+  it('requires sign-in for the photo library', async () => {
+    await request(app).get('/api/photos').contains('"code":401')
+  })
+
+  it('hides a book that does not exist', async () => {
+    await request(app).get('/api/books/00000000-0000-0000-0000-000000000000').contains('"code":404')
   })
 })
