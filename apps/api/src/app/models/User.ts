@@ -1,6 +1,6 @@
 import { Auth, User as BaseUser } from '@arkstack/auth'
 import { Book, type BookVisibility } from './Book'
-import { Hash } from '@arkstack/common'
+import { Hash, abortIf } from '@arkstack/common'
 import { Photo, type PhotoLicense, type UploadedPhoto } from './Photo'
 import { PasswordReset } from './PasswordReset'
 import { PersonalAccessToken } from './PersonalAccessToken'
@@ -12,6 +12,7 @@ import { UserTwoFactor } from './UserTwoFactor'
 import { UserFactory } from 'src/database/factories/UserFactory'
 import { AccountMail } from '@app/notifications/AccountMail'
 import { ImageFile } from '@app/support/ImageFile'
+import { UUID_PATTERN } from '@app/support/rules'
 import { randomUUID } from 'node:crypto'
 import type { PermissionName } from '@app/policies/Permission'
 import { Role } from './Role'
@@ -139,6 +140,20 @@ export class User extends BaseUser {
 
   async can(permission: PermissionName): Promise<boolean> {
     return (await this.permissions()).includes(permission)
+  }
+
+  /** Whether others can open the user's public profile: only makers who show their name on shared work and are not suspended. */
+  hasProfile(): boolean {
+    return this.showOwnerName && !this.isSuspended()
+  }
+
+  /** The maker whose profile `viewer` is opening. Makers without a profile still see their own. */
+  static async profile(id: string, viewer: User | null): Promise<User> {
+    const user = UUID_PATTERN.test(id) ? await User.query().find(id) : null
+
+    abortIf(!user || (!user.hasProfile() && viewer?.id !== user.id), 'Maker not found!', 404)
+
+    return user as User
   }
 
   isSuspended(): boolean {

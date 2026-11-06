@@ -65,6 +65,19 @@ export class ContentStats {
     return { views: Number(subject.viewCount ?? 0), downloads: subject instanceof Space ? null : Number(subject.downloadCount ?? 0) }
   }
 
+  /** A maker's views and downloads across the work they show everyone, for the maker and, when they chose to show counts, for others. */
+  static async profile(maker: User, viewer: User | null): Promise<{ views: number; downloads: number } | null> {
+    if (viewer?.id !== maker.id && !maker.showCounts) return null
+
+    const photos = await maker.photos().scope('public').scope('listed').getQuery()
+    const books = await maker.books().scope('public').scope('listed').getQuery()
+    const spaces = await maker.spaces().where({ visibility: 'public' }).getQuery()
+    const views = (await photos.sum('viewCount')) + (await books.sum('viewCount')) + (await spaces.sum('viewCount'))
+    const downloads = (await photos.sum('downloadCount')) + (await books.sum('downloadCount'))
+
+    return { views: Number(views), downloads: Number(downloads) }
+  }
+
   /** One entry per day for the last `days` days, oldest first, with zeros on quiet days. */
   static async daily(scope: StatsScope, days = 30): Promise<StatsDay[]> {
     const { where, bindings } = ContentStats.filter(scope)

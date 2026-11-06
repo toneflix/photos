@@ -3,7 +3,9 @@ import { ImageFile } from './ImageFile'
 import { ValidationRule, regex } from 'kanun'
 
 /** A record id. */
-export const UUID = regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
+export const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+export const UUID = regex(UUID_PATTERN)
 
 /** An upload whose bytes are an accepted photo format, no larger than ImageFile.MAX_PIXELS. */
 export class PhotoFile extends ValidationRule {
