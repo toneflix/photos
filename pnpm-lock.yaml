@@ -77,6 +77,9 @@ importers:
       '@toneflix/flipbook-core':
         specifier: ^0.3.5
         version: 0.3.5
+      '@toneflix/money':
+        specifier: ^1.0.1
+        version: 1.0.1
       arkormx:
         specifier: ^2.12.8
         version: 2.12.13(@types/node@25.9.9)(h3@2.0.8)(tsdown@0.22.14(tsx@4.23.15)(typescript@6.0.3)(unrun@0.3.1))
@@ -366,6 +369,9 @@ importers:
       '@toneflix/flipbook-core':
         specifier: ^0.3.5
         version: 0.3.5
+      '@toneflix/money':
+        specifier: ^1.0.1
+        version: 1.0.1
     devDependencies:
       typescript:
         specifier: ^6.0.0
@@ -2681,6 +2687,9 @@ packages:
 
   '@toneflix/flipbook@0.3.5':
     resolution: {integrity: sha512-STmOeF1pL5lTQOOGiVFumWmSkPtm9HV9Kc6Mcgu2wXqUWuI0qFfG21nTOvq7Quq7Ffr8dRRTe+XzCzCAAaK8Yg==}
+
+  '@toneflix/money@1.0.1':
+    resolution: {integrity: sha512-N7MvRA/+VyatDG7Oe6ScV20VW1Q8NGJFZ6iZGalZeOJzs39ErXqhaRumAFTpTPwQRb3ERm9wmEMEyRxWbVdHoQ==}
 
   '@tootallnate/once@2.0.1':
     resolution: {integrity: sha512-HqmEUIGRJ5fSXchkVgR5F7qn48bDBzv0kWj/Kfu5e6uci4UlEeng4331LnBkWffb++Ei3FOVLxo8JJWMFBDMeQ==}
@@ -9390,6 +9399,8 @@ snapshots:
   '@toneflix/flipbook@0.3.5':
     dependencies:
       '@toneflix/flipbook-core': 0.3.5
+
+  '@toneflix/money@1.0.1': {}
 
   '@tootallnate/once@2.0.1': {}
 

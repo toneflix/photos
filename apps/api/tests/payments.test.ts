@@ -40,7 +40,7 @@ const flutterwave = vi.spyOn(globalThis, 'fetch').mockImplementation(async (inpu
     return answer ? json({ status: 'success', data: { tx_ref: reference, ...answer } }) : json({ status: 'error', message: 'No transaction was found' }, 404)
   }
 
-  if (url === 'https://rates.test/latest/NGN') return json({ result: 'success', rates: { NGN: 1, KES: 0.08 } })
+  if (url === 'https://v6.exchangerate-api.com/v6/test-key/pair/NGN/KES/1') return json({ result: 'success', conversion_rate: 0.08, conversion_result: 0.08 })
 
   return realFetch(input, init)
 })
@@ -79,6 +79,7 @@ describe('Plans admin and checkout', () => {
     const created = await api('post', '/admin/plans', {
       name: 'Studio test',
       price: 12000,
+      sort: 50,
       billingOptions: [{ cycles: 6, discount: 10 }],
       features: { max_books: { value: 50 }, book_zip: { value: true, listed: false }, badge: { value: true, active: false } },
     })

@@ -1,8 +1,15 @@
+import { Exchange, ExchangeRateApi, FrankfurterApi } from '@toneflix/money'
 import { Cache } from '@arkstack/cache'
+import type { CurrencyCode } from '@toneflix/money/types'
 import { ValidationException } from 'kanun'
 
-/** Live exchange rates, kept in the cache for a few hours. */
+/** Live exchange rates through @toneflix/money, kept in the cache for a few hours. */
 export class ExchangeRates {
+  static readonly PROVIDERS = {
+    'exchangerate-api': ExchangeRateApi,
+    frankfurter: FrankfurterApi,
+  }
+
   /** How much one unit of `from` is worth in `to`. */
   static async rate(from: string, to: string): Promise<number> {
     from = from.toUpperCase()
@@ -10,22 +17,21 @@ export class ExchangeRates {
 
     if (from === to) return 1
 
-    const hours = Number(config('payments.exchange_rate_hours') ?? 6)
-    const rates = await Cache.remember(`exchange-rates:${from}`, hours * 3600, async () => {
-      const url = String(config('payments.exchange_rates_url')).replace('{from}', from)
-      const response = await fetch(url, { signal: AbortSignal.timeout(15_000) }).catch(() => null)
-      const body = (await response?.json().catch(() => null)) as { rates?: Record<string, number> } | null
+    const provider = String(config('payments.exchange_rates.provider'))
+    const hours = Number(config('payments.exchange_rates.hours') ?? 6)
+    const key = `exchange-rates:${provider}:${from}:${to}`
+    const rate = await Cache.remember(key, hours * 3600, async () => {
+      Exchange.setProvider(ExchangeRates.PROVIDERS[provider as keyof typeof ExchangeRates.PROVIDERS] ?? ExchangeRateApi)
 
-      return body?.rates ?? null
-    })
-    const rate = Number(rates?.[to] ?? 0)
+      if (config('payments.exchange_rates.key')) Exchange.setApiKey(String(config('payments.exchange_rates.key')))
 
-    if (rate <= 0) {
-      await Cache.forget(`exchange-rates:${from}`)
+      return Number(await Exchange.from(from as CurrencyCode).to(to as CurrencyCode).rate()) || 0
+    }).catch(() => 0)
 
-      throw ValidationException.withMessages({ currency: `Payments in ${to} are not available right now.` })
-    }
+    if (rate > 0) return rate
 
-    return rate
+    await Cache.forget(key)
+
+    throw ValidationException.withMessages({ currency: `Payments in ${to} are not available right now.` })
   }
 }

@@ -1,3 +1,6 @@
+import { Money, divide, round } from '@toneflix/money'
+import type { CurrencyCode } from '@toneflix/money/types'
+
 /** Every feature a plan can grant or limit. */
 export type FeatureKey =
   | 'max_storage'
@@ -155,13 +158,16 @@ export interface Payment {
   checkoutUrl?: string
 }
 
-/** An amount in its currency, without decimals when it is a whole number. */
+/** An amount in its currency through @toneflix/money, without decimals when it is a whole number. */
 export function formatMoney(amount: number, currency: string): string {
-  try {
-    return new Intl.NumberFormat('en', { style: 'currency', currency, maximumFractionDigits: Number.isInteger(amount) ? 0 : 2 }).format(amount)
-  } catch {
-    return `${currency} ${amount.toLocaleString('en')}`
-  }
+  const code = currency.toUpperCase() as CurrencyCode
+
+  return Number.isInteger(amount) ? Money.whole(amount, code) : Money.format(amount, code)
+}
+
+/** What one period of a billing option costs in the payer's currency, e.g. the monthly price of a yearly payment. */
+export function chargePerCycle(option: Pick<PlanBilling, 'charge' | 'cycles'>): number {
+  return round(divide(option.charge, Math.max(1, option.cycles)), 2)
 }
 
 /** How long `cycles` billing periods of a plan last, e.g. "month" or "12 months". */

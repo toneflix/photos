@@ -1,6 +1,7 @@
 import { Feature, type FeatureDefinition, type FeatureKey, type FeatureValue } from '@app/policies/Feature'
 import { Cache } from '@arkstack/cache'
 import { Model } from '@arkstack/database'
+import { divide, multiply, round, subtract } from '@toneflix/money'
 import { Payment } from './Payment'
 import type { QueryBuilder } from 'arkormx'
 import { Subscription } from './Subscription'
@@ -320,10 +321,10 @@ export class Plan extends Model {
       .sort((a, b) => a.cycles - b.cycles)
 
     return options.map((option) => {
-      const full = this.price * option.cycles
-      const price = Math.round(full * (1 - option.discount / 100) * 100) / 100
+      const full = multiply(this.price, option.cycles)
+      const price = round(subtract(full, multiply(full, divide(option.discount, 100))), 2)
 
-      return { ...option, price, saved: Math.round((full - price) * 100) / 100 }
+      return { ...option, price, saved: round(subtract(full, price), 2) }
     })
   }
 

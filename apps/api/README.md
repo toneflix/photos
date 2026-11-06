@@ -33,7 +33,7 @@ Put an account on a plan without payment with `npx ark users:plan you@example.co
 
 ### Payments
 
-Plans are paid through Flutterwave's hosted checkout (`app/services/payments`). Set `FLUTTERWAVE_SECRET_KEY` to take payments locally; Flutterwave test keys work. Webhooks reach `POST /api/payments/flutterwave/webhook` and are checked against `FLUTTERWAVE_WEBHOOK_HASH`. Payment regions price plans in a country's own currency, at a fixed rate or the live rate plus a markup.
+Plans are paid through Flutterwave's hosted checkout (`app/services/payments`). Set `FLUTTERWAVE_SECRET_KEY` to take payments locally; Flutterwave test keys work. Webhooks reach `POST /api/payments/flutterwave/webhook` and are checked against `FLUTTERWAVE_WEBHOOK_HASH`. Payment regions price plans in a country's own currency, at a fixed rate or the live rate from @toneflix/money plus a markup.
 
 ### Start dev server
 

@@ -19,10 +19,13 @@ export default () => {
     },
 
     /**
-     * Live exchange rates for regions without a fixed rate: a URL that returns `{ rates: { CODE: rate } }`
-     * for one unit of the currency in `{from}`. Rates are kept for `exchange_rate_hours`.
+     * Live exchange rates through @toneflix/money, for regions without a fixed rate.
+     * `provider` is exchangerate-api (needs `key`) or frankfurter. Rates are kept for `hours`.
      */
-    exchange_rates_url: String(env('EXCHANGE_RATES_URL', 'https://open.er-api.com/v6/latest/{from}')),
-    exchange_rate_hours: Number(env('EXCHANGE_RATE_HOURS', 6)),
+    exchange_rates: {
+      provider: String(env('EXCHANGE_RATES_PROVIDER', 'exchangerate-api')),
+      key: String(env('EXCHANGERATE_API_KEY', '')),
+      hours: Number(env('EXCHANGE_RATE_HOURS', 6)),
+    },
   }
 }

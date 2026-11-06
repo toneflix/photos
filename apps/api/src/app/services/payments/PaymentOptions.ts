@@ -1,3 +1,4 @@
+import { ceil, divide, multiply, round } from '@toneflix/money'
 import type { PaymentRegion } from '@app/models/PaymentRegion'
 
 /** How one payer pays: the currency they are charged in and its rate from the plan currency. */
@@ -11,7 +12,7 @@ export class PaymentOptions {
 
   /** An amount in the plan currency, in the charge currency. Rounded up so the payer never pays less than the price. */
   charge(amount: number): number {
-    return Math.ceil(Math.round(amount * this.rate * 10_000) / 100) / 100
+    return divide(ceil(round(multiply(multiply(amount, this.rate), 100), 4)), 100)
   }
 
   toJSON() {

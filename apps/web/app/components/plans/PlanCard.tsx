@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
-import { featureLine, formatMoney, periodLabel } from "@photos/types";
+import { chargePerCycle, featureLine, formatMoney, periodLabel } from "@photos/types";
 import type { Plan } from "@photos/types";
 
 /** One plan on the pricing page: its price for the chosen billing, what it includes, and an action. */
 export function PlanCard({ plan, cycles, current, children }: { plan: Plan; cycles: number; current: boolean; children: ReactNode }) {
 	const billing = plan.billing.find((option) => option.cycles === cycles) ?? plan.billing[0];
 	const free = plan.price <= 0;
-	const perPeriod = billing.cycles > 1 ? Math.round((billing.charge / billing.cycles) * 100) / 100 : billing.charge;
+	const perPeriod = chargePerCycle(billing);
 
 	return (
 		<article className={`panel flex flex-col p-6 sm:p-8 ${free ? "" : "!border-brand-600"}`}>
