@@ -38,8 +38,9 @@ describe('Maker profiles', () => {
     photos[name] = res.body.data.id
   }
 
+  const stamp = Date.now()
+
   beforeAll(async () => {
-    const stamp = Date.now()
     const maker = await api('post', '/auth/register', '', { name: 'Pat Maker', email: `maker-${stamp}@toneflix.test`, password: 'password123' })
     const other = await api('post', '/auth/register', '', { name: 'Vic Visitor', email: `visitor-${stamp}@toneflix.test`, password: 'password123' })
 
@@ -81,6 +82,32 @@ describe('Maker profiles', () => {
     expect(ids(await api('get', `/explore/spaces?maker=${makerId}`))).toEqual([])
   })
 
+  it('opens the profile and lists by username, made from the email address until the maker changes it', async () => {
+    const username = `maker_${stamp}`
+    const byUsername = await api('get', `/explore/makers/${username.toUpperCase()}`)
+
+    expect(byUsername.status).toBe(200)
+    expect(byUsername.body.data).toMatchObject({ id: makerId, username })
+    expect(ids(await api('get', `/explore/photos?maker=${username}`))).toEqual([photos.shown])
+
+    const changed = await api('put', '/account/profile', token, { name: 'Pat Maker', username: ` Pat_${stamp} ` })
+
+    expect(changed.body.data.username).toBe(`pat_${stamp}`)
+    expect((await api('get', `/explore/makers/pat_${stamp}`)).body.data.id).toBe(makerId)
+    expect((await api('get', `/explore/makers/${username}`)).status).toBe(404)
+  })
+
+  it('keeps usernames unique and well formed', async () => {
+    const other = await api('put', '/account/profile', visitor, { name: 'Vic Visitor', username: `pat_${stamp}` })
+    const malformed = await api('put', '/account/profile', visitor, { name: 'Vic Visitor', username: 'vic-visitor' })
+    const kept = await api('put', '/account/profile', token, { name: 'Pat Maker', username: `pat_${stamp}` })
+
+    expect(other.status).toBe(422)
+    expect(other.body.errors).toHaveProperty('username')
+    expect(malformed.status).toBe(422)
+    expect(kept.status).toBe(200)
+  })
+
   it('shows counts to visitors only when the maker allows it, and always to the maker', async () => {
     await api('get', `/explore/photos/${photos.shown}`, visitor)
 
@@ -106,6 +133,6 @@ describe('Maker profiles', () => {
   it('answers 404 for unknown makers', async () => {
     expect((await api('get', '/explore/makers/nope')).status).toBe(404)
     expect((await api('get', '/explore/makers/00000000-0000-4000-8000-000000000000')).status).toBe(404)
-    expect((await api('get', '/explore/photos?maker=nope')).status).toBe(422)
+    expect((await api('get', '/explore/photos?maker=nope')).status).toBe(404)
   })
 })

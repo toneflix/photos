@@ -5,7 +5,7 @@ import { GenericResource } from 'resora'
 import { Photo } from '@app/models/Photo'
 import { UserResource } from '@app/http/resources/UserResource'
 import { abortIf } from '@arkstack/common'
-import { photoFile } from '@app/support/rules'
+import { Username, photoFile } from '@app/support/rules'
 import { User } from '@app/models/User'
 import { Settings } from '@app/support/Settings'
 
@@ -14,9 +14,14 @@ import { Settings } from '@app/support/Settings'
  */
 export default class AccountController extends BaseController {
   async updateProfile() {
-    const data = await this.validate({ name: 'required|string|max:120' })
+    this.body.username = typeof this.body.username === 'string' ? this.body.username.trim().toLowerCase() : this.body.username
 
-    await this.user.update({ name: String(data.name).trim() })
+    const data = await this.validate({
+      name: 'required|string|max:120',
+      username: ['nullable', 'string', new Username(), `unique:users,username,${this.user.username}`],
+    })
+
+    await this.user.update({ name: String(data.name).trim(), username: data.username || this.user.username })
 
     return new UserResource(this.user).additional({ status: 'success', message: 'Profile saved', code: 200 })
   }

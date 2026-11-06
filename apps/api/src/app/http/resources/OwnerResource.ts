@@ -6,8 +6,8 @@ export class OwnerResource extends Resource {
   async data() {
     const user = this.resource
 
-    if (!(user instanceof User) || !user.showOwnerName) return { id: null, name: null, avatarUrl: null }
+    if (!(user instanceof User) || !user.showOwnerName) return { id: null, username: null, name: null, avatarUrl: null }
 
-    return { id: user.id, name: user.name, avatarUrl: await user.avatarUrl() }
+    return { id: user.id, username: user.username, name: user.name, avatarUrl: await user.avatarUrl() }
   }
 }

@@ -18,6 +18,7 @@ export class ProfileResource extends Resource {
     return {
       id: user.id,
       name: user.name,
+      username: user.username,
       avatarUrl: await user.avatarUrl(),
       joinedAt: user.createdAt,
       photoCount: await user.photos().scope('public').scope('listed').count(),

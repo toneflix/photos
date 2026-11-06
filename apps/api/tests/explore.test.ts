@@ -91,7 +91,7 @@ describe('Explore', () => {
 
     const photo = await api('get', `/explore/photos/${photoId}`, undefined, false)
 
-    expect(photo.body.data.owner).toEqual({ id: null, name: null, avatarUrl: null })
+    expect(photo.body.data.owner).toEqual({ id: null, username: null, name: null, avatarUrl: null })
   })
 
   it('takes a photo off the timeline when it goes private again', async () => {

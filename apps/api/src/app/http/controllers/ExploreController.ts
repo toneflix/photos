@@ -7,7 +7,7 @@ import { PublicPhotoDetailResource } from '@app/http/resources/PublicPhotoDetail
 import { PublicSpaceCollection } from '@app/http/resources/PublicSpaceCollection'
 import { PublicSpaceResource } from '@app/http/resources/PublicSpaceResource'
 import { SORTS } from '@app/support/search'
-import { UUID, downloadSize } from '@app/support/rules'
+import { downloadSize } from '@app/support/rules'
 import { Space } from '@app/models/Space'
 import { SpaceAccess } from '@app/policies/SpaceAccess'
 import { abortIf, perPage } from '@arkstack/common'
@@ -18,7 +18,7 @@ import { User } from '@app/models/User'
 /**
  * The public timeline: photos, books and spaces their owners chose to show everyone.
  * Photo and book lists take a `space` web address to browse one space; owners and members can open private ones.
- * Every list takes a `maker` id to browse one maker's public work.
+ * Every list takes a `maker` id or username to browse one maker's public work.
  * Nothing here needs an account.
  */
 export default class ExploreController extends BaseController {
@@ -28,7 +28,7 @@ export default class ExploreController extends BaseController {
       orientation: `nullable|in:${Photo.ORIENTATIONS.join(',')}`,
       sort: `nullable|in:${SORTS.join(',')}`,
       space: 'nullable|string|max:60',
-      maker: ['nullable', UUID],
+      maker: 'nullable|string|max:60',
     })
 
     const viewer = await this.viewer()
@@ -74,7 +74,7 @@ export default class ExploreController extends BaseController {
       theme: `nullable|in:${Book.THEMES.join(',')}`,
       sort: `nullable|in:${SORTS.join(',')}`,
       space: 'nullable|string|max:60',
-      maker: ['nullable', UUID],
+      maker: 'nullable|string|max:60',
     })
 
     const viewer = await this.viewer()
@@ -92,7 +92,7 @@ export default class ExploreController extends BaseController {
     const filters = await this.validateQuery({
       q: 'nullable|string|max:100',
       sort: `nullable|in:${SORTS.join(',')}`,
-      maker: ['nullable', UUID],
+      maker: 'nullable|string|max:60',
     })
 
     const maker = filters.maker ? await User.profile(filters.maker, await this.viewer()) : null

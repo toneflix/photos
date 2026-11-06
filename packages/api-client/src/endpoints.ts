@@ -112,7 +112,7 @@ export function createEndpoints(alova: PhotosAlova) {
       /** One of the account's own photos, books or spaces with its daily views and downloads. */
       itemStats: (kind: ModeratedKind, id: ID, days?: number) =>
         alova.Get<ApiResponse<MakerItemStats>>(`/account/stats/${kind}/${id}`, { params: { days }, cacheFor: null }),
-      updateProfile: (data: { name: string }) => alova.Put<ApiResponse<User>>('/account/profile', data),
+      updateProfile: (data: { name: string; username?: string }) => alova.Put<ApiResponse<User>>('/account/profile', data),
       /** `file` is a File/Blob on web, or an RN `{ uri, name, type }` object. */
       updateAvatar: (file: Blob | { uri: string; name: string; type: string }) => {
         const form = new FormData()
@@ -180,8 +180,9 @@ export function createEndpoints(alova: PhotosAlova) {
       photo: (id: ID) => alova.Get<ApiResponse<PublicPhotoDetail>>(`/explore/photos/${id}`),
       books: (params: Omit<BookQuery, 'visibility'> = {}) => alova.Get<PaginatedResponse<PublicBook>>('/explore/books', { params }),
       spaces: (params: SpaceQuery = {}) => alova.Get<PaginatedResponse<PublicSpace>>('/explore/spaces', { params }),
+      /** A maker's profile by id or username. */
+      maker: (handle: string) => alova.Get<ApiResponse<Profile>>(`/explore/makers/${encodeURIComponent(handle)}`, { cacheFor: null }),
       /** A space's page by its web address. Private spaces open only for their owner and members. */
-      maker: (id: ID) => alova.Get<ApiResponse<Profile>>(`/explore/makers/${id}`, { cacheFor: null }),
       space: (slug: string) => alova.Get<ApiResponse<PublicSpace>>(`/explore/spaces/${encodeURIComponent(slug)}`, { cacheFor: null }),
     },
 
