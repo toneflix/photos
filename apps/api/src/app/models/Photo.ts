@@ -8,6 +8,7 @@ import { Space } from './Space'
 import { Storage } from '@arkstack/filesystem'
 import { User } from './User'
 import { matches } from '@app/support/search'
+import type { HasManyRelation } from 'arkormx/relationship'
 import type { QueryBuilder } from 'arkormx'
 import { randomUUID } from 'node:crypto'
 
@@ -78,6 +79,9 @@ export class Photo extends Model {
 
   static readonly VISIBILITIES = ['private', 'public']
   static readonly ORIENTATIONS = ['landscape', 'portrait', 'square']
+
+  /** How width compares to height for each orientation. */
+  static readonly SHAPES: Record<string, '>' | '<' | '='> = { landscape: '>', portrait: '<', square: '=' }
   static readonly LICENSES = ['all-rights-reserved', 'cc-by', 'cc-by-nc', 'cc0']
 
   /** Preset download sizes, by their longest side in pixels. */
@@ -236,10 +240,10 @@ export class Photo extends Model {
 
   /** One person's photos. Words match captions. */
   static library(owner: User, filters: PhotoFilters = {}) {
-    const query = Photo.query().where({ userId: owner.id })
+    const query = owner.photos()
     const text = filters.q?.trim()
 
-    if (text) query.where(matches('caption', text))
+    if (text) query.where((match: QueryBuilder<Photo>) => match.where(matches('caption', text)))
     if (filters.visibility) query.where({ visibility: filters.visibility as PhotoVisibility })
     if (filters.space) query.where({ spaceId: filters.space })
 
@@ -247,10 +251,10 @@ export class Photo extends Model {
   }
 
   /** Filter by shape and order newest or oldest first. Photos without a known size match no shape. */
-  private static narrow(query: QueryBuilder<Photo>, filters: PhotoFilters, by: 'publishedAt' | 'createdAt') {
-    if (filters.orientation === 'landscape') query.whereColumn('width', '>', 'height')
-    if (filters.orientation === 'portrait') query.whereColumn('width', '<', 'height')
-    if (filters.orientation === 'square') query.whereColumn('width', '=', 'height')
+  private static narrow<T extends QueryBuilder<Photo> | HasManyRelation<User, Photo>>(query: T, filters: PhotoFilters, by: 'publishedAt' | 'createdAt') {
+    const shape = Photo.SHAPES[filters.orientation ?? '']
+
+    if (shape) query.where((match: QueryBuilder<Photo>) => match.whereColumn('width', shape, 'height'))
 
     return filters.sort === 'oldest' ? query.oldest(by) : query.latest(by)
   }
@@ -354,7 +358,7 @@ export class Photo extends Model {
 
   /** Delete the photo and its file, taking it out of every book first. */
   async remove(): Promise<void> {
-    await Book.query().where({ userId: this.userId, coverPhotoId: this.id }).update({ coverPhotoId: null })
+    await (await this.coverOf().where({ userId: this.userId }).getQuery()).update({ coverPhotoId: null })
 
     const pages = await BookPage.query()
       .whereHas('book', (query) => query.where({ userId: this.userId }))
@@ -386,5 +390,10 @@ export class Photo extends Model {
 
   space() {
     return this.belongsTo(Space, 'spaceId')
+  }
+
+  /** Books that use this photo as their cover. */
+  coverOf() {
+    return this.hasMany(Book, 'coverPhotoId')
   }
 }

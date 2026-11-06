@@ -8,7 +8,7 @@ export class SpaceResource extends Resource {
 
   async data() {
     const space = this.resource as Space
-    const previews = await space.contentPhotos(this.everything).latest('createdAt').take(4).get()
+    const previews = await space.contentPhotos(this.everything).latest('createdAt').take(4).getResults()
 
     return {
       id: space.id,

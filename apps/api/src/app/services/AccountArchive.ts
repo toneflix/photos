@@ -1,7 +1,4 @@
 import type { Zip } from 'fflate'
-import { Book } from '@app/models/Book'
-import { Photo } from '@app/models/Photo'
-import { Space } from '@app/models/Space'
 import { Storage } from '@arkstack/filesystem'
 import type { User } from '@app/models/User'
 import { ZipArchive } from './ZipArchive'
@@ -20,9 +17,9 @@ export class AccountArchive extends ZipArchive {
   }
 
   protected async write(zip: Zip) {
-    const photos = (await Photo.query().where({ userId: this.user.id }).oldest('createdAt').get()).all()
-    const books = (await Book.query().where({ userId: this.user.id }).oldest('createdAt').get()).all()
-    const spaces = (await Space.query().where({ userId: this.user.id }).oldest('createdAt').get()).all()
+    const photos = (await this.user.photos().oldest('createdAt').getResults()).all()
+    const books = (await this.user.books().oldest('createdAt').getResults()).all()
+    const spaces = (await this.user.spaces().oldest('createdAt').getResults()).all()
     const files = new Map(photos.map((photo) => [photo.id, `photos/${photo.id}${photo.path.slice(photo.path.lastIndexOf('.'))}`]))
 
     this.addJson(zip, 'account.json', {

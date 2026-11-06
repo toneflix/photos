@@ -144,14 +144,14 @@ export class Space extends Model {
 
   /** Photos in the space; only the public ones unless `everything`. */
   contentPhotos(everything = false) {
-    const query = Photo.query().where({ spaceId: this.id })
+    const query = this.photos()
 
     return everything ? query : query.where({ visibility: 'public' })
   }
 
   /** Books in the space; only the public ones with pages unless `everything`. */
   contentBooks(everything = false) {
-    const query = Book.query().where({ spaceId: this.id })
+    const query = this.books()
 
     return everything ? query : query.where({ visibility: 'public' }).has('pages')
   }
