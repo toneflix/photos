@@ -85,13 +85,14 @@ export class AccountArchive extends ZipArchive {
         paper: book.paper,
         frame: book.frame,
         cover: book.coverPhotoId ? (files.get(book.coverPhotoId) ?? null) : null,
+        coverPosition: book.coverPosition ?? null,
         createdAt: book.createdAt,
         updatedAt: book.updatedAt,
         pages: pages.map((page) => ({
           layout: page.layout,
           frame: page.frame,
           caption: page.caption,
-          photos: page.placements().flatMap(({ id, frame }) => (files.has(id) ? [{ file: files.get(id), frame }] : [])),
+          photos: page.placements().flatMap(({ id, frame, position }) => (files.has(id) ? [{ file: files.get(id), frame, position }] : [])),
         })),
       })
     }

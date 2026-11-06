@@ -1,3 +1,4 @@
+import { PHOTO_ZOOM } from '@toneflix/flipbook-core'
 import { ImageFile } from './ImageFile'
 import { ValidationRule, regex } from 'kanun'
 
@@ -22,4 +23,12 @@ export const downloadSize = (sizes: string[]) => ({
   size: `nullable|in:original,${sizes.join(',')}`,
   width: 'nullable|integer|min:1|max:12000',
   height: 'nullable|integer|min:1|max:12000',
+})
+
+/** Rules for a photo position at `attribute`: which part of the photo shows, and how far it is zoomed. */
+export const photoPosition = (attribute: string) => ({
+  [attribute]: 'nullable',
+  [`${attribute}.x`]: 'nullable|numeric|min:0|max:100',
+  [`${attribute}.y`]: 'nullable|numeric|min:0|max:100',
+  [`${attribute}.zoom`]: `nullable|numeric|min:${PHOTO_ZOOM.min}|max:${PHOTO_ZOOM.max}`,
 })

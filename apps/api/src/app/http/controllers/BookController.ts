@@ -7,7 +7,7 @@ import { BookCollection } from '@app/http/resources/BookCollection'
 import { BookDetailResource } from '@app/http/resources/BookDetailResource'
 import { Photo } from '@app/models/Photo'
 import { SORTS } from '@app/support/search'
-import { UUID, photoFile } from '@app/support/rules'
+import { UUID, photoFile, photoPosition } from '@app/support/rules'
 
 const VISIBILITY = `in:${Book.VISIBILITIES.join(',')}`
 const THEME = `in:${Book.THEMES.join(',')}`
@@ -90,6 +90,7 @@ export default class BookController extends BaseController {
       paper: `nullable|${PAPER}`,
       frame: `nullable|${FRAME}`,
       coverPhotoId: ['nullable', UUID],
+      ...photoPosition('coverPosition'),
       spaceId: ['nullable', UUID],
     })
 
@@ -105,8 +106,12 @@ export default class BookController extends BaseController {
     if (data.frame) book.frame = data.frame
     if ('spaceId' in data) book.spaceId = data.spaceId ? (await access.viewer!.spaces().findOrFail(data.spaceId)).id : null
     if ('coverPhotoId' in data) {
-      book.coverPhotoId = data.coverPhotoId ? ((await book.ownedPhotoIds([data.coverPhotoId]))[0] ?? null) : null
+      const coverPhotoId = data.coverPhotoId ? ((await book.ownedPhotoIds([data.coverPhotoId]))[0] ?? null) : null
+
+      if (coverPhotoId !== book.coverPhotoId) book.coverPosition = null
+      book.coverPhotoId = coverPhotoId
     }
+    if ('coverPosition' in data) book.coverPosition = Book.photoPosition(data.coverPosition)
 
     await book.save()
 
@@ -136,6 +141,8 @@ export default class BookController extends BaseController {
       'pages.*.photoIds.*': [UUID],
       'pages.*.photoFrames': 'nullable|array',
       'pages.*.photoFrames.*': `nullable|${FRAME}`,
+      'pages.*.photoPositions': 'nullable|array',
+      ...photoPosition('pages.*.photoPositions.*'),
     })
 
     await book.replacePages(data.pages)

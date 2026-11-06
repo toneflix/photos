@@ -9,6 +9,8 @@ export {
   FRAME_STYLES,
   PAGE_LAYOUTS,
   PAPER_COLORS,
+  PHOTO_ZOOM,
+  PhotoCrop,
   coverHasText,
   photoFrame,
   type CoverDesign,
@@ -16,4 +18,5 @@ export {
   type FrameStyle,
   type PageLayout,
   type PaperColor,
+  type PhotoPosition,
 } from '@toneflix/flipbook-core'
