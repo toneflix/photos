@@ -59,10 +59,11 @@ describe('Views and downloads', () => {
     await api('put', `/books/${bookId}/pages`, { pages: [{ layout: 'single', photoIds: [photoId] }] })
   }, 60_000)
 
-  it('counts each visitor once and never the owner', async () => {
+  it('counts each visitor once, never the owner and never a prefetch', async () => {
     await api('get', `/explore/photos/${photoId}`, undefined, 'visitor')
     await api('get', `/explore/photos/${photoId}`, undefined, 'visitor')
     await api('get', `/explore/photos/${photoId}`)
+    await api('get', `/explore/photos/${photoId}`, undefined, 'admin').set('Purpose', 'prefetch')
 
     const own = await api('get', `/explore/photos/${photoId}`)
 

@@ -40,13 +40,13 @@ export class ContentStats {
     return 'space'
   }
 
-  /** Count a view by `visitor` (their account id or IP). */
-  view(visitor: string, viewer: User | null): Promise<boolean> {
+  /** Count a view by `visitor` (their account id or IP). Nothing counts without one. */
+  view(visitor: string | null, viewer: User | null): Promise<boolean> {
     return this.record('views', visitor, viewer)
   }
 
   /** Count a download by `visitor`. Spaces have nothing to download. */
-  download(visitor: string, viewer: User | null): Promise<boolean> {
+  download(visitor: string | null, viewer: User | null): Promise<boolean> {
     return this.record('downloads', visitor, viewer)
   }
 
@@ -105,8 +105,8 @@ export class ContentStats {
     return { where: clauses.join(' '), bindings }
   }
 
-  private async record(column: 'views' | 'downloads', visitor: string, viewer: User | null): Promise<boolean> {
-    if (viewer?.id === this.subject.userId) return false
+  private async record(column: 'views' | 'downloads', visitor: string | null, viewer: User | null): Promise<boolean> {
+    if (!visitor || viewer?.id === this.subject.userId) return false
 
     const fresh = await Cache.add(`counted:${this.kind}:${this.subject.id}:${column}:${visitor}`, true, ContentStats.VISITOR_WINDOW_SECONDS)
 
