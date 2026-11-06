@@ -120,4 +120,32 @@ describe('Views and downloads', () => {
     expect(sorted.status).toBe(200)
     expect((await api('get', `/admin/moderation/spaces/${spaceId}`, undefined, 'admin')).body.data.viewCount).toBe(1)
   })
+
+  it('shows makers the stats of their own work', async () => {
+    const mine = await api('get', '/account/stats?days=7')
+
+    expect(mine.status).toBe(200)
+    expect(mine.body.data).toMatchObject({ photoCount: 1, bookCount: 1, spaceCount: 1, totals: { views: 3, downloads: 1 } })
+    expect(mine.body.data.daily).toHaveLength(7)
+    expect(mine.body.data.topSpaces[0]).toMatchObject({ id: spaceId, viewCount: 1, downloadCount: null })
+
+    const photo = await api('get', `/account/stats/photos/${photoId}?days=7`)
+
+    expect(photo.body.data).toMatchObject({ id: photoId, viewCount: 1, downloadCount: 1 })
+    expect(photo.body.data.daily.at(-1)).toEqual({ date: today(), views: 1, downloads: 1 })
+
+    expect((await api('get', `/account/stats/photos/${photoId}`, undefined, 'visitor')).status).toBe(404)
+    expect((await api('get', `/account/stats/songs/${photoId}`)).status).toBe(404)
+  })
+
+  it('charts a book only on plans with book insights', async () => {
+    expect((await api('get', `/account/stats/books/${bookId}`)).body.data.daily).toHaveLength(30)
+
+    putOnPlan(accounts.owner.email, 'free')
+
+    const book = await api('get', `/account/stats/books/${bookId}`)
+
+    expect(book.body.data).toMatchObject({ viewCount: 1, daily: null })
+    expect((await api('get', `/account/stats/spaces/${spaceId}`)).body.data.daily).toHaveLength(30)
+  })
 })

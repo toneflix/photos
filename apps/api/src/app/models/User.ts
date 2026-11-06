@@ -79,6 +79,14 @@ export class User extends BaseUser {
     return this.hasMany(Space, 'userId')
   }
 
+  /** The user's own photos, books or spaces. */
+  work(kind: 'photos' | 'books' | 'spaces') {
+    if (kind === 'photos') return this.photos()
+    if (kind === 'books') return this.books()
+
+    return this.spaces()
+  }
+
   personalAccessTokens() {
     return this.hasMany(PersonalAccessToken, 'userId')
   }
