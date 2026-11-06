@@ -4,8 +4,9 @@ import { Image } from 'expo-image'
 import * as Clipboard from 'expo-clipboard'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { usePhotoGestures, useNaturalSize } from '@toneflix/flipbook-native'
-import type { BookTheme, BookWithPages, CoverDesign, Photo, PhotoPosition, Space, Visibility } from '@photos/types'
+import type { BookBrandingInput, BookTheme, BookWithPages, CoverDesign, Photo, PhotoPosition, Space, Visibility } from '@photos/types'
 import { BookCover } from '@/components/BookCover'
+import { BrandingFields, DEFAULT_KICKER, brandingChanges } from '@/components/book/BrandingFields'
 import { PhotoPositionControls } from '@/components/book/PhotoPositionControls'
 import { ClothPicker, CoverDesignPicker, CoverTextSwitch } from '@/components/book/CoverPickers'
 import { Button, Callout, Field, Input, Select, Text } from '@/components/ui'
@@ -13,7 +14,7 @@ import { webUrl } from '@/lib/links'
 import { spaceOptions } from '@/lib/spaces'
 import { colors, fonts, radius } from '@/theme'
 
-export type BookChanges = Partial<Pick<BookWithPages, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'coverPosition' | 'spaceId' | 'coverDesign' | 'coverText'> & { theme: BookTheme }>
+export type BookChanges = Partial<Pick<BookWithPages, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'coverPosition' | 'spaceId' | 'coverDesign' | 'coverText'> & { theme: BookTheme } & BookBrandingInput>
 
 const VISIBILITY: [Visibility, string][] = [
   ['private', 'Only me'],
@@ -51,11 +52,22 @@ export function BookSettings({
   const [coverPosition, setCoverPosition] = useState<PhotoPosition | null>(book.coverPosition)
   const [positioning, setPositioning] = useState(false)
   const [spaceId, setSpaceId] = useState(book.spaceId ?? '')
+  const [branding, setBranding] = useState<BookBrandingInput>(book.customBranding ?? { kicker: null, brand: null, imprint: null })
   const [copied, setCopied] = useState(false)
   const coverPhoto = photos.find((photo) => photo.id === coverPhotoId) ?? null
   const natural = useNaturalSize(coverPhoto && { src: coverPhoto.url, width: coverPhoto.width, height: coverPhoto.height })
   const gestures = usePhotoGestures(coverPosition, COVER_SIZE, natural, coverPhoto ? setCoverPosition : undefined, setPositioning)
-  const cover = { title: title || 'Untitled', description, theme, coverDesign, coverText, coverPhoto, coverPosition: gestures.crop.isCentred ? null : gestures.crop.toJSON() }
+  const kicker = (book.brandingAllowed?.kicker && branding.kicker?.trim()) || DEFAULT_KICKER
+  const cover = {
+    title: title || 'Untitled',
+    description,
+    theme,
+    coverDesign,
+    coverText,
+    coverPhoto,
+    coverPosition: gestures.crop.isCentred ? null : gestures.crop.toJSON(),
+    branding: { ...book.branding, kicker },
+  }
 
   const chooseCoverPhoto = (id: string | null) => {
     if (id !== coverPhotoId) setCoverPosition(null)
@@ -73,6 +85,7 @@ export function BookSettings({
       coverPhotoId,
       coverPosition,
       ...(book.isOwner ? { visibility, spaceId: spaceId || null } : {}),
+      ...brandingChanges(book, branding),
     })
 
   const copy = async () => {
@@ -131,6 +144,8 @@ export function BookSettings({
               <Text variant="muted">Add photos to your pages to choose a cover photo.</Text>
             )}
           </Field>
+
+          {book.customBranding && <BrandingFields allowed={book.brandingAllowed} value={branding} onChange={setBranding} />}
 
           {book.isOwner && spaces.length > 0 && (
             <Field label="Space">

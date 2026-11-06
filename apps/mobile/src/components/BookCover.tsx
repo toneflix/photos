@@ -9,7 +9,7 @@ export const COVERS = Object.fromEntries(
   Object.entries(COVER_THEMES).map(([theme, { cloth, ink, label }]) => [theme, { cloth, foil: ink, label }]),
 ) as Record<BookTheme, { cloth: string; foil: string; label: string }>
 
-export type CoverLook = Pick<Book, 'title' | 'description' | 'theme'> & Partial<Pick<Book, 'coverDesign' | 'coverText' | 'coverPosition'>> & { coverPhoto?: Photo | null }
+export type CoverLook = Pick<Book, 'title' | 'description' | 'theme'> & Partial<Pick<Book, 'coverDesign' | 'coverText' | 'coverPosition' | 'branding'>> & { coverPhoto?: Photo | null }
 
 /** A book's front cover, drawn by the flipbook library at whatever size its box is. */
 export function BookCover({ book }: { book: CoverLook }) {
