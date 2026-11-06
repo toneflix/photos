@@ -13,7 +13,7 @@ export const shouldRevalidate = revalidateOnSubmit;
 
 export default function ExploreLayout({ loaderData }: Route.ComponentProps) {
 	return (
-		<div className="min-h-dvh bg-surface-50">
+		<div className="min-h-dvh bg-canvas">
 			<AppHeader user={loaderData.user} />
 			<Outlet />
 		</div>

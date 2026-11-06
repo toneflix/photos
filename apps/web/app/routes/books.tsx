@@ -178,7 +178,7 @@ function NewBookForm({
 	const [title, setTitle] = useState("");
 
 	return (
-		<Form method="post" className="mt-8 grid gap-8 rounded-2xl border border-surface-200 bg-white p-6 shadow-sm md:grid-cols-[1fr_200px] md:p-8">
+		<Form method="post" className="mt-8 grid gap-8 panel p-6 md:grid-cols-[1fr_200px] md:p-8">
 			<div className="space-y-5">
 				<h2 className="font-display font-bold tracking-tight text-2xl">A new book</h2>
 				{error?.error && !Object.keys(error.fieldErrors).length && <Alert>{error.error}</Alert>}

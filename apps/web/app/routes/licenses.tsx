@@ -16,7 +16,7 @@ export default function Licenses() {
 
 			<ul className="mt-10 grid gap-4 sm:grid-cols-2">
 				{LICENSES.map((license) => (
-					<li key={license.value} className="rounded-xl border border-surface-200 bg-white p-5">
+					<li key={license.value} className="panel rounded-xl p-5">
 						<p className="font-display text-lg font-bold text-ink-900">{license.label}</p>
 						<p className="text-sm font-medium text-ink-500">
 							{license.url ? (

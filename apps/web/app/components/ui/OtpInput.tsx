@@ -36,9 +36,9 @@ export function OtpInput({
 				<span
 					key={i}
 					aria-hidden
-					className={`flex aspect-[5/6] w-full max-w-13 items-center justify-center rounded-lg border bg-white font-mono text-2xl font-semibold text-ink-900 tabular-nums transition ${
+					className={`flex aspect-[5/6] w-full max-w-13 items-center justify-center rounded-[0.625rem] border-[1.5px] font-mono text-2xl font-semibold text-ink-900 tabular-nums transition ${
 						i === length / 2 ? "ml-2" : ""
-					} ${invalid ? "border-red-600" : focused && i === active ? "border-brand-500 ring-2 ring-brand-500/20" : "border-surface-300"}`}
+					} ${invalid ? "border-red-600" : focused && i === active ? "border-brand-600 bg-white shadow-[0_3px_0_0_var(--color-brand-500)]" : "border-surface-300 bg-white shadow-[0_2px_0_0_var(--color-surface-200)]"}`}
 				>
 					{value[i] ?? ""}
 				</span>

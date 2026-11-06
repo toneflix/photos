@@ -39,8 +39,8 @@ export function shouldRevalidate(args: ShouldRevalidateFunctionArgs) {
 }
 
 const tab = ({ isActive }: { isActive: boolean }) =>
-	`-mb-px border-b-2 px-1 pb-3 text-sm font-semibold transition ${
-		isActive ? "border-ink-900 text-ink-900" : "border-transparent text-ink-500 hover:text-ink-900"
+	`-mb-[1.5px] border-b-[3px] px-1 pb-3 text-sm font-semibold transition ${
+		isActive ? "border-brand-600 text-brand-700" : "border-transparent text-ink-500 hover:text-ink-900"
 	}`;
 
 /** The space's header with its Photos and Books tabs. Browsing below works like Explore, kept to this space. */
@@ -97,7 +97,7 @@ export default function SpaceLayout({ loaderData }: Route.ComponentProps) {
 					<SpaceCover photos={space.previews} className="aspect-[4/3] w-full shrink-0 overflow-hidden rounded-2xl shadow-lg md:w-80" />
 				)}
 			</header>
-			<nav className="mt-10 flex gap-6 border-b border-surface-200">
+			<nav className="mt-10 flex gap-6 border-b-[1.5px] border-surface-200">
 				<NavLink prefetch="intent" to={`/spaces/${space.slug}`} end className={tab}>
 					Photos
 				</NavLink>

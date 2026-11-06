@@ -146,7 +146,7 @@ function SetupSteps({ setup, result, busy }: { setup: NonNullable<Result["setup"
 		<div className="grid gap-8 sm:grid-cols-[11rem_1fr]">
 			<div className="space-y-3">
 				<div
-					className="aspect-square w-44 rounded-xl border border-surface-200 bg-white p-3 [&_svg]:h-full [&_svg]:w-full"
+					className="aspect-square w-44 panel rounded-xl p-3 [&_svg]:h-full [&_svg]:w-full"
 					dangerouslySetInnerHTML={{ __html: setup.qr }}
 				/>
 			</div>

@@ -142,7 +142,7 @@ function LicensePanel({ photo }: { photo: PublicPhotoDetail }) {
 	};
 
 	return (
-		<div className="rounded-xl border border-surface-200 bg-white p-4">
+		<div className="panel rounded-xl p-4">
 			<p className="text-xs font-semibold tracking-widest text-ink-500 uppercase">Licence</p>
 			<p className="mt-1.5 flex items-center gap-2 font-display font-bold text-ink-900">
 				{license.downloadable ? <IconOpen /> : <IconLock />}

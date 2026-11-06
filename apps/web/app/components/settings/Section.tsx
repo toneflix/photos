@@ -24,7 +24,7 @@ export function Section({
 }) {
 	return (
 		<section
-			className={`rounded-2xl border bg-white p-6 shadow-sm sm:p-8 ${tone === "danger" ? "border-red-200" : "border-surface-200"}`}
+			className={`panel p-6 sm:p-8 ${tone === "danger" ? "!border-red-300" : ""}`}
 		>
 			{title && <h2 className={`font-display font-bold tracking-tight text-2xl ${tone === "danger" ? "text-red-800" : "text-ink-900"}`}>{title}</h2>}
 			{description && <p className="mt-1 text-sm text-ink-500">{description}</p>}

@@ -116,18 +116,15 @@ function SpaceFields({ space, error }: { space?: Space; error?: FormFailure }) {
 				error={error?.fieldErrors.slug}
 				hint={space ? "Changing it breaks links you've already shared." : "Leave empty to make one from the name."}
 			>
-				<div className="flex items-center rounded-lg border border-surface-300 bg-white focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20">
-					<span className="pl-3.5 text-sm text-ink-500">/spaces/</span>
-					<input
-						name="slug"
-						defaultValue={space?.slug}
-						maxLength={60}
-						pattern="[a-z0-9]+(-[a-z0-9]+)*"
-						title="Lowercase letters, numbers and dashes"
-						placeholder="ada-weddings"
-						className="min-w-0 flex-1 rounded-lg bg-transparent py-3 pr-3.5 pl-0.5 text-ink-900 placeholder:text-ink-500 focus:outline-none"
-					/>
-				</div>
+				<Input
+					addon="/spaces/"
+					name="slug"
+					defaultValue={space?.slug}
+					maxLength={60}
+					pattern="[a-z0-9]+(-[a-z0-9]+)*"
+					title="Lowercase letters, numbers and dashes"
+					placeholder="ada-weddings"
+				/>
 			</Field>
 			<Field label="About this space (optional)" error={error?.fieldErrors.description}>
 				<Textarea name="description" rows={2} maxLength={1000} defaultValue={space?.description ?? ""} placeholder="Weddings and celebrations across Lagos." />
@@ -161,7 +158,7 @@ function SpaceForm({ error, onCancel }: { error?: FormFailure; onCancel?: () => 
 	const busy = useNavigation().state !== "idle";
 
 	return (
-		<Form method="post" className="mt-8 max-w-2xl space-y-5 rounded-2xl border border-surface-200 bg-white p-6 shadow-sm md:p-8">
+		<Form method="post" className="mt-8 max-w-2xl space-y-5 panel p-6 md:p-8">
 			<input type="hidden" name="intent" value="create" />
 			<h2 className="font-display text-2xl font-bold tracking-tight">A new space</h2>
 			<SpaceFields error={error} />
