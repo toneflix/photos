@@ -5,7 +5,7 @@ The API (`apps/api`) can run on [Railway](https://railway.com) instead of the SS
 The Railway project is described with [Railway Infrastructure as Code](https://docs.railway.com/infrastructure-as-code):
 
 - `.railway/railway.ts`: the project. A PostgreSQL database, a volume for uploads, and the `api` service built from this repository's `main` branch, with its domain and variables.
-- `railpack.json`: how [Railpack](https://railpack.com) builds the image. It uses Node 24, installs the workspace with pnpm, builds only the API (`pnpm --filter @photos/api build`) and starts it with `pnpm --filter @photos/api start`. Dev dependencies stay in the image because `ark migrate` runs from source.
+- `railpack.json`: how [Railpack](https://railpack.com) builds the image. It uses Node 24, installs the workspace with pnpm, builds only the API (`pnpm --filter @photos/api build`) and starts it with `pnpm --filter @photos/api start`. Dev dependencies stay in the image because `ark migrate` runs from source. Its `ssh-env` step adds `/etc/profile.d/railpack-env.sh`, which gives `railway ssh` shells the image's `PATH` so `node`, `pnpm` and `npx` are found.
 
 Each deploy builds the image, runs `ark migrate --no-interaction` as the pre-deploy command, starts the API and waits for `GET /api` to answer before switching traffic. A failed build, migration or health check leaves the previous deploy running. Only changes to the API, the shared packages or the workspace manifests trigger a build.
 
@@ -46,7 +46,7 @@ To run more than one replica, move photos to a bucket (a volume pins the service
 - **Deploy**: push to `main`.
 - **Roll back**: open an earlier deploy in the service's **Deployments** tab and choose **Redeploy**. A rollback does not undo migrations.
 - **Logs**: the **Deployments** tab, or `railway logs`.
-- **One-off commands**: `railway ssh` into the running service, then run `pnpm exec ark <command>` (it starts in `/app/apps/api`).
+- **One-off commands**: `railway ssh` into the running service, then run `pnpm --filter @photos/api exec ark <command>` from `/app`.
 
 When the API runs on Railway, the **Deploy API** workflow is not needed. Leave its SSH secrets unset.
 
