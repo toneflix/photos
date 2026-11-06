@@ -150,7 +150,7 @@ function RegionEditor({ region }: { region: PaymentRegion | null }) {
 					active: form.active,
 				},
 			},
-			{ method: "post", encType: "application/json" },
+			{ method: "post", encType: "application/json", action: `/admin/payment-regions/${region?.id ?? "new"}` },
 		);
 	};
 	const field = (label: string, name: keyof typeof form, props: InputHTMLAttributes<HTMLInputElement> = {}, hint?: string) => (

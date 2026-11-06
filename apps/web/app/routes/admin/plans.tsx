@@ -191,7 +191,7 @@ function PlanEditor({ plan, catalogue }: { plan: AdminPlan | null; catalogue: Fe
 	const changeFeature = (key: FeatureKey, next: Partial<FeatureForm>) => change({ features: { ...form.features, [key]: { ...form.features[key], ...next } } });
 	const send = (intent: "save" | "delete") => {
 		setChanged(false);
-		fetcher.submit({ intent, plan: toInput(form) } as never, { method: "post", encType: "application/json" });
+		fetcher.submit({ intent, plan: toInput(form) } as never, { method: "post", encType: "application/json", action: `/admin/plans/${plan?.id ?? "new"}` });
 	};
 
 	return (

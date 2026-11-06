@@ -125,7 +125,7 @@ function RoleEditor({ role, permissions }: { role: Role | null; permissions: Per
 	};
 	const send = (intent: RoleForm["intent"]) => {
 		setChanged(false);
-		fetcher.submit({ intent, name: form.name, description: form.description, ...(locked ? {} : { permissions: form.permissions }) }, { method: "post", encType: "application/json" });
+		fetcher.submit({ intent, name: form.name, description: form.description, ...(locked ? {} : { permissions: form.permissions }) }, { method: "post", encType: "application/json", action: `/admin/roles/${role?.id ?? "new"}` });
 	};
 
 	return (
