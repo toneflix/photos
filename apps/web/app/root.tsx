@@ -7,11 +7,11 @@ import {
 	ScrollRestoration,
 } from "react-router";
 
+import { DEFAULT_LIMITS } from "@photos/types";
 import type { Route } from "./+types/root";
 import { NavigationProgress } from "./components/NavigationProgress";
 import { cloudflareContext } from "./lib/cloudflare";
 import { getServerApi } from "./lib/api.server";
-import { DEFAULT_LIMITS } from "./lib/limits";
 import "@toneflix/flipbook-react/style.css";
 import "./app.css";
 

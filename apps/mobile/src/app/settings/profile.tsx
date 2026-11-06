@@ -5,14 +5,14 @@ import { Avatar } from '@/components/Avatar'
 import { SettingsPage, Section } from '@/components/settings/SettingsPage'
 import { Button, Callout, Field, Input, Text } from '@/components/ui'
 import { api } from '@/lib/api'
+import { megabytes, useLimits } from '@/lib/limits'
 import { session, useUser } from '@/lib/session'
 import { uploadFile } from '@/lib/upload-file'
 import { useAction } from '@/lib/use-action'
 
-const MAX_AVATAR_BYTES = 10 * 1024 * 1024
-
 export default function Profile() {
   const user = useUser()
+  const { maxAvatarMb } = useLimits()
   const photo = useAction()
   const profile = useAction()
   const [name, setName] = useState(user.name)
@@ -25,7 +25,7 @@ export default function Profile() {
 
       const asset = result.assets[0]
 
-      if (asset.fileSize && asset.fileSize > MAX_AVATAR_BYTES) throw new Error('That photo is larger than 10 MB.')
+      if (asset.fileSize && asset.fileSize > megabytes(maxAvatarMb)) throw new Error(`That photo is larger than ${maxAvatarMb} MB.`)
 
       const { data } = await api.account.updateAvatar(uploadFile(asset)).send()
 
@@ -62,7 +62,7 @@ export default function Profile() {
               <Button title={photo.busy ? 'Uploading…' : user.avatarUrl ? 'Change photo' : 'Add a photo'} variant="secondary" loading={photo.busy} onPress={pick} />
               {user.avatarUrl ? <Button title="Remove" variant="ghost" disabled={photo.busy} onPress={removePhoto} /> : null}
             </View>
-            <Text variant="small">JPG, PNG, WebP or HEIC, up to 10 MB.</Text>
+            <Text variant="small">{`JPG, PNG, WebP or HEIC, up to ${maxAvatarMb} MB.`}</Text>
           </View>
         </View>
         {photo.problem.message ? <Callout>{photo.problem.fields.avatar ?? photo.problem.message}</Callout> : null}

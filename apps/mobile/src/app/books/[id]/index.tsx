@@ -21,7 +21,7 @@ import { FlipbookModel } from '@/lib/flipbook'
 import { FormProblem } from '@/lib/forms'
 import { bookLists } from '@/lib/lists'
 import { useSession } from '@/lib/session'
-import { MAX_PHOTO_BYTES } from '@/lib/uploads'
+import { appLimits, megabytes } from '@/lib/limits'
 import { uploadFile } from '@/lib/upload-file'
 import { colors, fonts, radius } from '@/theme'
 
@@ -177,6 +177,7 @@ function AddPhotos({ book, code, onDone, onClose }: { book: BookWithPages; code:
     if (result.canceled) return
 
     const problems: string[] = []
+    const { maxPhotoMb } = await appLimits.refresh()
 
     setFailed([])
 
@@ -185,8 +186,8 @@ function AddPhotos({ book, code, onDone, onClose }: { book: BookWithPages; code:
 
       setProgress({ done: i, total: result.assets.length })
 
-      if (asset.fileSize && asset.fileSize > MAX_PHOTO_BYTES) {
-        problems.push(`${name} is larger than 25 MB`)
+      if (asset.fileSize && asset.fileSize > megabytes(maxPhotoMb)) {
+        problems.push(`${name} is larger than ${maxPhotoMb} MB`)
         continue
       }
 
