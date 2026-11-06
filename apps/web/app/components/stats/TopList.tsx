@@ -25,7 +25,7 @@ export function Counts({ item }: { item: Pick<ModerationItem, "viewCount" | "dow
 /** A short ranked list of work with its counts. `href` links each item to its own page. */
 export function TopList({ title, items, href, empty = "Nothing public yet.", showOwner = true }: { title: string; items: ModerationItem[]; href?: (item: ModerationItem) => string; empty?: string; showOwner?: boolean }) {
 	return (
-		<section className="panel">
+		<section className="panel min-w-0">
 			<h2 className="border-b-[1.5px] border-surface-200 px-5 py-4 font-display text-lg font-bold text-ink-900">{title}</h2>
 			{items.length === 0 ? (
 				<p className="px-5 py-8 text-center text-sm text-ink-500">{empty}</p>
