@@ -23,7 +23,7 @@ export class FlipbookModel {
   }
 
   /** The front cover's look, for shelves and pickers that show a book without its pages. */
-  static cover(book: Pick<Book, 'title' | 'description' | 'theme' | 'coverDesign' | 'coverText' | 'coverPhoto'> & Partial<Pick<Book, 'coverPosition'>>) {
+  static cover(book: Pick<Book, 'title' | 'description' | 'theme' | 'coverDesign' | 'coverText' | 'coverPhoto'> & Partial<Pick<Book, 'coverPosition' | 'branding'>>) {
     const photo = FlipbookModel.photo(book.coverPhoto)
 
     return {
@@ -33,7 +33,7 @@ export class FlipbookModel {
       theme: book.theme,
       coverDesign: book.coverDesign,
       coverText: book.coverText ?? undefined,
-      kicker: 'A Toneflix photo book',
+      kicker: book.branding?.kicker ?? 'A Toneflix photo book',
     } satisfies Partial<FlipbookBook>
   }
 
@@ -45,8 +45,9 @@ export class FlipbookModel {
       paper: book.paper,
       frame: book.frame,
       pages: book.pages.map(FlipbookModel.page),
-      colophon: 'Preserved for all time with Toneflix Photos.',
-      imprint: 'Toneflix Photos',
+      colophon: book.branding.colophon,
+      imprint: book.branding.imprint,
+      brand: book.branding.brand,
     }
   }
 }
