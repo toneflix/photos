@@ -89,7 +89,7 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 							<legend className="mb-1 text-sm font-medium text-ink-700">Licence for new photos</legend>
 							<p className="mb-3 text-xs text-ink-500">
 								What people may do with your photos once they're on Explore. You can change it for any photo from your library.{" "}
-								<Link to="/licenses" className="font-medium text-brand-700 hover:underline">
+								<Link prefetch="intent" to="/licenses" className="font-medium text-brand-700 hover:underline">
 									About licences
 								</Link>
 							</p>

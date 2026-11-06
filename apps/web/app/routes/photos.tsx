@@ -100,7 +100,7 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 						{space && (
 							<>
 								{" "}
-								<Link to={`/spaces/${space.slug}`} className="font-medium text-brand-700 hover:underline">
+								<Link prefetch="intent" to={`/spaces/${space.slug}`} className="font-medium text-brand-700 hover:underline">
 									Open the space page
 								</Link>
 							</>
@@ -354,7 +354,7 @@ function PhotoDialog({ photo: initial, spaces, onClose }: { photo: Photo; spaces
 							</select>
 							<span className="mt-1.5 block text-ink-500">{license.forCreators}</span>
 						</label>
-						<Link to="/licenses" className="mt-1 inline-block text-sm font-medium text-brand-700 hover:underline">
+						<Link prefetch="intent" to="/licenses" className="mt-1 inline-block text-sm font-medium text-brand-700 hover:underline">
 							About licences
 						</Link>
 					</licensing.Form>

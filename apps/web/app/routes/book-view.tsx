@@ -124,7 +124,7 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 				keyboard="global"
 				fullscreenPrompt={fullscreen}
 				topLeft={
-					<Link to={back.to} className="rounded-full bg-white/10 p-2 hover:bg-white/20" aria-label={back.label} title={back.label}>
+					<Link prefetch="intent" to={back.to} className="rounded-full bg-white/10 p-2 hover:bg-white/20" aria-label={back.label} title={back.label}>
 						<svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
 							<path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
 						</svg>
@@ -133,7 +133,7 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 				topRight={
 					<>
 						{book.isOwner && (
-							<Link to={`/books/${book.id}/access`} className={`${chip} max-sm:hidden`}>
+							<Link prefetch="intent" to={`/books/${book.id}/access`} className={`${chip} max-sm:hidden`}>
 								Access codes
 							</Link>
 						)}
@@ -148,7 +148,7 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 							</button>
 						)}
 						{book.canEdit && (
-							<Link to={`/books/${book.id}/edit`} className={chip}>
+							<Link prefetch="intent" to={`/books/${book.id}/edit`} className={chip}>
 								Edit
 							</Link>
 						)}
@@ -198,10 +198,10 @@ function ClaimPanel({ book, signedIn, error, onClose }: { book: BookWithPages; s
 				<div className="mt-6 space-y-3">
 					<p className="text-sm font-medium text-ink-900">Sign in or join first, then come back to this page.</p>
 					<div className="flex justify-end gap-2">
-						<Link to={`/signin?next=${next}`} className={buttonClass("secondary")}>
+						<Link prefetch="intent" to={`/signin?next=${next}`} className={buttonClass("secondary")}>
 							Sign in
 						</Link>
-						<Link to={`/signup?next=${next}`} className={buttonClass("primary")}>
+						<Link prefetch="intent" to={`/signup?next=${next}`} className={buttonClass("primary")}>
 							Join free
 						</Link>
 					</div>
@@ -262,7 +262,7 @@ function LockedBook({ error }: { error: string | null }) {
 				</Button>
 				<p className="text-center text-sm text-ink-500">
 					Is it your book?{" "}
-					<Link to={`/signin?next=${encodeURIComponent(pathname)}`} className="font-medium text-brand-700 hover:underline">
+					<Link prefetch="intent" to={`/signin?next=${encodeURIComponent(pathname)}`} className="font-medium text-brand-700 hover:underline">
 						Sign in
 					</Link>
 				</p>

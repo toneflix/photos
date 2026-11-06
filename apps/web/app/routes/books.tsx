@@ -130,7 +130,7 @@ function BookCard({ book }: { book: Book }) {
 	return (
 		<li className="group min-w-0">
 			<div className="relative">
-				<Link
+				<Link prefetch="intent"
 					to={`/books/${book.id}`}
 					className="relative block aspect-[3/4] overflow-hidden rounded-lg bg-surface-100 shadow-sm transition duration-300 group-hover:shadow-xl"
 					style={{ containerType: "size" }}
@@ -140,7 +140,7 @@ function BookCard({ book }: { book: Book }) {
 					<span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/20 opacity-0 transition group-hover:opacity-100" />
 				</Link>
 				<div className="absolute top-2 right-2 flex gap-1.5 opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100">
-					<Link
+					<Link prefetch="intent"
 						to={`/books/${book.id}/edit`}
 						className="rounded-lg bg-white/95 px-3 py-1.5 text-xs font-semibold text-ink-900 shadow hover:bg-white"
 					>

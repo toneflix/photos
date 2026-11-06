@@ -40,7 +40,7 @@ export default function DeleteAccount({ actionData }: Route.ComponentProps) {
 				<p className="text-ink-700">This deletes your account, every book and every photo for good. Links you've shared stop working.</p>
 				<p className="mt-2 text-sm text-ink-500">
 					Want to keep them?{" "}
-					<Link to="/settings/data" className="font-medium text-brand-700 hover:underline">
+					<Link prefetch="intent" to="/settings/data" className="font-medium text-brand-700 hover:underline">
 						Download your data
 					</Link>{" "}
 					first.

@@ -45,13 +45,13 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 				<header className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
 					<Logo light />
 					<nav className="flex items-center gap-1 sm:gap-2">
-						<Link to="/explore" className={buttonClass("ghost", "!text-white hover:!bg-white/10 max-sm:hidden")}>
+						<Link prefetch="intent" to="/explore" className={buttonClass("ghost", "!text-white hover:!bg-white/10 max-sm:hidden")}>
 							Explore
 						</Link>
-						<Link to="/signin" className={buttonClass("ghost", "!text-white hover:!bg-white/10")}>
+						<Link prefetch="intent" to="/signin" className={buttonClass("ghost", "!text-white hover:!bg-white/10")}>
 							Sign in
 						</Link>
-						<Link to="/signup" className={buttonClass("primary")}>
+						<Link prefetch="intent" to="/signup" className={buttonClass("primary")}>
 							Join free
 						</Link>
 					</nav>
@@ -65,10 +65,14 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 						turn it sideways and the book opens across two pages.
 					</p>
 					<div className="mt-9 flex flex-wrap justify-center gap-3">
-						<Link to="/signup" className={buttonClass("primary", "px-6 py-3.5 text-base")}>
+						<Link prefetch="intent" to="/signup" className={buttonClass("primary", "px-6 py-3.5 text-base")}>
 							Create your first book
 						</Link>
-						<Link to="/signin" className={buttonClass("secondary", "px-6 py-3.5 text-base !border-white/30 !bg-white/10 !text-white hover:!bg-white/20")}>
+						<Link
+							prefetch="intent"
+							to="/signin"
+							className={buttonClass("secondary", "px-6 py-3.5 text-base !border-white/30 !bg-white/10 !text-white hover:!bg-white/20")}
+						>
 							I have an account
 						</Link>
 					</div>
@@ -89,7 +93,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 					<section className="mt-20">
 						<div className="mb-6 flex items-end justify-between gap-4">
 							<h2 className="font-display text-3xl font-bold tracking-tight text-ink-900">Fresh on Explore</h2>
-							<Link to="/explore" className="text-sm font-semibold text-brand-700 hover:underline">
+							<Link prefetch="intent" to="/explore" className="text-sm font-semibold text-brand-700 hover:underline">
 								See more
 							</Link>
 						</div>

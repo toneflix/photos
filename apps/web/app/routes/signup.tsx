@@ -43,7 +43,7 @@ export default function SignUp({ loaderData, actionData }: Route.ComponentProps)
 			subtitle={
 				<>
 					Already have an account?{" "}
-					<Link
+					<Link prefetch="intent"
 						to={loaderData?.next ? `/signin?next=${encodeURIComponent(loaderData.next)}` : "/signin"}
 						className="font-medium text-brand-700 hover:underline"
 					>

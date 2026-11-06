@@ -80,7 +80,7 @@ export default function BookAccess({ loaderData, actionData }: Route.ComponentPr
 
 	return (
 		<main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
-			<Link to={`/books/${book.id}/edit`} className="text-sm font-medium text-brand-700 hover:underline">
+			<Link prefetch="intent" to={`/books/${book.id}/edit`} className="text-sm font-medium text-brand-700 hover:underline">
 				← Back to “{book.title}”
 			</Link>
 			<h1 className="mt-3 font-display text-4xl font-bold tracking-tight text-ink-900">Access codes</h1>

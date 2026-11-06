@@ -60,7 +60,7 @@ export default function SignIn({ loaderData, actionData }: Route.ComponentProps)
 			subtitle={
 				<>
 					New here?{" "}
-					<Link to="/signup" className="font-medium text-brand-700 hover:underline">
+					<Link prefetch="intent" to="/signup" className="font-medium text-brand-700 hover:underline">
 						Create an account
 					</Link>
 				</>
@@ -77,7 +77,7 @@ export default function SignIn({ loaderData, actionData }: Route.ComponentProps)
 					<Input name="password" type="password" autoComplete="current-password" required />
 				</Field>
 				<div className="-mt-2 text-right">
-					<Link to="/forgot-password" className="text-sm text-ink-500 hover:text-brand-700 hover:underline">
+					<Link prefetch="intent" to="/forgot-password" className="text-sm text-ink-500 hover:text-brand-700 hover:underline">
 						Forgot your password?
 					</Link>
 				</div>

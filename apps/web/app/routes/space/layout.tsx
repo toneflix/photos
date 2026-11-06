@@ -59,7 +59,7 @@ export default function SpaceLayout({ loaderData }: Route.ComponentProps) {
 			{space.canEdit && space.visibility === "private" && (
 				<p className="mb-6 rounded-xl bg-surface-100 px-5 py-3 text-sm text-ink-700">
 					Only you can see this page. It shows what visitors will see once you make the space public: its public photos and books.{" "}
-					<Link to={`/spaces?edit=${space.id}`} className="font-semibold text-brand-700 hover:underline">
+					<Link prefetch="intent" to={`/spaces?edit=${space.id}`} className="font-semibold text-brand-700 hover:underline">
 						Make it public
 					</Link>
 				</p>
@@ -83,10 +83,10 @@ export default function SpaceLayout({ loaderData }: Route.ComponentProps) {
 						)}
 						{space.canEdit && (
 							<>
-								<Link to={`/photos?space=${space.id}`} className={buttonClass("primary")}>
+								<Link prefetch="intent" to={`/photos?space=${space.id}`} className={buttonClass("primary")}>
 									Add photos
 								</Link>
-								<Link to={`/spaces?edit=${space.id}`} className={buttonClass("ghost")}>
+								<Link prefetch="intent" to={`/spaces?edit=${space.id}`} className={buttonClass("ghost")}>
 									Edit space
 								</Link>
 							</>
@@ -98,10 +98,10 @@ export default function SpaceLayout({ loaderData }: Route.ComponentProps) {
 				)}
 			</header>
 			<nav className="mt-10 flex gap-6 border-b border-surface-200">
-				<NavLink to={`/spaces/${space.slug}`} end className={tab}>
+				<NavLink prefetch="intent" to={`/spaces/${space.slug}`} end className={tab}>
 					Photos
 				</NavLink>
-				<NavLink to={`/spaces/${space.slug}/books`} className={tab}>
+				<NavLink prefetch="intent" to={`/spaces/${space.slug}/books`} className={tab}>
 					Books
 				</NavLink>
 			</nav>

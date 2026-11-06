@@ -34,7 +34,7 @@ export default function SettingsHome({ loaderData }: Route.ComponentProps) {
 	return (
 		<>
 			<h1 className="font-display font-bold tracking-tight text-4xl text-ink-900 md:hidden">Settings</h1>
-			<Link
+			<Link prefetch="intent"
 				to="/settings/profile"
 				className="mt-6 flex items-center gap-4 rounded-2xl border border-surface-200 bg-white p-5 shadow-sm transition hover:border-surface-300 md:mt-0"
 			>
@@ -56,7 +56,7 @@ export default function SettingsHome({ loaderData }: Route.ComponentProps) {
 
 								return (
 									<li key={page.to}>
-										<Link to={page.to} className="flex items-center gap-4 px-5 py-4 transition hover:bg-surface-50">
+										<Link prefetch="intent" to={page.to} className="flex items-center gap-4 px-5 py-4 transition hover:bg-surface-50">
 											<div className="min-w-0 flex-1">
 												<p className={`font-medium ${danger ? "text-red-700" : "text-ink-900"}`}>{page.label}</p>
 												<p className="text-sm text-ink-500">{page.hint}</p>
