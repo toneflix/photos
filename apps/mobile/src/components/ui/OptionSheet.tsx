@@ -1,7 +1,7 @@
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, fonts, radius } from '@/theme'
+import { colors, fonts, radius, surfaces } from '@/theme'
 import { Text } from './Text'
 
 export interface Option<T extends string = string> {
@@ -66,7 +66,7 @@ export function OptionSheet<T extends string>({
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(44,52,62,0.5)' },
+  backdrop: { flex: 1, backgroundColor: surfaces.backdrop },
   sheet: {
     maxHeight: '75%',
     backgroundColor: colors.white,

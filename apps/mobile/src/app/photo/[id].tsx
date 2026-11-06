@@ -103,7 +103,7 @@ export default function PhotoDetail() {
             value={isPublic}
             disabled={update.loading}
             onValueChange={(on) => save({ visibility: on ? 'public' : 'private' })}
-            trackColor={{ true: colors.brand700, false: colors.surface300 }}
+            trackColor={{ true: colors.brand600, false: colors.surface300 }}
             thumbColor={colors.white}
             accessibilityLabel="Show on Explore"
           />
@@ -151,7 +151,7 @@ export default function PhotoDetail() {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.white },
+  page: { flex: 1, backgroundColor: colors.canvas },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   flex: { flex: 1, gap: 2 },
   stage: { backgroundColor: colors.ink900, alignItems: 'center' },
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   },
   body: { padding: 20, gap: 18 },
   meta: { gap: 2 },
-  panel: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.lg, backgroundColor: colors.surface100 },
+  panel: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.lg, borderWidth: 1.5, borderColor: colors.surface200, backgroundColor: colors.white },
   caption: { minHeight: 88, textAlignVertical: 'top' },
   delete: { marginTop: 12 },
 })

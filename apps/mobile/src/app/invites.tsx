@@ -83,11 +83,11 @@ function InviteCard({ invite, canJoin, onDone }: { invite: SpaceInvite; canJoin:
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.white },
+  screen: { flex: 1, backgroundColor: colors.canvas },
   content: { paddingHorizontal: 20, gap: 12 },
   back: { alignSelf: 'flex-start', marginLeft: -6, paddingVertical: 4 },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  card: { gap: 10, padding: 16, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.surface200, backgroundColor: colors.white },
+  card: { gap: 10, padding: 16, borderRadius: radius.xl, borderWidth: 1.5, borderColor: colors.surface200, backgroundColor: colors.white },
   title: { fontSize: 16, lineHeight: 23, color: colors.ink900 },
   strong: { fontFamily: fonts.semibold },
 })

@@ -1,6 +1,6 @@
 import { useRef, useState, type ComponentRef } from 'react'
 import { Pressable, StyleSheet, TextInput, View } from 'react-native'
-import { colors, fonts, radius } from '@/theme'
+import { colors, fonts, surfaces } from '@/theme'
 import { Text } from './Text'
 
 /**
@@ -72,15 +72,12 @@ const styles = StyleSheet.create({
     flex: 1,
     maxWidth: 52,
     aspectRatio: 0.85,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.surface300,
-    backgroundColor: colors.white,
+    ...surfaces.field,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  boxActive: { borderColor: colors.brand500, boxShadow: '0 0 0 3px rgba(0,175,255,0.2)' },
-  boxInvalid: { borderColor: colors.red700 },
+  boxActive: surfaces.fieldFocused,
+  boxInvalid: { borderColor: colors.red600 },
   gap: { marginLeft: 8 },
   digit: { fontFamily: fonts.semibold, fontSize: 24, fontVariant: ['tabular-nums'] },
   hidden: { position: 'absolute', inset: 0, opacity: 0.01, color: 'transparent' },

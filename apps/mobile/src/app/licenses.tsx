@@ -74,11 +74,11 @@ function Guide({ title, points }: { title: string; points: string[] }) {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.white },
+  page: { flex: 1, backgroundColor: colors.canvas },
   content: { paddingHorizontal: 20, gap: 12 },
   back: { alignSelf: 'flex-start', marginLeft: -6, paddingVertical: 4 },
   lede: { fontSize: 16, lineHeight: 24, marginBottom: 8 },
-  card: { gap: 4, padding: 16, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.surface200 },
+  card: { gap: 4, padding: 16, borderRadius: radius.lg, borderWidth: 1.5, borderColor: colors.surface200 },
   name: { fontFamily: fonts.display, fontSize: 17 },
   guide: { gap: 8, marginTop: 20 },
   point: { flexDirection: 'row', gap: 8 },

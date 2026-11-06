@@ -24,7 +24,7 @@ export default function Discover() {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.white },
+  page: { flex: 1, backgroundColor: colors.canvas },
   bar: {
     flexDirection: 'row',
     alignItems: 'center',

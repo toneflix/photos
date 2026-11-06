@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   onText: { fontFamily: fonts.medium, fontSize: 14, color: colors.emerald900 },
   divider: { height: 1, backgroundColor: colors.surface200 },
   step: { fontFamily: fonts.semibold, color: colors.ink900 },
-  qr: { alignSelf: 'center', padding: 12, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.surface200, backgroundColor: colors.white },
+  qr: { alignSelf: 'center', padding: 12, borderRadius: radius.lg, borderWidth: 1.5, borderColor: colors.surface200, backgroundColor: colors.white },
   keyRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: 12, borderRadius: radius.md, backgroundColor: colors.surface100 },
   key: { flex: 1, fontFamily: fonts.semibold, fontSize: 14, letterSpacing: 1, color: colors.ink900 },
   codes: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 8, padding: 16, borderRadius: radius.lg, backgroundColor: colors.surface100 },

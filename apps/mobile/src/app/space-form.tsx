@@ -98,7 +98,7 @@ export default function SpaceForm() {
           <Switch
             value={visibility === 'public'}
             onValueChange={(on) => setVisibility(on ? 'public' : 'private')}
-            trackColor={{ true: colors.brand700, false: colors.surface300 }}
+            trackColor={{ true: colors.brand600, false: colors.surface300 }}
             thumbColor={colors.white}
             accessibilityLabel="Public space"
           />
@@ -117,10 +117,10 @@ export default function SpaceForm() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.white },
+  screen: { flex: 1, backgroundColor: colors.canvas },
   flex: { flex: 1 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: colors.white },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: colors.canvas },
   page: { paddingHorizontal: 20, gap: 18 },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  panel: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.lg, backgroundColor: colors.surface100 },
+  panel: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.lg, borderWidth: 1.5, borderColor: colors.surface200, backgroundColor: colors.white },
 })

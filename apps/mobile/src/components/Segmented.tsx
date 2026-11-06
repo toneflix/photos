@@ -20,9 +20,9 @@ export function Segmented<T extends string>({ options, value, onChange }: { opti
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 24, borderBottomWidth: 1, borderBottomColor: colors.surface200 },
-  tab: { paddingBottom: 10, marginBottom: -1, borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  active: { borderBottomColor: colors.ink900 },
+  row: { flexDirection: 'row', gap: 24, borderBottomWidth: 1.5, borderBottomColor: colors.surface200 },
+  tab: { paddingBottom: 10, marginBottom: -1.5, borderBottomWidth: 3, borderBottomColor: 'transparent' },
+  active: { borderBottomColor: colors.brand600 },
   label: { fontFamily: fonts.semibold, fontSize: 14, color: colors.ink500 },
-  labelActive: { color: colors.ink900 },
+  labelActive: { color: colors.brand700 },
 })

@@ -18,9 +18,9 @@ export function CheckOption({ label, description, checked, disabled, onPress }: 
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  option: { flexDirection: 'row', gap: 12, padding: 12, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.surface300 },
+  option: { flexDirection: 'row', gap: 12, padding: 12, borderRadius: radius.lg, borderWidth: 1.5, borderColor: colors.surface300 },
   optionFixed: { backgroundColor: colors.surface100 },
   optionLabel: { fontFamily: fonts.semibold, color: colors.ink900 },
   box: { width: 20, height: 20, marginTop: 2, borderRadius: 5, borderWidth: 2, borderColor: colors.surface300, alignItems: 'center', justifyContent: 'center' },
-  boxOn: { borderColor: colors.ink900, backgroundColor: colors.ink900 },
+  boxOn: { borderColor: colors.brand600, backgroundColor: colors.brand600 },
 })

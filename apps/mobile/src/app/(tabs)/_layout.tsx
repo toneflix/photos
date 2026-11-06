@@ -21,11 +21,11 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         header: () => <AppHeader />,
-        tabBarActiveTintColor: colors.ink900,
+        tabBarActiveTintColor: colors.brand600,
         tabBarInactiveTintColor: colors.ink500,
-        tabBarStyle: { height: 64 + insets.bottom, paddingTop: 4, paddingBottom: insets.bottom + 4 },
+        tabBarStyle: { height: 64 + insets.bottom, paddingTop: 4, paddingBottom: insets.bottom + 4, borderTopWidth: 1.5, borderTopColor: colors.surface200 },
         tabBarLabelStyle: { fontFamily: fonts.semibold, fontSize: 11, lineHeight: 14 },
-        sceneStyle: { backgroundColor: colors.white },
+        sceneStyle: { backgroundColor: colors.canvas },
       }}
     >
       <Tabs.Screen name="index" options={{ title: 'Books', tabBarIcon: icon('book-outline', 'book') }} />

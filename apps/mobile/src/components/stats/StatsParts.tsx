@@ -74,7 +74,7 @@ export function TopList({ items, kind, empty }: { items: ModerationItem[]; kind:
 
 const styles = StyleSheet.create({
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  tile: { flexGrow: 1, flexBasis: '40%', gap: 2, padding: 14, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.surface200, backgroundColor: colors.white },
+  tile: { flexGrow: 1, flexBasis: '40%', gap: 2, padding: 14, borderRadius: radius.xl, borderWidth: 1.5, borderColor: colors.surface200, backgroundColor: colors.white },
   value: { fontFamily: fonts.display, fontSize: 26, lineHeight: 32, color: colors.ink900 },
   counts: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   gap: { marginLeft: 8 },

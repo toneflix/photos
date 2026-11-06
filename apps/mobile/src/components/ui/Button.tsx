@@ -6,21 +6,21 @@ type Variant = 'primary' | 'brand' | 'dark' | 'secondary' | 'ghost' | 'danger' |
 
 const variants: Record<Variant, { box: ViewStyle; pressed: ViewStyle; text: string }> = {
   primary: { box: { backgroundColor: colors.gold400 }, pressed: { backgroundColor: colors.gold300 }, text: colors.ink900 },
-  brand: { box: { backgroundColor: colors.brand700 }, pressed: { backgroundColor: colors.brand800 }, text: colors.white },
+  brand: { box: { backgroundColor: colors.brand600 }, pressed: { backgroundColor: colors.brand700 }, text: colors.white },
   dark: { box: { backgroundColor: colors.ink900 }, pressed: { backgroundColor: colors.ink700 }, text: colors.white },
   secondary: {
-    box: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.surface300 },
+    box: { backgroundColor: colors.white, borderColor: colors.surface300 },
     pressed: { borderColor: colors.ink500 },
     text: colors.ink900,
   },
   ghost: { box: {}, pressed: { backgroundColor: colors.surface100 }, text: colors.ink700 },
   danger: {
-    box: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.red200 },
+    box: { backgroundColor: colors.white, borderColor: colors.red200 },
     pressed: { backgroundColor: colors.red50 },
     text: colors.red700,
   },
   glass: {
-    box: { backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
+    box: { backgroundColor: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.3)' },
     pressed: { backgroundColor: 'rgba(255,255,255,0.22)' },
     text: colors.white,
   },
@@ -57,7 +57,9 @@ const styles = StyleSheet.create({
   base: {
     minHeight: 44,
     paddingHorizontal: 16,
-    borderRadius: radius.md,
+    borderRadius: radius.field,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
