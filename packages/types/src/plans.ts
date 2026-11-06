@@ -189,11 +189,28 @@ export function limitLabel(feature: Pick<PlanFeature, 'type' | 'unit' | 'value'>
   return value.toLocaleString('en')
 }
 
+/** How each limit reads on a plan card: `amount` is the formatted limit, `one` is true when it is 1. */
+const limitPhrases: Partial<Record<FeatureKey, { unlimited: string; limited: (amount: string, one: boolean) => string }>> = {
+  max_storage: { unlimited: 'Unlimited photo storage', limited: (amount) => `${amount} of photo storage` },
+  max_photo_size: { unlimited: 'Photos of any size', limited: (amount) => `Photos up to ${amount} each` },
+  max_books: { unlimited: 'Unlimited photo books', limited: (amount, one) => (one ? '1 photo book' : `Up to ${amount} photo books`) },
+  max_book_pages: { unlimited: 'Books of any length', limited: (amount) => `Up to ${amount} per book` },
+  max_spaces: { unlimited: 'Unlimited spaces', limited: (amount, one) => (one ? '1 space' : `Up to ${amount} spaces`) },
+  space_members: { unlimited: 'Unlimited members in each space', limited: (amount, one) => (one ? '1 member in each space' : `Up to ${amount} members in each space`) },
+  access_codes: { unlimited: 'Unlimited access codes for each book', limited: (amount, one) => (one ? '1 access code for each book' : `Up to ${amount} access codes for each book`) },
+}
+
 /** One line of a plan's feature list, and whether the plan includes it. */
 export function featureLine(feature: PlanFeature): { text: string; included: boolean } {
   if (feature.type === 'toggle') return { text: feature.title, included: !!feature.value }
 
-  return { text: `${feature.title}: ${limitLabel(feature)}`, included: true }
+  const value = Number(feature.value)
+  const phrase = limitPhrases[feature.key]
+  const title = feature.title.toLowerCase()
+
+  if (!value) return { text: phrase?.unlimited ?? `Unlimited ${title}`, included: true }
+
+  return { text: phrase?.limited(limitLabel(feature), value === 1) ?? `Up to ${limitLabel(feature)} ${title}`, included: true }
 }
 
 /** Bytes as people read them. */
