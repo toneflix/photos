@@ -21,7 +21,7 @@ const number = new Intl.NumberFormat('en')
 const joined = new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' })
 const plural = (count: number, one: string) => `${number.format(count)} ${count === 1 ? one : `${one}s`}`
 
-/** A maker's profile: Explore kept to one maker's public photos, books and spaces. */
+/** A maker's profile, opened by id or username: Explore kept to one maker's public photos, books and spaces. */
 export default function MakerPage() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const insets = useSafeAreaInsets()
@@ -40,15 +40,22 @@ export default function MakerPage() {
   const header = (
     <View style={styles.header}>
       {!maker.isListed && <Callout tone="warning">Only you can see this page, because you keep your name off the work you share.</Callout>}
-      <Avatar user={maker} size={80} />
-      <Text variant="display">{maker.name}</Text>
+      <View style={styles.identity}>
+        <Avatar user={maker} size={64} />
+        <View style={styles.names}>
+          <Text variant="display" numberOfLines={1}>
+            {maker.name}
+          </Text>
+          <Text variant="muted" numberOfLines={1}>{`@${maker.username}`}</Text>
+        </View>
+      </View>
       <Text variant="muted">
         {`${plural(maker.photoCount, 'photo')} · ${plural(maker.bookCount, 'book')} · ${plural(maker.spaceCount, 'space')} · Joined ${joined.format(new Date(maker.joinedAt))}`}
       </Text>
       <ContentCounts stats={maker.stats} style={styles.stats} />
       <View style={styles.actions}>
         {maker.isListed && (
-          <Button title="Share" variant="secondary" onPress={() => Share.share({ message: webUrl(`/makers/${maker.id}`) }).catch(() => undefined)} />
+          <Button title="Share" variant="secondary" onPress={() => Share.share({ message: webUrl(`/makers/${maker.username}`) }).catch(() => undefined)} />
         )}
         {maker.isOwner && (
           <Button
@@ -89,7 +96,9 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   back: { paddingHorizontal: 12, paddingVertical: 8, alignSelf: 'flex-start' },
   header: { gap: 10, paddingTop: 4 },
-  stats: { justifyContent: 'center' },
+  identity: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  names: { flex: 1, minWidth: 0, gap: 2 },
+  stats: { justifyContent: 'flex-start' },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   tabs: { marginTop: 14, marginBottom: 6 },
 })

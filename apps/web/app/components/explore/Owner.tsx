@@ -27,7 +27,7 @@ export function Owner({ owner, light = false, plain = false }: { owner: OwnerDat
 	if (plain || !owner.id) return <span className={`flex min-w-0 items-center gap-2 text-sm font-medium ${tone}`}>{content}</span>;
 
 	return (
-		<Link prefetch="intent" to={`/makers/${owner.id}`} className={`flex min-w-0 items-center gap-2 text-sm font-medium hover:underline ${tone}`}>
+		<Link prefetch="intent" to={`/makers/${owner.username ?? owner.id}`} className={`flex min-w-0 items-center gap-2 text-sm font-medium hover:underline ${tone}`}>
 			{content}
 		</Link>
 	);

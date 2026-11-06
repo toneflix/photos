@@ -24,6 +24,8 @@ export type Permission = 'dashboard.view' | 'users.view' | 'users.manage' | 'con
 export interface User {
   id: ID
   name: string
+  /** Lower case letters, numbers and underscores; the maker's profile lives at /makers/:username. */
+  username: string
   email: string
   emailVerified: boolean
   /** Signed URL, generated per response. */
@@ -137,6 +139,7 @@ export type PhotoLicense = 'all-rights-reserved' | 'cc-by' | 'cc-by-nc' | 'cc0'
 /** Who made a public photo or book. All null when they keep their name off shared work. */
 export interface Owner {
   id: ID | null
+  username: string | null
   name: string | null
   avatarUrl: string | null
 }
@@ -145,6 +148,7 @@ export interface Owner {
 export interface Profile {
   id: ID
   name: string
+  username: string
   avatarUrl: string | null
   joinedAt: string
   /** Public photos, books and spaces everyone can browse. */

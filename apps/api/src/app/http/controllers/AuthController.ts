@@ -31,6 +31,7 @@ export default class AuthController extends BaseController {
     const user = await User.query().create({
       name: String(data.name).trim(),
       email: String(data.email),
+      username: await User.freeUsername(String(data.email)),
       password: await Hash.make(String(data.password)),
       defaultLicense: await Settings.get('accounts.default_license'),
       defaultVisibility: await Settings.get('accounts.default_visibility'),

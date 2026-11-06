@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { data, Link, NavLink, Outlet, type ShouldRevalidateFunctionArgs } from "react-router";
+import { data, Link, NavLink, Outlet, redirect, type ShouldRevalidateFunctionArgs } from "react-router";
 import { Avatar } from "~/components/Avatar";
 import { ContentCounts } from "~/components/ContentCounts";
 import { buttonClass } from "~/components/ui";
@@ -16,13 +16,23 @@ export function meta({ loaderData }: Route.MetaArgs) {
 	return [{ title: `${maker.name} · Toneflix Photos` }, { name: "description", content: `Photos, books and spaces ${maker.name} shares on Toneflix Photos.` }];
 }
 
-/** A maker's profile. Makers who keep their name off shared work have none, but can still open their own. */
+/** A maker's profile, by id or username. Makers who keep their name off shared work have none, but can still open their own. */
 export async function loader({ request, params, context }: Route.LoaderArgs) {
 	const { env } = context.get(cloudflareContext);
 	const api = await getServerApi(request, env);
 	const { data: maker } = await api.explore.maker(params.maker).catch(() => {
 		throw data("Maker not found", { status: 404 });
 	});
+
+	if (params.maker !== maker.username) {
+		const url = new URL(request.url);
+		const path = url.pathname.replace(/(\/_root)?\.data$/, "").split("/");
+
+		path[2] = maker.username;
+		url.searchParams.delete("_routes");
+
+		throw redirect(`${path.join("/")}${url.search}`);
+	}
 
 	return { maker };
 }
@@ -44,7 +54,7 @@ const plural = (count: number, one: string) => `${number.format(count)} ${count 
 export default function MakerLayout({ loaderData }: Route.ComponentProps) {
 	const { maker } = loaderData;
 	const [copied, setCopied] = useState(false);
-	const base = `/makers/${maker.id}`;
+	const base = `/makers/${maker.username}`;
 
 	const share = async () => {
 		await navigator.clipboard?.writeText(window.location.href.split("?")[0]).catch(() => {});
@@ -62,27 +72,30 @@ export default function MakerLayout({ loaderData }: Route.ComponentProps) {
 					</Link>
 				</p>
 			)}
-			<header className="flex flex-col gap-6 sm:flex-row sm:items-center">
-				<Avatar user={maker} size="lg" />
-				<div className="min-w-0">
-					<h1 className="font-display text-4xl font-bold tracking-tight text-ink-900 sm:text-5xl">{maker.name}</h1>
-					<p className="mt-2 text-ink-500">
-						{plural(maker.photoCount, "photo")} · {plural(maker.bookCount, "book")} · {plural(maker.spaceCount, "space")} · Joined{" "}
-						{joined.format(new Date(maker.joinedAt))}
-					</p>
-					<ContentCounts stats={maker.stats} className="mt-2" />
-					<div className="mt-5 flex flex-wrap gap-2">
-						{maker.isListed && (
-							<button type="button" onClick={share} className={buttonClass("secondary")}>
-								{copied ? "Link copied" : "Copy link"}
-							</button>
-						)}
-						{maker.isOwner && (
-							<Link prefetch="intent" to="/settings/profile" className={buttonClass("ghost")}>
-								Edit profile
-							</Link>
-						)}
+			<header>
+				<div className="flex items-center gap-4 sm:gap-6">
+					<Avatar user={maker} size="lg" />
+					<div className="min-w-0">
+						<h1 className="truncate font-display text-3xl font-bold tracking-tight text-ink-900 sm:text-5xl">{maker.name}</h1>
+						<p className="mt-1 truncate font-medium text-ink-700">@{maker.username}</p>
 					</div>
+				</div>
+				<p className="mt-5 text-ink-500">
+					{plural(maker.photoCount, "photo")} · {plural(maker.bookCount, "book")} · {plural(maker.spaceCount, "space")} · Joined{" "}
+					{joined.format(new Date(maker.joinedAt))}
+				</p>
+				<ContentCounts stats={maker.stats} className="mt-2" />
+				<div className="mt-5 flex flex-wrap gap-2">
+					{maker.isListed && (
+						<button type="button" onClick={share} className={buttonClass("secondary")}>
+							{copied ? "Link copied" : "Copy link"}
+						</button>
+					)}
+					{maker.isOwner && (
+						<Link prefetch="intent" to="/settings/profile" className={buttonClass("ghost")}>
+							Edit profile
+						</Link>
+					)}
 				</div>
 			</header>
 			<nav className="mt-10 flex gap-6 border-b-[1.5px] border-surface-200">

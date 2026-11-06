@@ -7,9 +7,12 @@ export class UserFactory extends ModelFactory<User> {
   protected model = User
 
   protected definition(_sequence: number) {
+    const email = faker.internet.email()
+
     return {
       name: faker.person.fullName(),
-      email: faker.internet.email(),
+      email,
+      username: User.freeUsername(email),
       password: Hash.make('password'),
     }
   }

@@ -13,7 +13,7 @@ import { UserFactory } from 'src/database/factories/UserFactory'
 import { AccountMail } from '@app/notifications/AccountMail'
 import { ImageFile } from '@app/support/ImageFile'
 import { UUID_PATTERN } from '@app/support/rules'
-import { randomUUID } from 'node:crypto'
+import { randomBytes, randomUUID } from 'node:crypto'
 import type { PermissionName } from '@app/policies/Permission'
 import { Role } from './Role'
 import { Plan } from './Plan'
@@ -31,6 +31,8 @@ export class User extends BaseUser {
   declare email: string
   declare password: string
   declare name: string
+  /** The maker's web address on their public profile. */
+  declare username: string
   declare emailVerifiedAt: Date | null
   declare avatarPath: string | null
   declare avatarDisk: string | null
@@ -68,6 +70,25 @@ export class User extends BaseUser {
   /** The stored form of an email address: trimmed and lower case. Anything else is returned as given for validation to reject. */
   static normalizeEmail<T>(value: T): T | string {
     return typeof value === 'string' ? value.trim().toLowerCase() : value
+  }
+
+  /** A username made from the part of `email` before the @ that nobody uses yet. */
+  static async freeUsername(email: string): Promise<string> {
+    const name = str(email.normalize('NFKD'))
+      .before('@')
+      .replaceMatches('/[\u0300-\u036f]+/', '')
+      .replaceMatches('/[^A-Za-z0-9]+/', ' ')
+      .slug('_')
+      .limit(24, '')
+      .rtrim('_')
+      .toString()
+    const base = name.length >= 3 ? name : `maker${name ? `_${name}` : ''}`
+
+    let username = base
+
+    while (await User.query().where({ username }).exists()) username = `${base}_${randomBytes(2).toString('hex')}`
+
+    return username
   }
 
   books() {
@@ -147,9 +168,13 @@ export class User extends BaseUser {
     return this.showOwnerName && !this.isSuspended()
   }
 
-  /** The maker whose profile `viewer` is opening. Makers without a profile still see their own. */
-  static async profile(id: string, viewer: User | null): Promise<User> {
-    const user = UUID_PATTERN.test(id) ? await User.query().find(id) : null
+  /** The maker whose profile `viewer` is opening, by id or username. Makers without a profile still see their own. */
+  static async profile(handle: string, viewer: User | null): Promise<User> {
+    const user = UUID_PATTERN.test(handle)
+      ? await User.query().find(handle)
+      : await User.query()
+          .where({ username: handle.toLowerCase() })
+          .first()
 
     abortIf(!user || (!user.hasProfile() && viewer?.id !== user.id), 'Maker not found!', 404)
 

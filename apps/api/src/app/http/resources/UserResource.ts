@@ -8,6 +8,7 @@ export class UserResource extends Resource {
     return {
       id: user.id,
       name: user.name,
+      username: user.username,
       email: user.email,
       emailVerified: user.hasVerifiedEmail(),
       avatarUrl: await user.avatarUrl(),

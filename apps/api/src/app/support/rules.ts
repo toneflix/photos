@@ -7,6 +7,15 @@ export const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0
 
 export const UUID = regex(UUID_PATTERN)
 
+/** A username: lower case letters, numbers and underscores, 3 to 30 long. */
+export const USERNAME_PATTERN = /^[a-z0-9_]{3,30}$/
+
+export class Username extends ValidationRule {
+  validate(attribute: string, value: any, fail: (message: string) => any): void {
+    if (!USERNAME_PATTERN.test(String(value))) fail(`The ${attribute} must be 3 to 30 lower case letters, numbers or underscores.`)
+  }
+}
+
 /** An upload whose bytes are an accepted photo format, no larger than ImageFile.MAX_PIXELS. */
 export class PhotoFile extends ValidationRule {
   validate(attribute: string, value: any, fail: (message: string) => any): void {
