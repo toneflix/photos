@@ -1,4 +1,4 @@
-export type PermissionName = 'dashboard.view' | 'users.view' | 'users.manage' | 'content.moderate' | 'settings.manage' | 'roles.manage'
+export type PermissionName = 'dashboard.view' | 'users.view' | 'users.manage' | 'content.moderate' | 'settings.manage' | 'roles.manage' | 'plans.manage'
 
 export interface PermissionDefinition {
   name: PermissionName
@@ -18,6 +18,7 @@ export class Permission {
     { name: 'content.moderate', label: 'Moderate content', description: 'Take public photos, books and spaces off Explore.' },
     { name: 'settings.manage', label: 'Change settings', description: 'Change upload limits and other app settings.' },
     { name: 'roles.manage', label: 'Manage roles', description: 'Create roles and choose what each one allows.' },
+    { name: 'plans.manage', label: 'Manage plans', description: 'Create plans, set payment regions and put accounts on a plan.' },
   ]
 
   static names(): PermissionName[] {

@@ -3,7 +3,9 @@ import { AdminUserDetailResource } from '@app/http/resources/AdminUserDetailReso
 import { AdminUserResource } from '@app/http/resources/AdminUserResource'
 import { BaseController } from '../BaseController'
 import type { QueryBuilder } from 'arkormx'
+import { Plan } from '@app/models/Plan'
 import { Role } from '@app/models/Role'
+import { Subscriptions } from '@app/services/Subscriptions'
 import { User } from '@app/models/User'
 import { abortIf, perPage } from '@arkstack/common'
 import { matches } from '@app/support/search'
@@ -62,5 +64,23 @@ export default class UserController extends BaseController {
     if (data.suspended === false || data.suspended === 'false') await user.reinstate()
 
     return new AdminUserResource(user).additional({ status: 'success', message: 'Account updated', code: 200 })
+  }
+
+  /** Put an account on a plan without payment. The default plan ends any paid time. */
+  async plan() {
+    const user = await User.query().findOrFail(String(this.params.user))
+    const data = await this.validate({
+      plan: 'required|string|max:100',
+      cycles: 'nullable|integer|min:1|max:120',
+    })
+
+    const plan = await Plan.query().where({ slug: String(data.plan) }).first()
+
+    abortIf(!plan, 'Pick a plan that exists.', 422)
+
+    if (plan!.isDefault) await Subscriptions.end(user)
+    else await Subscriptions.assign(user, plan!, Number(data.cycles) || 1)
+
+    return new AdminUserDetailResource(user).additional({ status: 'success', message: `${user.name} is on ${plan!.name}`, code: 200 })
   }
 }

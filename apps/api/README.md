@@ -29,7 +29,11 @@ Creates the Free (default) and Premium plans. Plans that already exist are left 
 npx ark seed PlanSeeder
 ```
 
-Put an account on a plan without payment with `npx ark users:plan you@example.com premium` (`free` ends any paid time).
+Put an account on a plan without payment with `npx ark users:plan you@example.com premium` (`free` ends any paid time). Admins can do the same from a user's page in the dashboard.
+
+### Payments
+
+Plans are paid through Flutterwave's hosted checkout (`app/services/payments`). Set `FLUTTERWAVE_SECRET_KEY` to take payments locally; Flutterwave test keys work. Webhooks reach `POST /api/payments/flutterwave/webhook` and are checked against `FLUTTERWAVE_WEBHOOK_HASH`. Payment regions price plans in a country's own currency, at a fixed rate or the live rate plus a markup.
 
 ### Start dev server
 
