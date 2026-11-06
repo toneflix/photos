@@ -114,14 +114,14 @@ export class Feature {
     },
     {
       key: 'premium_covers',
-      title: 'Every cover design',
+      title: 'More cover designs',
       description: 'Gilt, window, tipped-in print and art deco covers.',
       type: 'toggle',
       fallback: false,
     },
     {
       key: 'premium_layouts',
-      title: 'Every page layout',
+      title: 'More page layouts',
       description: 'Collage, triptych, mosaic, film strip, contact sheet, loose prints and story pages.',
       type: 'toggle',
       fallback: false,
