@@ -47,6 +47,8 @@ export default [
 		route("licenses", "routes/licenses.tsx"),
 	]),
 	route("explore/photos/:id/download", "routes/explore/download.ts"),
+	route("explore/photos/:id/preview", "routes/explore/preview.ts"),
+	route("books/:id/cover", "routes/book-cover.ts"),
 
 	// Full-screen pages.
 	route("books/:id/edit", "routes/book-edit.tsx"),

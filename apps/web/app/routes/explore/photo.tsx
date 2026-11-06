@@ -6,10 +6,11 @@ import { getServerApi, PhotosApiError } from "~/lib/api.server";
 import { Owner } from "~/components/explore/Owner";
 import { PublicPhotoGrid } from "~/components/explore/PublicPhotoGrid";
 import { buttonClass } from "~/components/ui";
+import { PreviewImage } from "~/lib/preview-image";
 import { creditLine, guardImage, licenseFor } from "~/lib/licenses";
 import type { Route } from "./+types/photo";
 
-export function meta({ loaderData }: Route.MetaArgs) {
+export function meta({ loaderData, matches }: Route.MetaArgs) {
 	const photo = loaderData?.photo;
 
 	if (!photo) return [{ title: "Photo not found · Toneflix Photos" }];
@@ -22,7 +23,7 @@ export function meta({ loaderData }: Route.MetaArgs) {
 			name: "description",
 			content: photo.caption ?? `A photo${by} on Toneflix Photos.`,
 		},
-		{ property: "og:image", content: photo.url },
+		{ property: "og:image", content: PreviewImage.from(matches).photo(photo.id) },
 	];
 }
 
