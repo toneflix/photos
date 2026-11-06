@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useFetcher } from "react-router";
-import { ACCEPTED_IMAGES, MAX_PHOTO_BYTES, readImageSize } from "~/lib/images";
+import { ACCEPTED_IMAGES, readImageSize } from "~/lib/images";
+import { useLimits } from "~/lib/limits";
 import { Spinner } from "./ui";
 
 type Progress = { total: number; done: number; failed: string[] };
@@ -12,6 +13,7 @@ type Item = { key: string; preview: string; status: "waiting" | "uploading" | "d
  */
 export function PhotoUploader({ action = "/photos", compact = false, spaceId }: { action?: string; compact?: boolean; spaceId?: string }) {
 	const fetcher = useFetcher();
+	const { maxPhotoMb } = useLimits();
 	const input = useRef<HTMLInputElement>(null);
 	const [dragging, setDragging] = useState(false);
 	const [progress, setProgress] = useState<Progress | null>(null);
@@ -33,8 +35,8 @@ export function PhotoUploader({ action = "/photos", compact = false, spaceId }: 
 		for (const [i, file] of files.entries()) {
 			const key = queued[i].key;
 			setStatus(key, "uploading");
-			if (file.size > MAX_PHOTO_BYTES) {
-				state.failed.push(`${file.name} is larger than 25 MB`);
+			if (file.size > maxPhotoMb * 1024 * 1024) {
+				state.failed.push(`${file.name} is larger than ${maxPhotoMb} MB`);
 				setStatus(key, "failed");
 			} else {
 				const size = await readImageSize(file);
@@ -111,7 +113,7 @@ export function PhotoUploader({ action = "/photos", compact = false, spaceId }: 
 							)}
 						</p>
 					)}
-					{!compact && !busy && <p className="mt-1 text-sm text-ink-500">JPEG, PNG, WebP, GIF, AVIF or HEIC, up to 25 MB each.</p>}
+					{!compact && !busy && <p className="mt-1 text-sm text-ink-500">JPEG, PNG, WebP, GIF, AVIF or HEIC, up to {maxPhotoMb} MB each.</p>}
 					{busy && (
 						<div className="mt-3 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-surface-200">
 							<div className="h-full bg-brand-sweep transition-all" style={{ width: `${(progress!.done / progress!.total) * 100}%` }} />

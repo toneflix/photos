@@ -4,6 +4,7 @@ import { requireSignIn, requireUser } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
 import { Alert, Button, Field, Input, Notice } from "~/components/ui";
 import { Avatar } from "~/components/Avatar";
+import { useLimits } from "~/lib/limits";
 import { PageHeader, Section, resultFor } from "~/components/settings/Section";
 import type { Route } from "./+types/profile";
 
@@ -43,6 +44,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function Profile({ loaderData, actionData }: Route.ComponentProps) {
+	const { maxAvatarMb } = useLimits();
 	const { user } = loaderData;
 	const navigation = useNavigation();
 	const submit = useSubmit();
@@ -82,7 +84,7 @@ export default function Profile({ loaderData, actionData }: Route.ComponentProps
 									</Form>
 								)}
 							</div>
-							<p className="text-xs text-ink-500">JPG, PNG, WebP or HEIC, up to 10 MB.</p>
+							<p className="text-xs text-ink-500">JPG, PNG, WebP or HEIC, up to {maxAvatarMb} MB.</p>
 						</div>
 					</div>
 					{avatar?.error && (
