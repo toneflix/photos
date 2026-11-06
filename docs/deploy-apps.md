@@ -3,7 +3,7 @@
 The **Deploy apps** workflow (`.github/workflows/deploy-apps.yml`) ships the web app and the Android app:
 
 - **web**: builds `apps/web` and deploys it to Cloudflare Workers.
-- **android-apk**: builds an installable APK with EAS and attaches it to the workflow run.
+- **android-apk**: builds an installable APK with EAS. Cloud builds are queued on EAS and the job finishes straight away with a link to the build; runner builds are attached to the workflow run.
 - **play-store**: builds an Android App Bundle and submits it to Google Play (off unless asked for).
 
 The API has its own guide: [deploy.md](./deploy.md).
@@ -20,7 +20,8 @@ The API has its own guide: [deploy.md](./deploy.md).
 | `play_store` | off | Build an App Bundle (production profile) and submit it to Google Play. |
 | `play_store_track` | `internal` | `internal`, `alpha` (closed testing), `beta` (open testing) or `production`. |
 | `play_store_release_status` | `completed` | `completed` rolls the release out on the track; `draft` leaves it for you to publish in Play Console. Use `draft` until the app's first release has been published by hand. |
-| `android_builder` | `eas` | `eas` builds on Expo's servers. `runner` builds on the GitHub runner with `eas build --local`, which uses no EAS build credits but takes longer. |
+| `android_builder` | `eas` | `eas` builds on Expo's servers. `runner` builds on the GitHub runner with `eas build --local`, which uses no EAS build credits and skips the EAS queue. |
+| `wait_for_eas` | off | With `eas`, keep the job open until the APK is ready and attach it to the run. Off, the job queues the build and links to it in the run summary, so the runner doesn't sit idle while the build waits in the EAS queue (often 30+ minutes on the free plan). |
 
 ## Web app (Cloudflare Workers)
 
@@ -54,6 +55,12 @@ One-time setup:
    - Google requires the very first App Bundle to be uploaded by hand. Run the workflow once with `play_store` on and `play_store_release_status` = `draft`, download the build from expo.dev, and upload it in Play Console, or upload the bundle from a local `eas build --profile production`.
    - Create a Google Cloud service account with access to the Play Console app (Users and permissions → Invite → release permissions). Either upload its JSON key to EAS (`eas credentials` → Android → Google Service Account), or save the JSON as the `GOOGLE_SERVICE_ACCOUNT_JSON` secret.
 
+### Build times
+
+- `eas`: the job takes about a minute; the build itself waits in the EAS queue and then runs on Expo's servers, with its progress on expo.dev.
+- `runner`: the first build takes the longest. Gradle's caches are saved between runs, and the APK is compiled for `APK_ARCHITECTURES` only, so later builds are much quicker. App Bundles for Google Play always include every architecture.
+- The APK job stops after 60 minutes and the Play Store job after 120, so a stuck build can't hold a runner for hours.
+
 ## GitHub settings
 
 **Secrets** (repository, or the `web-production` and `play-store` environments)
@@ -74,6 +81,8 @@ One-time setup:
 | `EAS_PROJECT_ID` | android, optional | EAS project ID, to override the one in `app.json` |
 | `EAS_OWNER` | android, optional | Expo account or organisation that owns the project |
 | `ANDROID_BUILDER` | android, optional | Default builder on push: `eas` or `runner` |
+| `WAIT_FOR_EAS` | android, optional | `true` to wait for EAS APK builds on push and attach them to the run |
+| `APK_ARCHITECTURES` | android, optional | CPU architectures for runner-built APKs (default `arm64-v8a`, which covers current phones; add `x86_64` for emulators) |
 | `PLAY_STORE_ON_DEPLOY` | play-store, optional | `true` to submit to Google Play on every push to `deploy` |
 | `PLAY_STORE_TRACK` | play-store, optional | Track used on push (default `internal`) |
 | `PLAY_STORE_RELEASE_STATUS` | play-store, optional | Release status used on push (default `completed`) |
@@ -103,7 +112,7 @@ CI (`.github/workflows/ci.yml`) runs the same checks on every pull request.
 ### Android app
 
 - **Locally**: `pnpm dev:mobile`, then open the app in Expo Go or an emulator. Set `EXPO_PUBLIC_API_URL` in `apps/mobile/.env` to an address the phone can reach.
-- **The APK from a workflow run**: open the run, download the `toneflix-photos-<sha>-apk` artifact (a zip), unzip it and install with `adb install app.apk`, or copy it to the phone and open it (allow installs from unknown sources). Cloud builds also appear on expo.dev with an install QR code.
+- **The APK from a workflow run**: for a cloud build, open the link in the run summary and scan the install QR code on expo.dev. For a runner build (or with `wait_for_eas`), download the `toneflix-photos-<sha>-apk` artifact (a zip), unzip it and install with `adb install app.apk`, or copy it to the phone and open it (allow installs from unknown sources).
 - **What to check**: sign up and sign in, upload from the camera roll, make a book, open it and turn the phone sideways for the flipbook, unlock a book with an access code, and open a `photos.toneflix.net/books/...` link on the phone to confirm it opens in the app.
 - **Google Play testing**: submit to the `internal` track, add testers under Play Console → Testing → Internal testing, and share the opt-in link. Promote the release to `beta` or `production` from Play Console, or run the workflow again with a different track.
 

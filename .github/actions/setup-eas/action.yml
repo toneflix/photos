@@ -20,6 +20,9 @@ inputs:
   web-url:
     description: Public web app address, used for app links
     default: ''
+  android-architectures:
+    description: CPU architectures native code is compiled for on runner builds
+    default: armeabi-v7a,arm64-v8a,x86,x86_64
 
 runs:
   using: composite
@@ -52,6 +55,23 @@ runs:
       with:
         distribution: temurin
         java-version: 17
+
+    - if: inputs.builder == 'runner'
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: gradle-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'apps/mobile/app.json') }}
+        restore-keys: gradle-${{ runner.os }}-
+
+    - if: inputs.builder == 'runner'
+      name: Tune Gradle for runner builds
+      shell: bash
+      env:
+        ANDROID_ARCHITECTURES: ${{ inputs.android-architectures }}
+      run: |
+        echo "GRADLE_OPTS=-Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.project.reactNativeArchitectures=$ANDROID_ARCHITECTURES" >> "$GITHUB_ENV"
 
     - uses: expo/expo-github-action@v9
       with:

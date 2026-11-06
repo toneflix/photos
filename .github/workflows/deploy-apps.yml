@@ -32,6 +32,10 @@ on:
         type: choice
         options: [eas, runner]
         default: eas
+      wait_for_eas:
+        description: With the eas builder, wait for the APK and attach it to the run (can sit in the EAS queue for a long time)
+        type: boolean
+        default: false
 
 concurrency:
   group: deploy-apps-${{ github.ref }}
@@ -73,6 +77,9 @@ jobs:
   android-apk:
     if: github.event_name == 'push' || inputs.build_apk
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      WAIT_FOR_EAS: ${{ inputs.wait_for_eas || vars.WAIT_FOR_EAS || 'false' }}
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-eas
@@ -83,18 +90,32 @@ jobs:
           eas-owner: ${{ vars.EAS_OWNER }}
           api-url: ${{ vars.API_URL }}
           web-url: ${{ vars.WEB_URL }}
+          android-architectures: ${{ vars.APK_ARCHITECTURES || 'arm64-v8a' }}
 
       - name: Build APK
+        id: build
         working-directory: apps/mobile
         run: |
           if [ "$ANDROID_BUILDER" = "runner" ]; then
             eas build --platform android --profile preview --local --non-interactive --output "$RUNNER_TEMP/app.apk"
-          else
+            echo "apk=true" >> "$GITHUB_OUTPUT"
+          elif [ "$WAIT_FOR_EAS" = "true" ]; then
             eas build --platform android --profile preview --non-interactive --wait --json > "$RUNNER_TEMP/build.json"
             curl -fsSL -o "$RUNNER_TEMP/app.apk" "$(jq -r '.[0].artifacts.buildUrl' "$RUNNER_TEMP/build.json")"
+            echo "apk=true" >> "$GITHUB_OUTPUT"
+          else
+            eas build --platform android --profile preview --non-interactive --no-wait --json > "$RUNNER_TEMP/build.json"
+            build_id="$(jq -r '.[0].id' "$RUNNER_TEMP/build.json")"
+            account="$(jq -r '.[0].project.ownerAccount.name' "$RUNNER_TEMP/build.json")"
+            slug="$(jq -r '.[0].project.slug' "$RUNNER_TEMP/build.json")"
+            url="https://expo.dev/accounts/$account/projects/$slug/builds/$build_id"
+
+            echo "APK build queued on EAS: $url"
+            printf '### APK build queued on EAS\n\n[%s](%s) shows its progress, and an install QR code once it is done.\n' "$url" "$url" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - uses: actions/upload-artifact@v7
+        if: steps.build.outputs.apk == 'true'
         with:
           name: toneflix-photos-${{ github.sha }}-apk
           path: ${{ runner.temp }}/app.apk
@@ -104,6 +125,7 @@ jobs:
     if: (github.event_name == 'push' && vars.PLAY_STORE_ON_DEPLOY == 'true') || inputs.play_store
     runs-on: ubuntu-latest
     environment: play-store
+    timeout-minutes: 120
     env:
       TRACK: ${{ inputs.play_store_track || vars.PLAY_STORE_TRACK || 'internal' }}
       RELEASE_STATUS: ${{ inputs.play_store_release_status || vars.PLAY_STORE_RELEASE_STATUS || 'completed' }}
