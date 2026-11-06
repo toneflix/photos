@@ -93,7 +93,7 @@ export default function SpacePage() {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.white },
+  page: { flex: 1, backgroundColor: colors.canvas },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   flex: { flex: 1 },
   back: { paddingHorizontal: 12, paddingVertical: 8, alignSelf: 'flex-start' },

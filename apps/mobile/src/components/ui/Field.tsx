@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { StyleSheet, TextInput, type TextInputProps, View } from 'react-native'
-import { colors, fonts, radius } from '@/theme'
+import { colors, fonts, surfaces } from '@/theme'
 import { Text } from './Text'
 
 /** A labelled form control with its error or hint underneath. */
@@ -14,7 +14,7 @@ export function Field({ label, error, hint, children }: { label: string; error?:
   )
 }
 
-/** A text box that rings in Toneflix blue while focused. */
+/** A flat text box whose border thickens in Toneflix blue while focused. */
 export function Input({ invalid, style, onFocus, onBlur, ...props }: TextInputProps & { invalid?: boolean }) {
   const [focused, setFocused] = useState(false)
 
@@ -41,15 +41,12 @@ const styles = StyleSheet.create({
     minHeight: 48,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.surface300,
-    backgroundColor: colors.white,
+    ...surfaces.field,
     color: colors.ink900,
     fontFamily: fonts.body,
     fontSize: 16,
   },
-  focused: { borderColor: colors.brand500, boxShadow: '0 0 0 3px rgba(0,175,255,0.2)' },
-  invalid: { borderColor: colors.red700 },
+  focused: surfaces.fieldFocused,
+  invalid: { borderColor: colors.red600 },
   error: { fontSize: 14, lineHeight: 20, color: colors.red700 },
 })

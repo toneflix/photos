@@ -232,7 +232,7 @@ function Claim({ book, code, onClose }: { book: BookWithPages; code: string | nu
 
 const styles = StyleSheet.create({
   reader: { flex: 1, backgroundColor: colors.black },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: colors.white },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: colors.canvas },
   flex: { flex: 1 },
   row: { flexDirection: 'row', gap: 8 },
   round: { padding: 10, borderRadius: radius.full, backgroundColor: 'rgba(255,255,255,0.1)' },

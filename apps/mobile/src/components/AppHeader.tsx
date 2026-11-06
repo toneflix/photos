@@ -26,6 +26,6 @@ export function AppHeader() {
 }
 
 const styles = StyleSheet.create({
-  header: { backgroundColor: colors.white, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.surface300 },
+  header: { backgroundColor: colors.white, borderBottomWidth: 1.5, borderBottomColor: colors.surface200 },
   bar: { height: 56, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 })

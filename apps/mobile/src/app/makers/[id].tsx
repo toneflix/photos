@@ -91,7 +91,7 @@ export default function MakerPage() {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.white },
+  page: { flex: 1, backgroundColor: colors.canvas },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   back: { paddingHorizontal: 12, paddingVertical: 8, alignSelf: 'flex-start' },
   header: { gap: 10, paddingTop: 4 },

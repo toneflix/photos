@@ -73,7 +73,7 @@ export default function NewBook() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.white },
+  flex: { flex: 1, backgroundColor: colors.canvas },
   page: { paddingHorizontal: 20, gap: 18 },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   preview: { alignItems: 'center' },

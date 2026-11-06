@@ -145,7 +145,7 @@ function LicensePanel({ photo }: { photo: PublicPhotoDetail }) {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.white },
+  page: { flex: 1, backgroundColor: colors.canvas },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   flex: { flex: 1 },
   stage: { backgroundColor: colors.ink900, alignItems: 'center' },
@@ -162,13 +162,13 @@ const styles = StyleSheet.create({
   body: { padding: 20, gap: 14 },
   byline: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
   caption: { fontSize: 18, lineHeight: 26 },
-  panel: { gap: 8, padding: 16, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.surface200 },
+  panel: { gap: 8, padding: 16, borderRadius: radius.lg, borderWidth: 1.5, borderColor: colors.surface200, backgroundColor: colors.white },
   kicker: { fontFamily: fonts.semibold, fontSize: 11, letterSpacing: 1.5, color: colors.ink500 },
   licenseRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   licenseName: { fontFamily: fonts.display, fontSize: 16 },
   credit: { gap: 4, padding: 12, borderRadius: radius.md, backgroundColor: colors.surface100 },
   books: { gap: 8 },
-  book: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.md, borderWidth: 1, borderColor: colors.surface200 },
+  book: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.surface200 },
   spine: { width: 36, height: 48, borderRadius: 2 },
   bookTitle: { fontFamily: fonts.display, fontSize: 15 },
 })

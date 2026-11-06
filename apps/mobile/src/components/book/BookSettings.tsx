@@ -175,7 +175,7 @@ export function BookSettings({
 const COVER_SIZE = { width: 150, height: 200 }
 
 const styles = StyleSheet.create({
-  sheet: { flex: 1, backgroundColor: colors.white },
+  sheet: { flex: 1, backgroundColor: colors.canvas },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.surface200 },
   body: { padding: 20, gap: 18 },
   cover: { alignSelf: 'center', ...COVER_SIZE, borderTopRightRadius: 6, borderBottomRightRadius: 6, overflow: 'hidden' },
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   thumbOn: { borderColor: colors.brand500 },
   none: { alignItems: 'center', justifyContent: 'center', borderColor: colors.surface200 },
   options: { gap: 8 },
-  option: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.surface300 },
+  option: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12, borderRadius: radius.lg, borderWidth: 1.5, borderColor: colors.surface300 },
   optionOn: { borderColor: colors.ink900 },
   radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.surface300 },
   radioOn: { borderWidth: 6, borderColor: colors.ink900 },

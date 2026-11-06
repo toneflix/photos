@@ -36,11 +36,11 @@ export function Section({ title, description, danger, children }: { title?: stri
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.surface100 },
+  screen: { flex: 1, backgroundColor: colors.canvas },
   page: { paddingHorizontal: 20, gap: 8 },
   back: { alignSelf: 'flex-start', marginLeft: -6, paddingVertical: 4 },
   sections: { gap: 16, marginTop: 16 },
-  section: { gap: 14, padding: 16, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.surface200, backgroundColor: colors.white },
+  section: { gap: 14, padding: 16, borderRadius: radius.xl, borderWidth: 1.5, borderColor: colors.surface200, backgroundColor: colors.white },
   danger: { borderColor: colors.red200 },
   title: { fontSize: 17, lineHeight: 22, fontFamily: fonts.semibold, color: colors.ink900 },
 })

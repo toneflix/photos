@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native
 import { Ionicons } from '@expo/vector-icons'
 import { OptionSheet, Text } from '@/components/ui'
 import type { FilterField, FilterValues } from '@/lib/filters'
-import { colors, fonts, radius } from '@/theme'
+import { colors, fonts, radius, surfaces } from '@/theme'
 
 /** A search box with a row of filter chips. Changing a filter searches straight away. */
 export function SearchFilters({
@@ -19,16 +19,21 @@ export function SearchFilters({
 }) {
   const [text, setText] = useState(values.q ?? '')
   const [open, setOpen] = useState<FilterField | null>(null)
+  const [focused, setFocused] = useState(false)
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.search}>
+      <View style={[styles.search, focused && surfaces.fieldFocused]}>
         <Ionicons name="search" size={18} color={colors.ink500} />
         <TextInput
           value={text}
           onChangeText={setText}
           onSubmitEditing={() => onChange('q', text.trim().slice(0, 100))}
-          onBlur={() => onChange('q', text.trim().slice(0, 100))}
+          onFocus={() => setFocused(true)}
+          onBlur={() => {
+            setFocused(false)
+            onChange('q', text.trim().slice(0, 100))
+          }}
           placeholder={placeholder}
           placeholderTextColor={colors.ink500}
           returnKeyType="search"
@@ -90,10 +95,8 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 16,
     height: 46,
+    ...surfaces.field,
     borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.surface300,
-    backgroundColor: colors.surface100,
   },
   input: { flex: 1, fontFamily: fonts.body, fontSize: 15, color: colors.ink900, height: '100%' },
   chips: { gap: 8 },
@@ -104,11 +107,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     height: 36,
     borderRadius: radius.full,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.surface300,
     backgroundColor: colors.white,
   },
-  chipOn: { backgroundColor: colors.ink900, borderColor: colors.ink900 },
+  chipOn: { backgroundColor: colors.brand600, borderColor: colors.brand700 },
   chipText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.ink700 },
   chipTextOn: { color: colors.white },
 })

@@ -472,7 +472,7 @@ function IconAction({ icon, label, disabled, danger, onPress }: { icon: keyof ty
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#ece6da' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: colors.white },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: colors.canvas },
   flex: { flex: 1 },
   row: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: colors.surface50, borderBottomWidth: 1, borderBottomColor: colors.surface200 },

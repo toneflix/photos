@@ -3,7 +3,7 @@ import { Modal, Pressable, StyleSheet, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Text } from '@/components/ui'
-import { colors, radius } from '@/theme'
+import { colors, radius, surfaces } from '@/theme'
 
 /** A small sheet from the bottom of the screen, for one short task. */
 export function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
@@ -26,7 +26,7 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(17,17,17,0.5)' },
+  backdrop: { flex: 1, backgroundColor: surfaces.backdrop },
   sheet: { gap: 14, padding: 20, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, backgroundColor: colors.white },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 })

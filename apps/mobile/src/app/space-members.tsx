@@ -222,13 +222,13 @@ function PermissionPicker({ selected, canManage, onChange }: { selected: SpacePe
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.white },
+  screen: { flex: 1, backgroundColor: colors.canvas },
   content: { paddingHorizontal: 20, gap: 12 },
   back: { alignSelf: 'flex-start', marginLeft: -6, paddingVertical: 4 },
   section: { marginTop: 12 },
   flex: { flex: 1 },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  card: { gap: 12, padding: 16, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.surface200, backgroundColor: colors.white },
+  card: { gap: 12, padding: 16, borderRadius: radius.xl, borderWidth: 1.5, borderColor: colors.surface200, backgroundColor: colors.white },
   busy: { opacity: 0.6 },
   name: { fontFamily: fonts.semibold, fontSize: 16, color: colors.ink900 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
