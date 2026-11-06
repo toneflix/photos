@@ -812,7 +812,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 							type="checkbox"
 							checked={titled}
 							onChange={(e) => setCoverText(e.target.checked === coverHasText({ coverDesign }) ? null : e.target.checked)}
-							className="h-4 w-4 accent-ink-900"
+							className="h-4 w-4 accent-brand-600"
 						/>
 						Print the title on the cover
 					</label>
@@ -860,14 +860,14 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 								).map(([value, label]) => (
 									<label
 										key={value}
-										className="flex cursor-pointer items-center gap-3 rounded-xl border border-surface-300 px-4 py-3 text-sm has-[:checked]:border-ink-900"
+										className="flex cursor-pointer items-center gap-3 rounded-xl border-[1.5px] border-surface-300 px-4 py-3 text-sm transition hover:border-ink-500 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:checked]:shadow-[0_3px_0_0_var(--color-brand-500)]"
 									>
 										<input
 											type="radio"
 											name="visibility"
 											checked={visibility === value || (value === "shared" && visibility === "public")}
 											onChange={() => setVisibility(value)}
-											className="accent-ink-900"
+											className="accent-brand-600"
 										/>
 										{label}
 									</label>

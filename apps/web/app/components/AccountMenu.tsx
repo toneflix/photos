@@ -11,7 +11,7 @@ export function AccountMenu({ user }: { user: User }) {
 			<summary className="list-none rounded-full ring-brand-500/30 transition group-open:ring-4 hover:ring-4 [&::-webkit-details-marker]:hidden" aria-label="Account">
 				<Avatar user={user} />
 			</summary>
-			<div className="absolute right-0 mt-2 w-60 rounded-xl border border-surface-200 bg-white p-2 shadow-xl">
+			<div className="absolute right-0 mt-2 w-60 panel rounded-xl p-2 !shadow-xl">
 				<div className="px-3 py-2">
 					<p className="truncate text-sm font-semibold text-ink-900">{user.name}</p>
 					<p className="truncate text-xs text-ink-500">{user.email}</p>

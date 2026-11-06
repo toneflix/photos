@@ -32,7 +32,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export default function Home({ loaderData }: Route.ComponentProps) {
 	return (
-		<div className="min-h-dvh bg-white">
+		<div className="min-h-dvh bg-canvas">
 			{loaderData.deleted && (
 				<p className="bg-ink-900 px-6 py-3 text-center text-sm text-white">
 					Your account and everything in it was deleted. Thank you for keeping your memories with us.
@@ -78,7 +78,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 			<main className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
 				<div className="grid gap-6 sm:grid-cols-3">
 					{FEATURES.map((feature) => (
-						<div key={feature.title} className="rounded-xl border border-surface-200 p-6">
+						<div key={feature.title} className="panel rounded-xl p-6">
 							<p className="font-display text-lg font-bold text-ink-900">{feature.title}</p>
 							<p className="mt-2 text-ink-500">{feature.text}</p>
 						</div>

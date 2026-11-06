@@ -28,7 +28,7 @@ export default function SettingsLayout() {
 												className={({ isActive }) =>
 													`block rounded-lg px-3 py-2 text-sm transition ${
 														isActive
-															? "bg-ink-900 font-medium text-surface-50"
+															? "bg-brand-600 font-semibold text-white shadow-[0_2px_0_0_var(--color-brand-800)]"
 															: "danger" in page
 																? "text-red-700 hover:bg-red-50"
 																: "text-ink-700 hover:bg-surface-200/70"

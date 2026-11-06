@@ -3,7 +3,7 @@ import { data, Form, Link, redirect, useFetcher, useNavigation } from "react-rou
 import { BOOK_PERMISSIONS, type BookAccessCode, type BookPermission } from "@photos/types";
 import { formError } from "~/lib/api.server";
 import { requireUser } from "~/lib/session.server";
-import { Alert, Button, Field, Input } from "~/components/ui";
+import { Alert, Button, Field, Input, Select } from "~/components/ui";
 import type { Route } from "./+types/book-access";
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -89,7 +89,7 @@ export default function BookAccess({ loaderData, actionData }: Route.ComponentPr
 				again.
 			</p>
 
-			<section className="mt-8 rounded-2xl border border-surface-200 bg-white p-5 shadow-sm sm:p-6">
+			<section className="mt-8 panel p-5 sm:p-6">
 				<h2 className="font-display text-xl font-bold text-ink-900">New code</h2>
 				<Form method="post" ref={form} className="mt-4 space-y-5">
 					<input type="hidden" name="intent" value="create" />
@@ -99,16 +99,13 @@ export default function BookAccess({ loaderData, actionData }: Route.ComponentPr
 							<Input name="label" maxLength={80} placeholder="e.g. Ada and Tunde" />
 						</Field>
 						<Field label="Works for">
-							<select
-								name="expiresIn"
-								className="block w-full rounded-lg border border-surface-300 bg-white px-3.5 py-3 text-ink-900 hover:border-ink-500 focus:border-brand-500 focus:outline-none"
-							>
+							<Select name="expiresIn">
 								{EXPIRY.map(([label, days]) => (
 									<option key={label} value={days ?? ""}>
 										{label}
 									</option>
 								))}
-							</select>
+							</Select>
 						</Field>
 					</div>
 					<PermissionPicker />
@@ -140,8 +137,8 @@ function PermissionPicker({ selected = ["view"] }: { selected?: BookPermission[]
 		<fieldset>
 			<legend className="mb-2 text-sm font-semibold text-ink-900">What it lets them do</legend>
 			<div className="grid gap-2 sm:grid-cols-2">
-				<label className="flex items-start gap-3 rounded-xl border border-surface-300 bg-surface-50 px-4 py-3 text-sm">
-					<input type="checkbox" checked disabled className="mt-0.5 accent-ink-900" />
+				<label className="flex items-start gap-3 rounded-xl border-[1.5px] border-surface-300 bg-surface-100 px-4 py-3 text-sm">
+					<input type="checkbox" checked disabled className="mt-0.5 accent-brand-600" />
 					<span>
 						<span className="font-semibold text-ink-900">{BOOK_PERMISSIONS.view.label}</span>
 						<span className="block text-ink-500">{BOOK_PERMISSIONS.view.description}. Every code can.</span>
@@ -150,7 +147,7 @@ function PermissionPicker({ selected = ["view"] }: { selected?: BookPermission[]
 				{EXTRA_PERMISSIONS.map((permission) => (
 					<label
 						key={permission}
-						className="flex cursor-pointer items-start gap-3 rounded-xl border border-surface-300 px-4 py-3 text-sm has-[:checked]:border-ink-900"
+						className="flex cursor-pointer items-start gap-3 rounded-xl border-[1.5px] border-surface-300 px-4 py-3 text-sm transition hover:border-ink-500 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:checked]:shadow-[0_3px_0_0_var(--color-brand-500)]"
 					>
 						<input
 							type="checkbox"
@@ -158,7 +155,7 @@ function PermissionPicker({ selected = ["view"] }: { selected?: BookPermission[]
 							value={permission}
 							defaultChecked={selected.includes(permission)}
 							onChange={permission === "transfer" ? (e) => setTransfer(e.target.checked) : undefined}
-							className="mt-0.5 accent-ink-900"
+							className="mt-0.5 accent-brand-600"
 						/>
 						<span>
 							<span className="font-semibold text-ink-900">{BOOK_PERMISSIONS[permission].label}</span>
@@ -194,11 +191,7 @@ function CodeCard({ code, highlight }: { code: BookAccessCode; highlight: boolea
 	};
 
 	return (
-		<li
-			className={`rounded-2xl border bg-white p-5 shadow-sm transition ${highlight ? "border-brand-500 ring-2 ring-brand-500/20" : "border-surface-200"} ${
-				revoking ? "opacity-50" : ""
-			}`}
-		>
+		<li className={`panel p-5 transition ${highlight ? "!border-brand-600 !shadow-[0_3px_0_0_var(--color-brand-500)]" : ""} ${revoking ? "opacity-50" : ""}`}>
 			<div className="flex flex-wrap items-start justify-between gap-3">
 				<div className="min-w-0">
 					<p className={`font-mono text-2xl font-bold tracking-[0.2em] ${code.expired ? "text-ink-500 line-through" : "text-ink-900"}`}>{code.code}</p>

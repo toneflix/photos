@@ -13,7 +13,7 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
 	const { pathname } = useLocation();
 
 	return (
-		<div className="min-h-dvh bg-surface-50">
+		<div className="min-h-dvh bg-canvas">
 			<AppHeader user={user} />
 			{!user.emailVerified && !pathname.startsWith("/settings/email") && (
 				<div className="border-b border-amber-200 bg-amber-50">

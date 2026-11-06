@@ -5,7 +5,7 @@ import { requireUser } from "~/lib/session.server";
 import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
-import { Button, Input, Textarea, buttonClass } from "~/components/ui";
+import { Button, Input, Select, Textarea, buttonClass } from "~/components/ui";
 import {
 	ORIENTATION_FILTER,
 	PHOTO_VISIBILITY_FILTER,
@@ -143,7 +143,7 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 
 			{groups.map((group) => (
 				<section key={group.label} className="mt-10">
-					<div className="sticky top-[61px] z-10 -mx-2 mb-3 flex items-center justify-between bg-surface-50/90 px-2 py-2 backdrop-blur">
+					<div className="sticky top-[61px] z-10 -mx-2 mb-3 flex items-center justify-between bg-canvas/90 px-2 py-2 backdrop-blur">
 						<h2 className="font-display font-bold tracking-tight text-xl text-ink-900">{group.label}</h2>
 						{selecting && (
 							<button
@@ -339,18 +339,18 @@ function PhotoDialog({ photo: initial, spaces, onClose }: { photo: Photo; spaces
 						<input type="hidden" name="photoId" value={photo.id} />
 						<label className="block text-sm">
 							<span className="block font-semibold text-ink-900">Licence</span>
-							<select
+							<Select
 								name="license"
 								value={license.value}
 								onChange={(event) => licensing.submit(event.currentTarget.form)}
-								className="mt-1.5 block w-full rounded-md border border-surface-300 bg-white px-3 py-2 text-sm text-ink-900"
+								className="mt-1.5 !py-2 text-sm"
 							>
 								{LICENSES.map((option) => (
 									<option key={option.value} value={option.value}>
 										{option.label}
 									</option>
 								))}
-							</select>
+							</Select>
 							<span className="mt-1.5 block text-ink-500">{license.forCreators}</span>
 						</label>
 						<Link to="/licenses" className="mt-1 inline-block text-sm font-medium text-brand-700 hover:underline">

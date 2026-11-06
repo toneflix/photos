@@ -8,45 +8,125 @@
 	/* Book covers and printed pages keep a book face. */
 	--font-serif: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
 
-	/* A white canvas with neutral greys, so the photos carry the colour. */
+	/* Cool, blue-tinted neutrals: white containers on a tinted page, with firm edges. */
+	--color-canvas: #f4f7fc;
 	--color-surface-50: #ffffff;
-	--color-surface-100: #f7f7f7;
-	--color-surface-200: #ededed;
-	--color-surface-300: #dfdfe0;
-	--color-ink-500: #7f7f7f;
-	--color-ink-700: #4a4d52;
-	--color-ink-900: #2c343e;
+	--color-surface-100: #e8effa;
+	--color-surface-200: #d5deea;
+	--color-surface-300: #b9c6d8;
+	--color-ink-500: #5f6c80;
+	--color-ink-700: #344157;
+	--color-ink-900: #111c33;
 
-	/* Toneflix blue, from the logo's #00afff → #00eaff gradient. */
-	--color-brand-50: #e6f7ff;
-	--color-brand-100: #c6edff;
-	--color-brand-200: #8fdcff;
-	--color-brand-300: #4ccbff;
-	--color-brand-400: #00eaff;
-	--color-brand-500: #00afff;
-	--color-brand-600: #008cd1;
-	--color-brand-700: #006ea6;
-	--color-brand-800: #00537d;
+	/* Toneflix blue, from the logo's #00afff → #00eaff gradient, pushed to vivid. */
+	--color-brand-50: #e5f5ff;
+	--color-brand-100: #c2e9ff;
+	--color-brand-200: #85d4ff;
+	--color-brand-300: #3dbdff;
+	--color-brand-400: #00e1ff;
+	--color-brand-500: #00a6ff;
+	--color-brand-600: #0085f0;
+	--color-brand-700: #0064d6;
+	--color-brand-800: #0046a3;
 
 	/* Toneflix gold, from the banner's #f6c101 → #bb8c01 glow. */
-	--color-gold-50: #fff9e1;
-	--color-gold-100: #fff0b0;
-	--color-gold-200: #ffe373;
-	--color-gold-300: #fdd236;
-	--color-gold-400: #f6c101;
-	--color-gold-500: #dba901;
+	--color-gold-50: #fff8dc;
+	--color-gold-100: #ffeda3;
+	--color-gold-200: #ffe066;
+	--color-gold-300: #ffd22e;
+	--color-gold-400: #ffc300;
+	--color-gold-500: #e6a800;
 	--color-gold-600: #bb8c01;
 	--color-gold-700: #8c6901;
+
+	/* Solid, unblurred edges under containers; lifted states keep a soft cast. */
+	--shadow-sm: 0 3px 0 0 rgb(17 28 51 / 0.1);
+	--shadow-md: 0 4px 0 0 rgb(17 28 51 / 0.12);
+	--shadow-lg: 0 6px 0 0 rgb(17 28 51 / 0.14);
+	--shadow-xl: 0 8px 0 0 rgb(17 28 51 / 0.14), 0 18px 40px -12px rgb(17 28 51 / 0.3);
+	--shadow-2xl: 0 10px 0 0 rgb(17 28 51 / 0.16), 0 30px 60px -20px rgb(17 28 51 / 0.45);
 }
 
-html,
-body {
-	@apply bg-surface-50 text-ink-900 antialiased;
+@layer base {
+	html,
+	body {
+		@apply bg-canvas text-ink-900 antialiased;
+	}
+
+	/* Set on every element so a focus outline appears in brand blue at once, not faded in from the text colour. */
+	* {
+		outline-color: var(--color-brand-600);
+	}
+
+	:focus-visible {
+		outline: 3px solid var(--color-brand-600);
+		outline-offset: 3px;
+	}
 }
 
-:focus-visible {
-	outline: 2px solid var(--color-brand-500);
-	outline-offset: 2px;
+@layer components {
+	/* A text field, or a group holding one with prefixes and suffixes, focused as one surface. */
+	.field {
+		display: flex;
+		align-items: center;
+		width: 100%;
+		border: 1.5px solid var(--color-surface-300);
+		border-radius: 0.625rem;
+		background: var(--color-surface-50);
+		color: var(--color-ink-900);
+		box-shadow: 0 2px 0 0 var(--color-surface-200);
+		transition: border-color 150ms, background-color 150ms, box-shadow 150ms;
+
+		&:hover {
+			border-color: var(--color-ink-500);
+		}
+
+		&:focus-within {
+			border-color: var(--color-brand-600);
+			box-shadow: 0 3px 0 0 var(--color-brand-500);
+		}
+
+		&:has([aria-invalid="true"]),
+		&[aria-invalid="true"] {
+			border-color: var(--color-red-600);
+			box-shadow: 0 3px 0 0 var(--color-red-200);
+		}
+
+		&::placeholder,
+		& ::placeholder {
+			color: var(--color-ink-500);
+		}
+
+		& :focus-visible,
+		&:focus-visible {
+			outline: none;
+		}
+	}
+
+	/* The input inside a field group. */
+	.field-input {
+		min-width: 0;
+		flex: 1;
+		background: transparent;
+	}
+
+	/* Fixed text before or after the typed value, such as a URL path. */
+	.field-addon {
+		align-self: stretch;
+		display: flex;
+		align-items: center;
+		color: var(--color-ink-500);
+		font-size: 0.875rem;
+		white-space: nowrap;
+	}
+
+	/* A container with a firm border and a solid edge beneath it. */
+	.panel {
+		border: 1.5px solid var(--color-surface-200);
+		border-radius: 1rem;
+		background: var(--color-surface-50);
+		box-shadow: 0 4px 0 0 var(--color-surface-200);
+	}
 }
 
 /* The logo's blue sweep. */

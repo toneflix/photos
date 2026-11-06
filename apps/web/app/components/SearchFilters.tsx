@@ -58,7 +58,7 @@ export function SearchFilters({ placeholder, filters }: { placeholder: string; f
 					defaultValue={params.get("q") ?? ""}
 					placeholder={placeholder}
 					maxLength={100}
-					className={`block w-full rounded-full border border-surface-300 bg-surface-100 py-3 pr-4 pl-12 text-ink-900 transition placeholder:text-ink-500 hover:border-ink-500 focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20 focus:outline-none ${busy ? "opacity-70" : ""}`}
+					className={`field !rounded-full py-3 pr-4 pl-12 ${busy ? "opacity-70" : ""}`}
 				/>
 			</label>
 			<div className="flex flex-wrap items-center gap-2">
@@ -70,8 +70,8 @@ export function SearchFilters({ placeholder, filters }: { placeholder: string; f
 							name={field.name}
 							defaultValue={params.get(field.name) ?? ""}
 							onChange={() => form.current?.requestSubmit()}
-							className={`cursor-pointer appearance-none rounded-full border py-2.5 pr-9 pl-4 text-sm font-semibold transition ${
-								params.get(field.name) ? "border-ink-900 bg-ink-900 text-white" : "border-surface-300 bg-white text-ink-700 hover:border-ink-500"
+							className={`cursor-pointer appearance-none rounded-full border-[1.5px] py-2.5 pr-9 pl-4 text-sm font-semibold transition ${
+								params.get(field.name) ? "border-brand-700 bg-brand-600 text-white shadow-[0_3px_0_0_var(--color-brand-800)]" : "border-surface-300 bg-white text-ink-700 shadow-[0_3px_0_0_var(--color-surface-200)] hover:border-ink-500"
 							}`}
 						>
 							{field.options.map((option) => (

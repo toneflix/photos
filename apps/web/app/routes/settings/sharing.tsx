@@ -68,7 +68,7 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 								{VISIBILITY.map((option) => (
 									<label
 										key={option.value}
-										className="flex cursor-pointer flex-col gap-1 rounded-xl border border-surface-300 p-4 transition has-[:checked]:border-ink-900 has-[:checked]:bg-surface-100"
+										className="flex cursor-pointer flex-col gap-1 rounded-xl border-[1.5px] border-surface-300 p-4 transition hover:border-ink-500 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:checked]:shadow-[0_3px_0_0_var(--color-brand-500)]"
 									>
 										<span className="flex items-center gap-2 text-sm font-medium text-ink-900">
 											<input
@@ -76,7 +76,7 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 												name="defaultVisibility"
 												value={option.value}
 												defaultChecked={user.defaultVisibility === option.value}
-												className="accent-ink-900"
+												className="accent-brand-600"
 											/>
 											{option.label}
 										</span>
@@ -97,7 +97,7 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 								{LICENSES.map((option) => (
 									<label
 										key={option.value}
-										className="flex cursor-pointer flex-col gap-1 rounded-xl border border-surface-300 p-4 transition has-[:checked]:border-ink-900 has-[:checked]:bg-surface-100"
+										className="flex cursor-pointer flex-col gap-1 rounded-xl border-[1.5px] border-surface-300 p-4 transition hover:border-ink-500 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:checked]:shadow-[0_3px_0_0_var(--color-brand-500)]"
 									>
 										<span className="flex items-center gap-2 text-sm font-medium text-ink-900">
 											<input
@@ -105,7 +105,7 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 												name="defaultLicense"
 												value={option.value}
 												defaultChecked={(user.defaultLicense ?? "all-rights-reserved") === option.value}
-												className="accent-ink-900"
+												className="accent-brand-600"
 											/>
 											{option.label}
 										</span>
@@ -115,7 +115,7 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 							</div>
 						</fieldset>
 						<label className="flex cursor-pointer items-start gap-3">
-							<input type="checkbox" name="showOwnerName" defaultChecked={user.showOwnerName} className="mt-1 h-4 w-4 accent-ink-900" />
+							<input type="checkbox" name="showOwnerName" defaultChecked={user.showOwnerName} className="mt-1 h-4 w-4 accent-brand-600" />
 							<span>
 								<span className="block text-sm font-medium text-ink-900">Show my name on books I share</span>
 								<span className="block text-xs text-ink-500">When off, people opening your books don't see who made them.</span>
