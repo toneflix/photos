@@ -14,6 +14,7 @@ export class FlipbookModel {
       width: photo.width,
       height: photo.height,
       frame: 'frame' in photo ? photo.frame : null,
+      position: 'position' in photo ? photo.position : null,
     }
   }
 
@@ -22,11 +23,13 @@ export class FlipbookModel {
   }
 
   /** The front cover's look, for shelves and pickers that show a book without its pages. */
-  static cover(book: Pick<Book, 'title' | 'description' | 'theme' | 'coverDesign' | 'coverText' | 'coverPhoto'>) {
+  static cover(book: Pick<Book, 'title' | 'description' | 'theme' | 'coverDesign' | 'coverText' | 'coverPhoto'> & Partial<Pick<Book, 'coverPosition'>>) {
+    const photo = FlipbookModel.photo(book.coverPhoto)
+
     return {
       title: book.title,
       subtitle: book.description,
-      cover: FlipbookModel.photo(book.coverPhoto),
+      cover: photo && { ...photo, position: book.coverPosition ?? null },
       theme: book.theme,
       coverDesign: book.coverDesign,
       coverText: book.coverText ?? undefined,

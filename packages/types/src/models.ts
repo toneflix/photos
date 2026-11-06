@@ -1,4 +1,4 @@
-import type { CoverDesign, CoverTheme, FrameStyle, PageLayout, PaperColor } from '@toneflix/flipbook-core'
+import type { CoverDesign, CoverTheme, FrameStyle, PageLayout, PaperColor, PhotoPosition } from '@toneflix/flipbook-core'
 
 /**
  * Core domain models, as the API returns them (camelCase keys, ISO dates).
@@ -161,6 +161,8 @@ export interface Book {
   description: string | null
   coverPhotoId: ID | null
   coverPhoto?: Photo | null
+  /** Which part of the cover photo shows, or null when it is centred. */
+  coverPosition: PhotoPosition | null
   visibility: Visibility
   theme: BookTheme
   /** How the front cover is laid out. */
@@ -234,6 +236,8 @@ export interface BookPage {
 export interface BookPagePhoto extends Photo {
   /** This photo's frame, or null to use the page's. */
   frame: FrameStyle | null
+  /** Which part of the photo shows in its slot, or null when it is centred. */
+  position: PhotoPosition | null
 }
 
 /**
@@ -303,4 +307,6 @@ export interface BookPageInput {
   photoIds: ID[]
   /** Each photo's own frame, in `photoIds` order. Null uses the page's. */
   photoFrames?: (FrameStyle | null)[]
+  /** Which part of each photo shows, in `photoIds` order. Null is centred. */
+  photoPositions?: (PhotoPosition | null)[]
 }

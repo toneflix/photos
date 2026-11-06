@@ -1,4 +1,4 @@
-import { COVER_DESIGNS, COVER_THEMES, FRAME_STYLES, PAGE_LAYOUTS, PAPER_COLORS } from '@toneflix/flipbook-core'
+import { COVER_DESIGNS, COVER_THEMES, FRAME_STYLES, PAGE_LAYOUTS, PAPER_COLORS, PhotoCrop } from '@toneflix/flipbook-core'
 import { BookAccessCode } from './BookAccessCode'
 import { BookPage } from './BookPage'
 import { Model } from '@arkstack/database'
@@ -6,7 +6,7 @@ import { Photo } from './Photo'
 import { Space } from './Space'
 import { User } from './User'
 import { matches } from '@app/support/search'
-import type { PageLayout } from '@toneflix/flipbook-core'
+import type { PageLayout, PhotoPosition } from '@toneflix/flipbook-core'
 import type { QueryBuilder } from 'arkormx'
 
 export type BookVisibility = 'private' | 'shared' | 'public'
@@ -27,6 +27,7 @@ export interface PageInput {
   caption?: string | null
   photoIds?: string[] | null
   photoFrames?: (string | null)[] | null
+  photoPositions?: unknown[] | null
 }
 
 export class Book extends Model {
@@ -41,6 +42,8 @@ export class Book extends Model {
   declare coverDesign: string
   /** Null leaves it to the cover design: on, except for full-image covers. */
   declare coverText: boolean | null
+  /** Which part of the cover photo shows, or null when it is centred. */
+  declare coverPosition: PhotoPosition | null
   declare paper: string
   declare frame: string
   declare publishedAt: Date | null
@@ -63,7 +66,19 @@ export class Book extends Model {
     coverPhotoId: 'cover_photo_id',
     coverDesign: 'cover_design',
     coverText: 'cover_text',
+    coverPosition: 'cover_position',
     publishedAt: 'published_at',
+  }
+
+  protected override casts = {
+    coverPosition: 'json',
+  } as never
+
+  /** A photo position to store: clamped and rounded, or null when the photo is centred. */
+  static photoPosition(input: unknown): PhotoPosition | null {
+    const crop = input && typeof input === 'object' ? PhotoCrop.of(input as Partial<PhotoPosition>) : PhotoCrop.CENTRE
+
+    return crop.isCentred ? null : crop.toJSON()
   }
 
   user() {
@@ -197,7 +212,7 @@ export class Book extends Model {
     for (const photo of photos) copies.set(photo.id, (await photo.copyTo(owner)).id)
 
     await Book.transaction(async () => {
-      for (const page of pages) await page.update(BookPage.place(page.placements().flatMap(({ id, frame }) => (copies.has(id) ? [{ id: copies.get(id)!, frame }] : []))))
+      for (const page of pages) await page.update(BookPage.place(page.placements().flatMap((placed) => (copies.has(placed.id) ? [{ ...placed, id: copies.get(placed.id)! }] : []))))
 
       await BookAccessCode.query().where({ bookId: this.id }).delete()
       await this.update({ userId: owner.id, spaceId: null, coverPhotoId: this.coverPhotoId ? (copies.get(this.coverPhotoId) ?? null) : null })
@@ -225,7 +240,11 @@ export class Book extends Model {
     const pages = input.map((page, index) => {
       const layout = (page.layout && Book.LAYOUTS.includes(page.layout) ? page.layout : 'single') as PageLayout
       const placed = (page.photoIds ?? [])
-        .map((id, slot) => ({ id, frame: Book.FRAMES.find((frame) => frame === page.photoFrames?.[slot]) ?? null }))
+        .map((id, slot) => ({
+          id,
+          frame: Book.FRAMES.find((frame) => frame === page.photoFrames?.[slot]) ?? null,
+          position: Book.photoPosition(page.photoPositions?.[slot]),
+        }))
         .filter(({ id }) => owned.has(id))
         .slice(0, PAGE_LAYOUTS[layout].slots)
 

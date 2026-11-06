@@ -16,7 +16,7 @@
   "dependencies": {
     "@photos/api-client": "workspace:*",
     "@photos/types": "workspace:*",
-    "@toneflix/flipbook-react": "^0.2.4",
+    "@toneflix/flipbook-react": "^0.3.4",
     "alova": "^3.5.5",
     "isbot": "^5.2.2",
     "qrcode": "^1.5.4",
