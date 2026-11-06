@@ -1,5 +1,6 @@
 import { Book } from './Book'
 import { ImageFile } from '@app/support/ImageFile'
+import { PhotoImage } from '@app/support/PhotoImage'
 import { BookPage } from './BookPage'
 import { Model } from '@arkstack/database'
 import { Space } from './Space'
@@ -101,14 +102,24 @@ export class Photo extends Model {
     return String(env('PHOTOS_DISK', '') || (fallback === 'local' ? 'public' : fallback))
   }
 
-  /** Store an upload under the owner's folder and record its path. Type and size come from the file's bytes when readable. */
+  /** The largest original kept, in bytes. Bigger uploads are compressed to fit before they are stored. */
+  static maxOriginalBytes(): number {
+    return Math.round(Number(config('photos.max_original_mb')) * 1024 * 1024)
+  }
+
+  /**
+   * Store an upload under the owner's folder and record its path. Type and size come from the file's bytes when readable.
+   * Originals over the size cap are compressed first; formats that can't be re-encoded are kept as uploaded.
+   */
   static async upload(owner: User, file: UploadedPhoto, details: PhotoDetails = {}): Promise<Photo> {
     const image = ImageFile.read(file.buffer)
     const mimeType = image?.mimeType ?? file.mimetype
+    const original = await new PhotoImage(file.buffer, mimeType).fitWithin(Photo.maxOriginalBytes()).catch(() => null)
+    const bytes = original?.bytes ?? file.buffer
     const disk = Photo.disk()
     const path = `photos/${owner.id}/${randomUUID()}.${Photo.EXTENSIONS[mimeType] ?? 'bin'}`
 
-    await Storage.disk(disk as never).put(path, new Uint8Array(file.buffer))
+    await Storage.disk(disk as never).put(path, new Uint8Array(bytes))
 
     return Photo.query().create({
       userId: owner.id,
@@ -117,9 +128,9 @@ export class Photo extends Model {
       path,
       originalName: file.originalname?.slice(0, 255) || null,
       mimeType,
-      size: file.size,
-      width: image?.width ?? details.width ?? null,
-      height: image?.height ?? details.height ?? null,
+      size: bytes.length,
+      width: original?.width ?? image?.width ?? details.width ?? null,
+      height: original?.height ?? image?.height ?? details.height ?? null,
       caption: details.caption ?? null,
       takenAt: details.takenAt ? new Date(details.takenAt) : null,
       license: details.license || owner.defaultLicense || 'all-rights-reserved',
