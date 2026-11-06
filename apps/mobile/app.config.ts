@@ -1,7 +1,7 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config'
 
 /**
- * Links the EAS project from EAS_PROJECT_ID and EAS_OWNER, and adds universal links (iOS) and
+ * Lets EAS_PROJECT_ID and EAS_OWNER override the EAS project in app.json, and adds universal links (iOS) and
  * app links (Android) for the web app's address, so the reset-password and verify-email links in
  * emails, and shared book links, open the app when EXPO_PUBLIC_WEB_URL is an https address.
  */
