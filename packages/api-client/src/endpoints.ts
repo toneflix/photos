@@ -35,6 +35,7 @@ import type {
   Photo,
   PhotoLicense,
   PhotoVisibility,
+  Profile,
   PublicBook,
   PublicPhoto,
   PublicPhotoDetail,
@@ -180,6 +181,7 @@ export function createEndpoints(alova: PhotosAlova) {
       books: (params: Omit<BookQuery, 'visibility'> = {}) => alova.Get<PaginatedResponse<PublicBook>>('/explore/books', { params }),
       spaces: (params: SpaceQuery = {}) => alova.Get<PaginatedResponse<PublicSpace>>('/explore/spaces', { params }),
       /** A space's page by its web address. Private spaces open only for their owner and members. */
+      maker: (id: ID) => alova.Get<ApiResponse<Profile>>(`/explore/makers/${id}`, { cacheFor: null }),
       space: (slug: string) => alova.Get<ApiResponse<PublicSpace>>(`/explore/spaces/${encodeURIComponent(slug)}`, { cacheFor: null }),
     },
 

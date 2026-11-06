@@ -8,14 +8,12 @@ import { Empty } from "~/components/explore/Empty";
 import { Owner } from "~/components/explore/Owner";
 import { Spinner } from "~/components/ui";
 import { SORT_FILTER, SearchFilters, THEME_FILTER, filterParam, searchText } from "~/components/SearchFilters";
-import type { SpaceMetaArgs } from "~/routes/space/layout";
+import { parentMeta, type NestedMetaArgs } from "~/lib/nested-meta";
 import type { Route } from "./+types/books";
 
-/** On a space's page the space names the tab instead. */
-export const meta = ({ params, matches }: SpaceMetaArgs): MetaDescriptor[] =>
-	params.slug
-		? (matches.find((match) => match?.id === "routes/space/layout")?.meta ?? [])
-		: [
+/** On a space's page or a maker's profile, the space or maker names the tab instead. */
+export const meta = (args: NestedMetaArgs): MetaDescriptor[] =>
+	parentMeta(args) ?? [
 				{ title: "Explore books · Toneflix Photos" },
 				{ name: "description", content: "Photo books people chose to share with everyone. Open one and turn the pages." },
 			];
@@ -31,14 +29,14 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 		sort: filterParam(url, "sort", ["latest", "oldest"] as const),
 	};
 
-	const { data: items, meta } = await api.explore.books({ ...filters, space: params.slug, page, per_page: 24 });
+	const { data: items, meta } = await api.explore.books({ ...filters, space: params.slug, maker: params.maker, page, per_page: 24 });
 
 	return { items, page: meta.current_page, lastPage: meta.last_page, total: meta.total, filtered: Object.values(filters).some(Boolean) };
 }
 
 export default function ExploreBooks({ loaderData }: Route.ComponentProps) {
 	const { items: books, hasMore, loading, sentinel } = useInfiniteList(loaderData, useLocation().pathname);
-	const inSpace = !!useParams().slug;
+	const params = useParams();
 
 	return (
 		<>
@@ -48,8 +46,10 @@ export default function ExploreBooks({ loaderData }: Route.ComponentProps) {
 				<Empty>
 					{loaderData.filtered
 						? "No books match. Try other words or clear the filters."
-						: inSpace
+						: params.slug
 							? "No public books in this space yet."
+							: params.maker
+								? "No public books yet."
 							: "No public books yet. Set a book to Public in its editor and it shows up here."}
 				</Empty>
 			)}

@@ -24,7 +24,7 @@ export function PublicPhotoGrid({ photos }: { photos: PublicPhoto[] }) {
 						/>
 						<span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100" />
 						<span className="absolute inset-x-0 bottom-0 p-3 opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
-							<Owner owner={photo.owner} light />
+							<Owner owner={photo.owner} light plain />
 						</span>
 					</Link>
 				</li>

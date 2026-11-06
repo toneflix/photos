@@ -141,6 +141,24 @@ export interface Owner {
   avatarUrl: string | null
 }
 
+/** A maker's public profile. Only makers who show their name on shared work have one; makers can always open their own. */
+export interface Profile {
+  id: ID
+  name: string
+  avatarUrl: string | null
+  joinedAt: string
+  /** Public photos, books and spaces everyone can browse. */
+  photoCount: number
+  bookCount: number
+  spaceCount: number
+  /** Views and downloads of that work, when the maker shows counts or is the viewer. */
+  stats: { views: number; downloads: number } | null
+  /** True when the signed-in viewer is this maker. */
+  isOwner: boolean
+  /** False while the maker keeps their name off shared work, so only they can open the profile. */
+  isListed: boolean
+}
+
 /** A link to the public space a photo or book sits in. Null outside a space or in a private one. */
 export interface SpaceLink {
   id: ID

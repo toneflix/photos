@@ -58,6 +58,8 @@ export interface PhotoQuery extends PageQuery {
   visibility?: 'private' | 'public'
   sort?: ListSort
   space?: string
+  /** On Explore, one maker's public work. */
+  maker?: string
 }
 
 /**
@@ -70,10 +72,14 @@ export interface BookQuery extends PageQuery {
   visibility?: 'private' | 'shared' | 'public'
   sort?: ListSort
   space?: string
+  /** On Explore, one maker's public work. */
+  maker?: string
 }
 
 /** Search for public spaces on Explore. */
 export interface SpaceQuery extends PageQuery {
   q?: string
   sort?: ListSort
+  /** One maker's public spaces. */
+  maker?: string
 }

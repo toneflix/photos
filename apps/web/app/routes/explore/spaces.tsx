@@ -1,5 +1,7 @@
+import { useLocation, useParams, type MetaDescriptor } from "react-router";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { getServerApi } from "~/lib/api.server";
+import { parentMeta, type NestedMetaArgs } from "~/lib/nested-meta";
 import { useInfiniteList } from "~/lib/use-infinite-list";
 import { Empty } from "~/components/explore/Empty";
 import { Owner } from "~/components/explore/Owner";
@@ -8,12 +10,14 @@ import { Spinner } from "~/components/ui";
 import { SORT_FILTER, SearchFilters, filterParam, searchText } from "~/components/SearchFilters";
 import type { Route } from "./+types/spaces";
 
-export const meta = () => [
-	{ title: "Explore spaces · Toneflix Photos" },
-	{ name: "description", content: "Spaces photographers and creators share on Toneflix Photos, each with its own photos and books." },
-];
+/** On a maker's profile the maker names the tab instead. */
+export const meta = (args: NestedMetaArgs): MetaDescriptor[] =>
+	parentMeta(args) ?? [
+		{ title: "Explore spaces · Toneflix Photos" },
+		{ name: "description", content: "Spaces photographers and creators share on Toneflix Photos, each with its own photos and books." },
+	];
 
-export async function loader({ request, context }: Route.LoaderArgs) {
+export async function loader({ request, params, context }: Route.LoaderArgs) {
 	const { env } = context.get(cloudflareContext);
 	const api = await getServerApi(request, env);
 	const url = new URL(request.url);
@@ -23,13 +27,14 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 		sort: filterParam(url, "sort", ["latest", "oldest"] as const),
 	};
 
-	const { data: items, meta } = await api.explore.spaces({ ...filters, page, per_page: 24 });
+	const { data: items, meta } = await api.explore.spaces({ ...filters, maker: params.maker, page, per_page: 24 });
 
 	return { items, page: meta.current_page, lastPage: meta.last_page, total: meta.total, filtered: Object.values(filters).some(Boolean) };
 }
 
 export default function ExploreSpaces({ loaderData }: Route.ComponentProps) {
-	const { items: spaces, hasMore, loading, sentinel } = useInfiniteList(loaderData, "/explore/spaces");
+	const { items: spaces, hasMore, loading, sentinel } = useInfiniteList(loaderData, useLocation().pathname);
+	const onProfile = !!useParams().maker;
 
 	return (
 		<>
@@ -39,15 +44,19 @@ export default function ExploreSpaces({ loaderData }: Route.ComponentProps) {
 				<Empty>
 					{loaderData.filtered
 						? "No spaces match. Try other words or clear the filters."
-						: "No public spaces yet. Make one of your spaces public and it shows up here."}
+						: onProfile
+							? "No public spaces yet."
+							: "No public spaces yet. Make one of your spaces public and it shows up here."}
 				</Empty>
 			)}
 			<ul className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
 				{spaces.map((space) => (
 					<SpaceCard key={space.id} space={space}>
-						<div className="mt-2">
-							<Owner owner={space.owner} />
-						</div>
+						{!onProfile && (
+							<div className="mt-2">
+								<Owner owner={space.owner} />
+							</div>
+						)}
 					</SpaceCard>
 				))}
 			</ul>

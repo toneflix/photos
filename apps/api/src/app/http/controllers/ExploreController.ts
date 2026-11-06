@@ -7,15 +7,18 @@ import { PublicPhotoDetailResource } from '@app/http/resources/PublicPhotoDetail
 import { PublicSpaceCollection } from '@app/http/resources/PublicSpaceCollection'
 import { PublicSpaceResource } from '@app/http/resources/PublicSpaceResource'
 import { SORTS } from '@app/support/search'
-import { downloadSize } from '@app/support/rules'
+import { UUID, downloadSize } from '@app/support/rules'
 import { Space } from '@app/models/Space'
 import { SpaceAccess } from '@app/policies/SpaceAccess'
 import { abortIf, perPage } from '@arkstack/common'
 import { ContentStats } from '@app/services/ContentStats'
+import { ProfileResource } from '@app/http/resources/ProfileResource'
+import { User } from '@app/models/User'
 
 /**
  * The public timeline: photos, books and spaces their owners chose to show everyone.
  * Photo and book lists take a `space` web address to browse one space; owners and members can open private ones.
+ * Every list takes a `maker` id to browse one maker's public work.
  * Nothing here needs an account.
  */
 export default class ExploreController extends BaseController {
@@ -25,10 +28,14 @@ export default class ExploreController extends BaseController {
       orientation: `nullable|in:${Photo.ORIENTATIONS.join(',')}`,
       sort: `nullable|in:${SORTS.join(',')}`,
       space: 'nullable|string|max:60',
+      maker: ['nullable', UUID],
     })
 
-    const space = filters.space ? (await SpaceAccess.browse(filters.space, await this.viewer())).space : null
-    const photos = await Photo.scope('published', { ...filters, space: space?.id })
+    const viewer = await this.viewer()
+    const space = filters.space ? (await SpaceAccess.browse(filters.space, viewer)).space : null
+    const maker = filters.maker ? await User.profile(filters.maker, viewer) : null
+    const photos = await (maker ? maker.photos() : Photo.query())
+      .scope('published', { ...filters, space: space?.id })
       .with(['user', 'space'])
       .paginate(perPage(this.query, { perPage: 40, maxPerPage: 100 }))
 
@@ -67,10 +74,14 @@ export default class ExploreController extends BaseController {
       theme: `nullable|in:${Book.THEMES.join(',')}`,
       sort: `nullable|in:${SORTS.join(',')}`,
       space: 'nullable|string|max:60',
+      maker: ['nullable', UUID],
     })
 
-    const space = filters.space ? (await SpaceAccess.browse(filters.space, await this.viewer())).space : null
-    const books = await Book.scope('published', { ...filters, space: space?.id })
+    const viewer = await this.viewer()
+    const space = filters.space ? (await SpaceAccess.browse(filters.space, viewer)).space : null
+    const maker = filters.maker ? await User.profile(filters.maker, viewer) : null
+    const books = await (maker ? maker.books() : Book.query())
+      .scope('published', { ...filters, space: space?.id })
       .with(['user', 'space'])
       .paginate(perPage(this.query, { perPage: 24, maxPerPage: 100 }))
 
@@ -81,13 +92,24 @@ export default class ExploreController extends BaseController {
     const filters = await this.validateQuery({
       q: 'nullable|string|max:100',
       sort: `nullable|in:${SORTS.join(',')}`,
+      maker: ['nullable', UUID],
     })
 
-    const spaces = await Space.scope('published', filters)
+    const maker = filters.maker ? await User.profile(filters.maker, await this.viewer()) : null
+    const spaces = await (maker ? maker.spaces() : Space.query())
+      .scope('published', filters)
       .with('user')
       .paginate(perPage(this.query, { perPage: 24, maxPerPage: 100 }))
 
     return new PublicSpaceCollection(spaces).additional({ status: 'success', message: 'OK', code: 200 })
+  }
+
+  /** A maker's profile header. Their public work lists come from the lists above with `maker` set. */
+  async maker() {
+    const viewer = await this.viewer()
+    const maker = await User.profile(String(this.params.user), viewer)
+
+    return new ProfileResource(maker).for(viewer).additional({ status: 'success', message: 'OK', code: 200 })
   }
 
   /** A space's page header. Private spaces open only for their owner and members. */

@@ -50,13 +50,13 @@ function ListTop({
   )
 }
 
-/** Public photos on Explore, or in one space when `space` (its web address) is given. */
-export function PublicPhotos({ header, space }: { header?: ReactElement; space?: string }) {
+/** Public photos on Explore, in one space when `space` (its web address) is given, or by one `maker`. */
+export function PublicPhotos({ header, space, maker }: { header?: ReactElement; space?: string; maker?: string }) {
   const filters = useFilters()
-  const list = usePagination((page, pageSize) => api.explore.photos({ ...filters.query, space, page, per_page: pageSize }), {
+  const list = usePagination((page, pageSize) => api.explore.photos({ ...filters.query, space, maker, page, per_page: pageSize }), {
     ...listOptions,
     initialPageSize: 40,
-    watchingStates: [filters.key, space],
+    watchingStates: [filters.key, space, maker],
   })
   const photos = list.data as PublicPhoto[]
 
@@ -73,21 +73,21 @@ export function PublicPhotos({ header, space }: { header?: ReactElement; space?:
           filters={[ORIENTATION_FILTER, SORT_FILTER]}
           state={{ filters, total: list.total ?? 0, count: photos.length, loading: list.loading, error: list.error }}
           noun={['photo', 'photos']}
-          empty={space ? 'No public photos in this space yet.' : 'No one has shared a photo yet. Open a photo in your library and turn on Show on Explore.'}
+          empty={space ? 'No public photos in this space yet.' : maker ? 'No public photos yet.' : 'No one has shared a photo yet. Open a photo in your library and turn on Show on Explore.'}
         />
       }
     />
   )
 }
 
-/** Public books on Explore, or in one space. */
-export function PublicBooks({ header, space }: { header?: ReactElement; space?: string }) {
+/** Public books on Explore, in one space, or by one maker. */
+export function PublicBooks({ header, space, maker }: { header?: ReactElement; space?: string; maker?: string }) {
   const { width } = useWindowDimensions()
   const filters = useFilters()
-  const list = usePagination((page, pageSize) => api.explore.books({ ...filters.query, space, page, per_page: pageSize }), {
+  const list = usePagination((page, pageSize) => api.explore.books({ ...filters.query, space, maker, page, per_page: pageSize }), {
     ...listOptions,
     initialPageSize: 24,
-    watchingStates: [filters.key, space],
+    watchingStates: [filters.key, space, maker],
   })
   const books = list.data as PublicBook[]
   const cover = (width - 32 - 16) / 2
@@ -106,7 +106,7 @@ export function PublicBooks({ header, space }: { header?: ReactElement; space?: 
           filters={[THEME_FILTER, SORT_FILTER]}
           state={{ filters, total: list.total ?? 0, count: books.length, loading: list.loading, error: list.error }}
           noun={['book', 'books']}
-          empty={space ? 'No public books in this space yet.' : 'No public books yet. Set a book to Public in its editor and it shows up here.'}
+          empty={space ? 'No public books in this space yet.' : maker ? 'No public books yet.' : 'No public books yet. Set a book to Public in its editor and it shows up here.'}
         />
       }
       renderItem={({ item: book }) => (
@@ -136,13 +136,13 @@ export function PublicBooks({ header, space }: { header?: ReactElement; space?: 
   )
 }
 
-/** Public spaces on Explore. */
-export function PublicSpaces({ header }: { header?: ReactElement }) {
+/** Public spaces on Explore, or by one maker. */
+export function PublicSpaces({ header, maker }: { header?: ReactElement; maker?: string }) {
   const filters = useFilters()
-  const list = usePagination((page, pageSize) => api.explore.spaces({ ...filters.query, page, per_page: pageSize }), {
+  const list = usePagination((page, pageSize) => api.explore.spaces({ ...filters.query, maker, page, per_page: pageSize }), {
     ...listOptions,
     initialPageSize: 24,
-    watchingStates: [filters.key],
+    watchingStates: [filters.key, maker],
   })
   const spaces = list.data as PublicSpace[]
 
@@ -159,14 +159,16 @@ export function PublicSpaces({ header }: { header?: ReactElement }) {
           filters={[SORT_FILTER]}
           state={{ filters, total: list.total ?? 0, count: spaces.length, loading: list.loading, error: list.error }}
           noun={['space', 'spaces']}
-          empty="No public spaces yet. Make one of your spaces public and it shows up here."
+          empty={maker ? 'No public spaces yet.' : 'No public spaces yet. Make one of your spaces public and it shows up here.'}
         />
       }
       renderItem={({ item: space }) => (
         <SpaceCard space={space}>
-          <View style={styles.owner}>
-            <Owner owner={space.owner} />
-          </View>
+          {!maker && (
+            <View style={styles.owner}>
+              <Owner owner={space.owner} />
+            </View>
+          )}
         </SpaceCard>
       )}
       onEndReachedThreshold={0.6}
