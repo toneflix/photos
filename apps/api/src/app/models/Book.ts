@@ -6,7 +6,6 @@ import { Photo } from './Photo'
 import { Space } from './Space'
 import { User } from './User'
 import { matches } from '@app/support/search'
-import type { HasManyRelation } from 'arkormx/relationship'
 import type { PageLayout, PhotoPosition } from '@toneflix/flipbook-core'
 import type { QueryBuilder } from 'arkormx'
 
@@ -106,9 +105,10 @@ export class Book extends Model {
    * Public books with at least one page, for Explore, or for one space's page when `filters.space` is its id.
    * Words match titles, descriptions and shown owner names.
    */
-  static published(filters: BookFilters = {}) {
-    const query = Book.query().where({ visibility: 'public' }).has('pages')
+  scopePublished(query: QueryBuilder<Book>, filters: BookFilters = {}): QueryBuilder<Book> {
     const text = filters.q?.trim()
+
+    query.scope('public')
 
     if (text) {
       query.where((match: QueryBuilder<Book>) =>
@@ -120,28 +120,37 @@ export class Book extends Model {
     }
 
     if (filters.space) query.where({ spaceId: filters.space })
-    else Space.listedOnly(query)
+    else query.scope('listed')
 
-    return Book.narrow(query, filters, 'publishedAt')
+    return query.scope('narrowed', filters, 'publishedAt')
   }
 
-  /** One person's books. Words match titles and descriptions. */
-  static library(owner: User, filters: BookFilters = {}) {
-    const query = owner.books()
+  /** Library books, used on an owner's `books()`. Words match titles and descriptions. */
+  scopeLibrary(query: QueryBuilder<Book>, filters: BookFilters = {}): QueryBuilder<Book> {
     const text = filters.q?.trim()
 
     if (text) query.where((match: QueryBuilder<Book>) => match.where(matches('title', text)).orWhere(matches('description', text)))
     if (filters.visibility) query.where({ visibility: filters.visibility as BookVisibility })
     if (filters.space) query.where({ spaceId: filters.space })
 
-    return Book.narrow(query, filters, 'updatedAt')
+    return query.scope('narrowed', filters, 'updatedAt')
   }
 
   /** Filter by cover theme and order newest or oldest first. */
-  private static narrow<T extends QueryBuilder<Book> | HasManyRelation<User, Book>>(query: T, filters: BookFilters, by: 'publishedAt' | 'updatedAt') {
+  scopeNarrowed(query: QueryBuilder<Book>, filters: BookFilters, by: 'publishedAt' | 'updatedAt'): QueryBuilder<Book> {
     if (filters.theme) query.where({ theme: filters.theme })
 
     return filters.sort === 'oldest' ? query.oldest(by) : query.latest(by)
+  }
+
+  /** Public books with at least one page. */
+  scopePublic(query: QueryBuilder<Book>): QueryBuilder<Book> {
+    return query.where({ visibility: 'public' }).has('pages')
+  }
+
+  /** Leave out books that sit in private spaces. */
+  scopeListed(query: QueryBuilder<Book>): QueryBuilder<Book> {
+    return query.whereDoesntHave('space', (space: QueryBuilder<Space>) => space.where({ visibility: 'private' }))
   }
 
   /** Change who can open the book. Making it public puts it at the top of Explore. */

@@ -8,7 +8,6 @@ import { Space } from './Space'
 import { Storage } from '@arkstack/filesystem'
 import { User } from './User'
 import { matches } from '@app/support/search'
-import type { HasManyRelation } from 'arkormx/relationship'
 import type { QueryBuilder } from 'arkormx'
 import { randomUUID } from 'node:crypto'
 
@@ -220,9 +219,10 @@ export class Photo extends Model {
    * Public photos for Explore, or for one space's page when `filters.space` is its id.
    * Words match captions and the names of owners who show their name.
    */
-  static published(filters: PhotoFilters = {}) {
-    const query = Photo.query().where({ visibility: 'public' })
+  scopePublished(query: QueryBuilder<Photo>, filters: PhotoFilters = {}): QueryBuilder<Photo> {
     const text = filters.q?.trim()
+
+    query.scope('public')
 
     if (text) {
       query.where((match: QueryBuilder<Photo>) =>
@@ -233,30 +233,38 @@ export class Photo extends Model {
     }
 
     if (filters.space) query.where({ spaceId: filters.space })
-    else Space.listedOnly(query)
+    else query.scope('listed')
 
-    return Photo.narrow(query, filters, 'publishedAt')
+    return query.scope('narrowed', filters, 'publishedAt')
   }
 
-  /** One person's photos. Words match captions. */
-  static library(owner: User, filters: PhotoFilters = {}) {
-    const query = owner.photos()
+  /** Library photos, used on an owner's `photos()`. Words match captions. */
+  scopeLibrary(query: QueryBuilder<Photo>, filters: PhotoFilters = {}): QueryBuilder<Photo> {
     const text = filters.q?.trim()
 
-    if (text) query.where((match: QueryBuilder<Photo>) => match.where(matches('caption', text)))
+    if (text) query.where(matches('caption', text))
     if (filters.visibility) query.where({ visibility: filters.visibility as PhotoVisibility })
     if (filters.space) query.where({ spaceId: filters.space })
 
-    return Photo.narrow(query, filters, 'createdAt')
+    return query.scope('narrowed', filters, 'createdAt')
   }
 
   /** Filter by shape and order newest or oldest first. Photos without a known size match no shape. */
-  private static narrow<T extends QueryBuilder<Photo> | HasManyRelation<User, Photo>>(query: T, filters: PhotoFilters, by: 'publishedAt' | 'createdAt') {
+  scopeNarrowed(query: QueryBuilder<Photo>, filters: PhotoFilters, by: 'publishedAt' | 'createdAt'): QueryBuilder<Photo> {
     const shape = Photo.SHAPES[filters.orientation ?? '']
 
-    if (shape) query.where((match: QueryBuilder<Photo>) => match.whereColumn('width', shape, 'height'))
+    if (shape) query.whereColumn('width', shape, 'height')
 
     return filters.sort === 'oldest' ? query.oldest(by) : query.latest(by)
+  }
+
+  scopePublic(query: QueryBuilder<Photo>): QueryBuilder<Photo> {
+    return query.where({ visibility: 'public' })
+  }
+
+  /** Leave out photos that sit in private spaces. */
+  scopeListed(query: QueryBuilder<Photo>): QueryBuilder<Photo> {
+    return query.whereDoesntHave('space', (space: QueryBuilder<Space>) => space.where({ visibility: 'private' }))
   }
 
   /** Show or hide the photo on Explore. Publishing again moves it back to the top. */
@@ -281,7 +289,9 @@ export class Photo extends Model {
 
     if (!firstPage.size) return []
 
-    const books = await Space.listedOnly(Book.query().whereIn('id', [...firstPage.keys()] as never))
+    const books = await Book.query()
+      .whereIn('id', [...firstPage.keys()] as never)
+      .scope('listed')
       .latest('publishedAt')
       .get()
 

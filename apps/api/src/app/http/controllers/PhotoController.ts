@@ -19,7 +19,7 @@ export default class PhotoController extends BaseController {
       space: ['nullable', UUID],
     })
 
-    const photos = await Photo.library(this.user, filters).paginate(perPage(this.query, { perPage: 60, maxPerPage: 200 }))
+    const photos = await this.user.photos().scope('library', filters).paginate(perPage(this.query, { perPage: 60, maxPerPage: 200 }))
 
     return new PhotoCollection(photos).additional({ status: 'success', message: 'OK', code: 200 })
   }

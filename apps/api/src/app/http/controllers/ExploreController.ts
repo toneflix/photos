@@ -26,7 +26,7 @@ export default class ExploreController extends BaseController {
     })
 
     const space = filters.space ? await Space.browse(filters.space, await this.viewer()) : null
-    const photos = await Photo.published({ ...filters, space: space?.id })
+    const photos = await Photo.scope('published', { ...filters, space: space?.id })
       .with(['user', 'space'])
       .paginate(perPage(this.query, { perPage: 40, maxPerPage: 100 }))
 
@@ -34,8 +34,7 @@ export default class ExploreController extends BaseController {
   }
 
   async photo() {
-    const photo = await Photo.query()
-      .where({ visibility: 'public' })
+    const photo = await Photo.scope('public')
       .with(['user', 'space'])
       .findOrFail(String(this.params.photo))
 
@@ -46,7 +45,7 @@ export default class ExploreController extends BaseController {
 
   /** The original, or a copy at a preset or custom size, only when the owner chose an open licence. */
   async download() {
-    const photo = await Photo.query().where({ visibility: 'public' }).findOrFail(String(this.params.photo))
+    const photo = await Photo.scope('public').findOrFail(String(this.params.photo))
 
     abortIf(!(await photo.isListedFor(await this.viewer())), 'Photo not found!', 404)
     abortIf(!photo.allowsDownload(), 'The photographer keeps all rights to this photo, so it cannot be downloaded.', 403)
@@ -63,7 +62,7 @@ export default class ExploreController extends BaseController {
     })
 
     const space = filters.space ? await Space.browse(filters.space, await this.viewer()) : null
-    const books = await Book.published({ ...filters, space: space?.id })
+    const books = await Book.scope('published', { ...filters, space: space?.id })
       .with(['user', 'space'])
       .paginate(perPage(this.query, { perPage: 24, maxPerPage: 100 }))
 
@@ -76,7 +75,7 @@ export default class ExploreController extends BaseController {
       sort: `nullable|in:${SORTS.join(',')}`,
     })
 
-    const spaces = await Space.published(filters)
+    const spaces = await Space.scope('published', filters)
       .with('user')
       .paginate(perPage(this.query, { perPage: 24, maxPerPage: 100 }))
 
