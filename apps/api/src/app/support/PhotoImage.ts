@@ -17,7 +17,7 @@ export interface RenderOptions {
 }
 
 /**
- * Re-encodes and resizes photos, such as originals that must fit a size cap.
+ * Re-encodes and resizes photos: display copies, size-capped originals and downloads at other sizes.
  * Formats without an encoder here (HEIC) are left as they are.
  */
 export class PhotoImage {
@@ -68,6 +68,11 @@ export class PhotoImage {
     }
 
     return best
+  }
+
+  /** A WebP copy for showing in the app, no longer than `maxEdge` on its longest side. */
+  display(maxEdge: number, quality: number): Promise<EncodedImage> {
+    return this.render({ width: maxEdge, height: maxEdge, quality, mimeType: 'image/webp' }, 'inside')
   }
 
   /** Encode with the given size and quality. Without a size the photo keeps its own. */

@@ -35,7 +35,15 @@ describe('Uploads', () => {
 
     expect(res.status).toBe(201)
     expect(res.body.data).toMatchObject({ mimeType: 'image/png', width: 1, height: 1 })
-    expect(res.body.data.url).toMatch(/\.png$/)
+  })
+
+  it('shows a WebP copy of each photo', async () => {
+    const res = await send('/photos', [['photo', new Blob([pixel], { type: 'image/png' }), 'pixel.png']])
+    const path = new URL(res.body.data.url, 'http://localhost').pathname
+    const shown = await request(app).get(path)
+
+    expect(path).toMatch(/\.display\.webp$/)
+    expect(shown.headers.get('content-type')).toBe('image/webp')
   })
 
   it('compresses originals over the size cap before storing them', async () => {

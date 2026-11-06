@@ -47,6 +47,7 @@ export class Photo extends Model {
   declare spaceId: string | null
   declare disk: string
   declare path: string
+  declare displayPath: string | null
   declare originalName: string | null
   declare mimeType: string
   declare size: number
@@ -83,6 +84,7 @@ export class Photo extends Model {
   protected static override columns = {
     userId: 'user_id',
     spaceId: 'space_id',
+    displayPath: 'display_path',
     originalName: 'original_name',
     mimeType: 'mime_type',
     takenAt: 'taken_at',
@@ -110,22 +112,28 @@ export class Photo extends Model {
   /**
    * Store an upload under the owner's folder and record its path. Type and size come from the file's bytes when readable.
    * Originals over the size cap are compressed first; formats that can't be re-encoded are kept as uploaded.
+   * A WebP copy for showing in the app is stored beside the original.
    */
   static async upload(owner: User, file: UploadedPhoto, details: PhotoDetails = {}): Promise<Photo> {
     const image = ImageFile.read(file.buffer)
     const mimeType = image?.mimeType ?? file.mimetype
-    const original = await new PhotoImage(file.buffer, mimeType).fitWithin(Photo.maxOriginalBytes()).catch(() => null)
+    const upload = new PhotoImage(file.buffer, mimeType)
+    const original = await upload.fitWithin(Photo.maxOriginalBytes()).catch(() => null)
     const bytes = original?.bytes ?? file.buffer
     const disk = Photo.disk()
-    const path = `photos/${owner.id}/${randomUUID()}.${Photo.EXTENSIONS[mimeType] ?? 'bin'}`
+    const name = `photos/${owner.id}/${randomUUID()}`
+    const path = `${name}.${Photo.EXTENSIONS[mimeType] ?? 'bin'}`
 
     await Storage.disk(disk as never).put(path, new Uint8Array(bytes))
+
+    const displayPath = await Photo.storeDisplay(disk, `${name}.display.webp`, upload)
 
     return Photo.query().create({
       userId: owner.id,
       spaceId: details.spaceId ?? null,
       disk,
       path,
+      displayPath,
       originalName: file.originalname?.slice(0, 255) || null,
       mimeType,
       size: bytes.length,
@@ -137,16 +145,44 @@ export class Photo extends Model {
     })
   }
 
-  /** A private copy of this photo, file included, in another person's library. */
-  async copyTo(owner: User): Promise<Photo> {
-    const path = `photos/${owner.id}/${randomUUID()}.${Photo.EXTENSIONS[this.mimeType] ?? 'bin'}`
+  /** Write the WebP display copy of `image` to `path`. Null when the image can't be read. */
+  static async storeDisplay(disk: string, path: string, image: PhotoImage): Promise<string | null> {
+    const display = await image.display(Number(config('photos.display_max_edge')), Number(config('photos.display_quality'))).catch(() => null)
 
-    await Storage.disk(this.disk as never).copy(this.path, path)
+    if (!display) return null
+
+    await Storage.disk(disk as never).put(path, new Uint8Array(display.bytes))
+
+    return path
+  }
+
+  /** Make the display copy from the stored original, for photos uploaded before display copies existed. */
+  async optimise(): Promise<boolean> {
+    const bytes = await Storage.disk(this.disk as never).getBytes(this.path)
+    const displayPath = await Photo.storeDisplay(this.disk, `${this.path.slice(0, this.path.lastIndexOf('.'))}.display.webp`, new PhotoImage(Buffer.from(bytes), this.mimeType))
+
+    if (!displayPath) return false
+
+    await this.update({ displayPath })
+
+    return true
+  }
+
+  /** A private copy of this photo, files included, in another person's library. */
+  async copyTo(owner: User): Promise<Photo> {
+    const storage = Storage.disk(this.disk as never)
+    const name = `photos/${owner.id}/${randomUUID()}`
+    const path = `${name}.${Photo.EXTENSIONS[this.mimeType] ?? 'bin'}`
+    const displayPath = this.displayPath ? `${name}.display.webp` : null
+
+    await storage.copy(this.path, path)
+    if (displayPath) await storage.copy(this.displayPath!, displayPath)
 
     return Photo.query().create({
       userId: owner.id,
       disk: this.disk,
       path,
+      displayPath,
       originalName: this.originalName,
       mimeType: this.mimeType,
       size: this.size,
@@ -250,9 +286,9 @@ export class Photo extends Model {
     })
   }
 
-  /** Only the path is stored; the URL is signed on every read because bucket URLs expire. */
+  /** The display copy, or the original when there is none. Only paths are stored; URLs are signed on every read because bucket URLs expire. */
   url(): Promise<string> {
-    return Storage.disk(this.disk as never).getSignedUrl(this.path, { expiresIn: '6h' })
+    return Storage.disk(this.disk as never).getSignedUrl(this.displayPath ?? this.path, { expiresIn: '6h' })
   }
 
   /** Delete the photo and its file, taking it out of every book first. */
@@ -270,9 +306,10 @@ export class Photo extends Model {
     }
 
     await this.delete()
-    await Storage.disk(this.disk as never)
-      .delete(this.path)
-      .catch(() => undefined)
+
+    for (const path of [this.path, this.displayPath]) {
+      if (path) await Storage.disk(this.disk as never).delete(path).catch(() => undefined)
+    }
   }
 
   /** Whether the photo's space lets `viewer` see it. Photos outside a space always do. */
