@@ -42,12 +42,12 @@ Builds use the profiles in `apps/mobile/eas.json`:
 | `preview` | APK, internal distribution | The `android-apk` job: install directly on phones. |
 | `production` | App Bundle, version code bumped by EAS | The `play-store` job. |
 
-The workflow writes `EAS_PROJECT_ID`, `EAS_OWNER`, `EXPO_PUBLIC_API_URL` and `EXPO_PUBLIC_WEB_URL` into the profile's `env` before building, so the app points at production and `app.config.ts` links the EAS project and the `photos.toneflix.net` app links.
+The EAS project ID is committed in `app.json` (`extra.eas.projectId`). The workflow writes `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_WEB_URL` and, when set, `EAS_PROJECT_ID` and `EAS_OWNER` into the profile's `env` before building, so the app points at production and `app.config.ts` adds the `photos.toneflix.net` app links.
 
 One-time setup:
 
-1. Create the EAS project: in `apps/mobile`, run `npx eas-cli@latest init` (or create it on expo.dev). Copy the project ID into the `EAS_PROJECT_ID` variable. `app.config.ts` reads it from the environment, so nothing needs committing.
-2. Create the Android signing key on EAS: `EAS_PROJECT_ID=<id> npx eas-cli@latest credentials --platform android`, then choose to generate a new keystore. EAS keeps it, and both builders use it. Back it up from the same menu; Play App Signing needs the same upload key for every release.
+1. The EAS project already exists: its ID is in `app.json`. To use a different project, change `extra.eas.projectId` there, or set the `EAS_PROJECT_ID` variable, which overrides it.
+2. Create the Android signing key on EAS: in `apps/mobile`, run `npx eas-cli@latest credentials --platform android`, then choose to generate a new keystore. EAS keeps it, and both builders use it. Back it up from the same menu; Play App Signing needs the same upload key for every release.
 3. Create an Expo access token (expo.dev → Account settings → Access tokens) and save it as the `EXPO_TOKEN` secret.
 4. For Google Play:
    - Create the app in Play Console with package name `net.toneflix.photos`.
@@ -71,7 +71,7 @@ One-time setup:
 | --- | --- | --- |
 | `API_URL` | web, android | Public API address, e.g. `https://api.photos.toneflix.net/api` |
 | `WEB_URL` | android | `https://photos.toneflix.net` (app links and share links) |
-| `EAS_PROJECT_ID` | android | EAS project ID |
+| `EAS_PROJECT_ID` | android, optional | EAS project ID, to override the one in `app.json` |
 | `EAS_OWNER` | android, optional | Expo account or organisation that owns the project |
 | `ANDROID_BUILDER` | android, optional | Default builder on push: `eas` or `runner` |
 | `PLAY_STORE_ON_DEPLOY` | play-store, optional | `true` to submit to Google Play on every push to `deploy` |
