@@ -1,6 +1,7 @@
 import { Arkstack } from '@arkstack/contract'
 import { NotificationConfig } from '@arkstack/notifications'
 import { join } from 'node:path'
+import { SendPulseTransport } from 'nodemailer-sendpulse-transport'
 
 export default (): NotificationConfig => {
   return {

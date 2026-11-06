@@ -104,6 +104,9 @@ importers:
       kysely:
         specifier: ^0.29.2
         version: 0.29.8
+      nodemailer-sendpulse-transport:
+        specifier: ^0.1.0
+        version: 0.1.0
       pg:
         specifier: ^8.22.0
         version: 8.23.1
@@ -5287,6 +5290,9 @@ packages:
   node-releases@2.0.63:
     resolution: {integrity: sha512-6li2QanLsAXpIH2R6j77MzRyvOyrvdTqlKtO4CgBdHGNvN99ZZfyxszHc5o5+IZBWD5u6Hzwg83JoGXmqZNG9Q==}
     engines: {node: '>=18'}
+
+  nodemailer-sendpulse-transport@0.1.0:
+    resolution: {integrity: sha512-MZG7bWg+CfMkSHKbcNN8xAkdFLCNIUQHaxyWdm8HAlZVNrzcYMneUJqyWlCKGcaXnkSnyr96gdHRpaYh+3gHBg==}
 
   nodemailer@9.1.1:
     resolution: {integrity: sha512-izw9mVKFix6YSnC9eLgV6g1opl9DUlRio9ZNcq+Wu9Ujn2UwF+8Nl0B8nz22kEC+CTZCvinkxwJ0DeFbb6NwcQ==}
@@ -12425,6 +12431,10 @@ snapshots:
   node-int64@0.4.0: {}
 
   node-releases@2.0.63: {}
+
+  nodemailer-sendpulse-transport@0.1.0:
+    dependencies:
+      nodemailer: 9.1.1
 
   nodemailer@9.1.1: {}
 
