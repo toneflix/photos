@@ -1,4 +1,5 @@
 import { Book } from '@app/models/Book'
+import { ContentStats } from './ContentStats'
 import { Photo } from '@app/models/Photo'
 import { Space } from '@app/models/Space'
 import { Role } from '@app/models/Role'
@@ -34,6 +35,9 @@ export class AdminOverview {
         total: await Space.query().count(),
         public: await Space.query().where({ visibility: 'public' }).count(),
       },
+      engagement: await ContentStats.totals({}),
+      daily: await ContentStats.daily({}, 30),
+      topPhotos: (await Photo.query().where({ visibility: 'public' }).with('user').latest('viewCount').take(5).get()).all(),
       newUserDays: AdminOverview.NEW_USER_DAYS,
       recentUsers: (await User.query().latest('createdAt').take(5).get()).all(),
     }

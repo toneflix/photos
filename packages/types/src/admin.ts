@@ -36,9 +36,34 @@ export interface AdminOverview {
   photos: { total: number; public: number; storageBytes: number }
   books: { total: number; public: number }
   spaces: { total: number; public: number }
+  /** All-time views and downloads of everything. */
+  engagement: { views: number; downloads: number }
+  /** Views and downloads per day over the last 30 days. */
+  daily: StatsDay[]
+  /** The most viewed public photos. */
+  topPhotos: ModerationItem[]
   /** How many days count as new for `users.new`. */
   newUserDays: number
   recentUsers: AdminUser[]
+}
+
+/** Views and downloads on one day (YYYY-MM-DD). */
+export interface StatsDay {
+  date: string
+  views: number
+  downloads: number
+}
+
+/** An account for its admin page. */
+export interface AdminUserDetail extends AdminUser {
+  spaceCount: number
+  publicPhotoCount: number
+  publicBookCount: number
+  showCounts: boolean
+  totals: { views: number; downloads: number }
+  daily: StatsDay[]
+  topPhotos: ModerationItem[]
+  topBooks: ModerationItem[]
 }
 
 export type ModeratedKind = 'photos' | 'books' | 'spaces'
@@ -51,8 +76,20 @@ export interface ModerationItem {
   imageUrl: string | null
   visibility: string
   publishedAt: string | null
+  viewCount: number
+  /** Null for spaces, which have nothing to download. */
+  downloadCount: number | null
   owner: { id: ID; name: string; email: string } | null
 }
+
+/** A public item for its admin page. */
+export interface ModerationItemDetail extends ModerationItem {
+  details: { label: string; value: string }[]
+  daily: StatsDay[]
+  createdAt: string
+}
+
+export type ModerationSort = 'latest' | 'views' | 'downloads'
 
 export type SettingType = 'number' | 'boolean' | 'select'
 
