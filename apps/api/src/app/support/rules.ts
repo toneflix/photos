@@ -36,10 +36,24 @@ export const downloadSize = (sizes: string[]) => ({
   height: 'nullable|integer|min:1|max:12000',
 })
 
-/** Rules for a photo position at `attribute`: which part of the photo shows, and how far it is zoomed. */
+/** Which part of a photo shows and how far it is zoomed: x and y from 0 to 100, zoom within PHOTO_ZOOM. Each is optional. */
+export class PhotoPositionRule extends ValidationRule {
+  validate(attribute: string, value: any, fail: (message: string) => any): void {
+    if (typeof value !== 'object' || Array.isArray(value)) return fail(`The ${attribute} must be an object with x, y and zoom.`)
+
+    const limits = { x: [0, 100], y: [0, 100], zoom: [PHOTO_ZOOM.min, PHOTO_ZOOM.max] } as const
+
+    for (const [key, [min, max]] of Object.entries(limits)) {
+      const part = value[key]
+
+      if (part === null || part === undefined) continue
+      if (typeof part !== 'number' && (typeof part !== 'string' || part.trim() === '')) return fail(`The ${attribute}.${key} must be a number.`)
+      if (!(Number(part) >= min && Number(part) <= max)) return fail(`The ${attribute}.${key} must be between ${min} and ${max}.`)
+    }
+  }
+}
+
+/** Rules for a photo position at `attribute`, which may be null for the centre. */
 export const photoPosition = (attribute: string) => ({
-  [attribute]: 'nullable',
-  [`${attribute}.x`]: 'nullable|numeric|min:0|max:100',
-  [`${attribute}.y`]: 'nullable|numeric|min:0|max:100',
-  [`${attribute}.zoom`]: `nullable|numeric|min:${PHOTO_ZOOM.min}|max:${PHOTO_ZOOM.max}`,
+  [attribute]: ['nullable', new PhotoPositionRule()],
 })
