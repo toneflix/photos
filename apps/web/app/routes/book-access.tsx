@@ -4,6 +4,7 @@ import { BOOK_PERMISSIONS, type BookAccessCode, type BookPermission } from "@pho
 import { formError } from "~/lib/api.server";
 import { requireSignIn } from "~/lib/session.server";
 import { Alert, Button, Field, Input, Select } from "~/components/ui";
+import { copyText } from "~/lib/toast";
 import type { Route } from "./+types/book-access";
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -177,18 +178,11 @@ function PermissionPicker({ selected = ["view"] }: { selected?: BookPermission[]
 function CodeCard({ code, highlight }: { code: BookAccessCode; highlight: boolean }) {
 	const fetcher = useFetcher<typeof action>();
 	const [editing, setEditing] = useState(false);
-	const [copied, setCopied] = useState<"code" | "link" | null>(null);
 	const revoking = fetcher.state !== "idle" && fetcher.formData?.get("intent") === "revoke";
 
 	useEffect(() => {
 		if (fetcher.state === "idle" && fetcher.data?.ok) setEditing(false);
 	}, [fetcher.state, fetcher.data]);
-
-	const copy = async (what: "code" | "link") => {
-		await navigator.clipboard?.writeText(what === "code" ? code.code : code.shareUrl).catch(() => {});
-		setCopied(what);
-		setTimeout(() => setCopied(null), 1500);
-	};
 
 	return (
 		<li className={`panel p-5 transition ${highlight ? "!border-brand-600" : ""} ${revoking ? "opacity-50" : ""}`}>
@@ -198,11 +192,11 @@ function CodeCard({ code, highlight }: { code: BookAccessCode; highlight: boolea
 					<p className="mt-0.5 truncate text-sm text-ink-700">{code.label ?? "No label"}</p>
 				</div>
 				<div className="flex flex-wrap gap-2">
-					<Button variant="secondary" onClick={() => copy("code")}>
-						{copied === "code" ? "Copied" : "Copy code"}
+					<Button variant="secondary" onClick={() => copyText(code.code, "Code copied.")}>
+						Copy code
 					</Button>
-					<Button variant="secondary" onClick={() => copy("link")}>
-						{copied === "link" ? "Copied" : "Copy link"}
+					<Button variant="secondary" onClick={() => copyText(code.shareUrl, "Link copied.")}>
+						Copy link
 					</Button>
 				</div>
 			</div>

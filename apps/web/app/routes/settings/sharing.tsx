@@ -3,7 +3,8 @@ import type { PhotoLicense, Visibility } from "@photos/types";
 import { LICENSES } from "~/lib/licenses";
 import { requireSignIn, requireUser } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
-import { Button, Notice } from "~/components/ui";
+import { useToastMessage } from "~/lib/toast";
+import { Button } from "~/components/ui";
 import { PageHeader, Section, resultFor } from "~/components/settings/Section";
 import type { Route } from "./+types/sharing";
 
@@ -50,6 +51,8 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function Sharing({ loaderData, actionData }: Route.ComponentProps) {
+	useToastMessage(actionData);
+
 	const { user } = loaderData;
 	const navigation = useNavigation();
 	const busy = (intent: string) => navigation.state !== "idle" && navigation.formData?.get("intent") === intent;
@@ -135,7 +138,6 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 							<Button type="submit" disabled={busy("privacy")}>
 								{busy("privacy") ? "Saving…" : "Save"}
 							</Button>
-							{privacy?.message && <span className="text-sm text-emerald-700">{privacy.message}</span>}
 						</div>
 					</Form>
 				</Section>
@@ -146,11 +148,6 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 							Make all books private
 						</Button>
 					</Form>
-					{lock?.message && (
-						<div className="mt-4">
-							<Notice>{lock.message}</Notice>
-						</div>
-					)}
 				</Section>
 			</div>
 		</>

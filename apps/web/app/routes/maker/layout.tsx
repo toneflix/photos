@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { data, Link, NavLink, Outlet, redirect, type ShouldRevalidateFunctionArgs } from "react-router";
 import { Avatar } from "~/components/Avatar";
 import { ContentCounts } from "~/components/ContentCounts";
@@ -6,6 +5,7 @@ import { buttonClass } from "~/components/ui";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { getServerApi } from "~/lib/api.server";
 import { revalidateOnSubmit } from "~/lib/revalidate";
+import { copyText } from "~/lib/toast";
 import type { Route } from "./+types/layout";
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -53,14 +53,9 @@ const plural = (count: number, one: string) => `${number.format(count)} ${count 
 /** The maker's header with Photos, Books and Spaces tabs. Each tab lists their public work like Explore does. */
 export default function MakerLayout({ loaderData }: Route.ComponentProps) {
 	const { maker } = loaderData;
-	const [copied, setCopied] = useState(false);
 	const base = `/makers/${maker.username}`;
 
-	const share = async () => {
-		await navigator.clipboard?.writeText(window.location.href.split("?")[0]).catch(() => {});
-		setCopied(true);
-		setTimeout(() => setCopied(false), 1500);
-	};
+	const share = () => copyText(window.location.href.split("?")[0], "Link copied.");
 
 	return (
 		<main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
@@ -88,7 +83,7 @@ export default function MakerLayout({ loaderData }: Route.ComponentProps) {
 				<div className="mt-5 flex flex-wrap gap-2">
 					{maker.isListed && (
 						<button type="button" onClick={share} className={buttonClass("secondary")}>
-							{copied ? "Link copied" : "Copy link"}
+							Copy link
 						</button>
 					)}
 					{maker.isOwner && (

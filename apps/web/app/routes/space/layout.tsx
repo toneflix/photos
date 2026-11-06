@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ContentCounts } from "~/components/ContentCounts";
 import { data, Link, NavLink, Outlet, type ShouldRevalidateFunctionArgs } from "react-router";
 import { cloudflareContext } from "~/lib/cloudflare";
@@ -8,6 +7,7 @@ import { Owner } from "~/components/explore/Owner";
 import { SpaceCover } from "~/components/spaces/SpaceCover";
 import { VisibilityBadge, spaceCounts } from "~/components/spaces/SpaceCard";
 import { buttonClass } from "~/components/ui";
+import { copyText } from "~/lib/toast";
 import type { Route } from "./+types/layout";
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -41,15 +41,10 @@ const tab = ({ isActive }: { isActive: boolean }) =>
 /** The space's header with its Photos and Books tabs. Browsing below works like Explore, kept to this space. */
 export default function SpaceLayout({ loaderData }: Route.ComponentProps) {
 	const { space } = loaderData;
-	const [copied, setCopied] = useState(false);
 	const canAdd = !space.canEdit && space.permissions.includes("create");
 	const canManage = space.permissions.includes("manage");
 
-	const share = async () => {
-		await navigator.clipboard?.writeText(window.location.href.split("?")[0]).catch(() => {});
-		setCopied(true);
-		setTimeout(() => setCopied(false), 1500);
-	};
+	const share = () => copyText(window.location.href.split("?")[0], "Link copied.");
 
 	return (
 		<main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
@@ -82,7 +77,7 @@ export default function SpaceLayout({ loaderData }: Route.ComponentProps) {
 					<div className="mt-5 flex flex-wrap gap-2">
 						{space.visibility === "public" && (
 							<button type="button" onClick={share} className={buttonClass("secondary")}>
-								{copied ? "Link copied" : "Copy link"}
+								Copy link
 							</button>
 						)}
 						{space.canEdit && (

@@ -3,6 +3,7 @@ import { Link, data, redirect, useFetcher } from "react-router";
 import type { PaymentRegion, PaymentRegionInput } from "@photos/types";
 import { AdminHeader } from "~/components/admin/AdminHeader";
 import { Icon } from "~/components/admin/Icon";
+import { useToastMessage } from "~/lib/toast";
 import { Alert, Button, buttonClass } from "~/components/ui";
 import { formError } from "~/lib/api.server";
 import { requireAdmin } from "~/lib/admin.server";
@@ -123,6 +124,9 @@ function RegionEditor({ region }: { region: PaymentRegion | null }) {
 	const [changed, setChanged] = useState(false);
 	const busy = fetcher.state !== "idle";
 	const result = fetcher.state === "idle" && !changed ? fetcher.data : undefined;
+
+	useToastMessage(fetcher.data);
+
 	const errors = result?.fieldErrors ?? {};
 	const countries = form.countries
 		.split(/[\s,]+/)
@@ -218,11 +222,6 @@ function RegionEditor({ region }: { region: PaymentRegion | null }) {
 				</label>
 			</div>
 			<div className="sticky bottom-0 flex items-center justify-end gap-3 border-t-[1.5px] border-surface-200 bg-canvas/95 px-4 py-4 backdrop-blur sm:px-8">
-				{result?.message && (
-					<span role="status" className="text-sm text-emerald-700">
-						{result.message}
-					</span>
-				)}
 				{region && (
 					<Button
 						variant="danger"

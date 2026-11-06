@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { Form, useNavigation } from "react-router";
 import QRCode from "qrcode";
 import type { TwoFactorStatus } from "@photos/types";
 import { requireSignIn } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
-import { Button, Field, Input, Notice, OtpInput } from "~/components/ui";
+import { copyText, useToastMessage } from "~/lib/toast";
+import { Button, Field, Input, OtpInput } from "~/components/ui";
 import { PageHeader, Section, resultFor, type SettingsResult } from "~/components/settings/Section";
 import type { Route } from "./+types/two-step";
 
@@ -69,6 +69,8 @@ type Result = SettingsResult & {
 };
 
 export default function TwoStepPage({ loaderData, actionData }: Route.ComponentProps) {
+	useToastMessage(actionData);
+
 	const result = (actionData ?? undefined) as Result | undefined;
 	const navigation = useNavigation();
 	const busy = (intent: string) => navigation.state !== "idle" && navigation.formData?.get("intent") === intent;
@@ -95,7 +97,7 @@ function TwoStep({ status, result, busy }: { status: TwoFactorStatus; result?: R
 	return (
 		<Section>
 			{recoveryCodes ? (
-				<RecoveryCodes codes={recoveryCodes} message={enable?.message ?? regenerated?.message ?? null} />
+				<RecoveryCodes codes={recoveryCodes} />
 			) : status.enabled ? (
 				<div className="space-y-6">
 					<div className="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-emerald-50 px-4 py-3">
@@ -126,7 +128,6 @@ function TwoStep({ status, result, busy }: { status: TwoFactorStatus; result?: R
 				<SetupSteps setup={pending} result={enable} busy={busy("two-factor-enable")} />
 			) : (
 				<div className="space-y-4">
-					{disable?.message && <Notice>{disable.message}</Notice>}
 					<p className="flex items-center gap-2 text-sm text-ink-500">
 						<span className="h-2 w-2 rounded-full bg-surface-300" /> Off. Anyone with your password can sign in.
 					</p>
@@ -177,13 +178,11 @@ function SetupSteps({ setup, result, busy }: { setup: NonNullable<Result["setup"
 	);
 }
 
-function RecoveryCodes({ codes, message }: { codes: string[]; message: string | null }) {
-	const [copied, setCopied] = useState(false);
+function RecoveryCodes({ codes }: { codes: string[] }) {
 	const text = codes.join("\n");
 
 	return (
 		<div className="space-y-4">
-			{message && <Notice>{message}</Notice>}
 			<p className="text-sm text-ink-700">
 				Save these recovery codes somewhere safe. Each one signs you in once if you lose your phone. You won't see them again.
 			</p>
@@ -193,11 +192,8 @@ function RecoveryCodes({ codes, message }: { codes: string[]; message: string | 
 				))}
 			</ul>
 			<div className="flex flex-wrap gap-2">
-				<Button
-					variant="secondary"
-					onClick={() => navigator.clipboard.writeText(text).then(() => setCopied(true))}
-				>
-					{copied ? "Copied" : "Copy"}
+				<Button variant="secondary" onClick={() => copyText(text, "Recovery codes copied.")}>
+					Copy
 				</Button>
 				<a
 					href={`data:text/plain;charset=utf-8,${encodeURIComponent(`Toneflix Photos recovery codes\n\n${text}\n`)}`}

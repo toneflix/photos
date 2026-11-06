@@ -1,7 +1,8 @@
 import { Form, useNavigation } from "react-router";
 import { requireSignIn, requireUser } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
-import { Alert, Button, Field, Input, Notice } from "~/components/ui";
+import { useToastMessage } from "~/lib/toast";
+import { Alert, Button, Field, Input } from "~/components/ui";
 import { PageHeader, Section, resultFor } from "~/components/settings/Section";
 import type { Route } from "./+types/email";
 
@@ -36,6 +37,8 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function Email({ loaderData, actionData }: Route.ComponentProps) {
+	useToastMessage(actionData);
+
 	const { user } = loaderData;
 	const navigation = useNavigation();
 	const busy = (intent: string) => navigation.state !== "idle" && navigation.formData?.get("intent") === intent;
@@ -64,11 +67,6 @@ export default function Email({ loaderData, actionData }: Route.ComponentProps) 
 							</Form>
 						)}
 					</div>
-					{verify?.message && (
-						<div className="mt-4">
-							<Notice>{verify.message}</Notice>
-						</div>
-					)}
 					{verify?.error && (
 						<div className="mt-4">
 							<Alert>{verify.error}</Alert>
@@ -88,7 +86,6 @@ export default function Email({ loaderData, actionData }: Route.ComponentProps) 
 						<Button type="submit" disabled={busy("email")}>
 							{busy("email") ? "Changing…" : "Change email"}
 						</Button>
-						{change?.message && <Notice>{change.message}</Notice>}
 					</Form>
 				</Section>
 			</div>

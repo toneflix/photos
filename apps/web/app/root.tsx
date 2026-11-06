@@ -10,6 +10,7 @@ import {
 import { DEFAULT_LIMITS } from "@photos/types";
 import type { Route } from "./+types/root";
 import { NavigationProgress } from "./components/NavigationProgress";
+import { Toaster } from "./components/Toaster";
 import { cloudflareContext } from "./lib/cloudflare";
 import { getServerApi } from "./lib/api.server";
 import "@toneflix/flipbook-react/style.css";
@@ -67,6 +68,7 @@ export default function App() {
 		<>
 			<NavigationProgress />
 			<Outlet />
+			<Toaster />
 		</>
 	);
 }
