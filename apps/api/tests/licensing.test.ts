@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { app } from '../src/core/bootstrap'
 import request from 'parasito'
 import sharp from 'sharp'
+import { putOnPlan } from './support/plans'
 
 const pixel = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
@@ -33,12 +34,14 @@ describe('Licensing', () => {
   }
 
   beforeAll(async () => {
+    const email = `license-${Date.now()}@toneflix.test`
     const register = await request(app)
       .post('/api/auth/register')
       .set({ Accept: 'application/json' })
-      .send({ name: 'Lens Owner', email: `license-${Date.now()}@toneflix.test`, password: 'password123' })
+      .send({ name: 'Lens Owner', email, password: 'password123' })
 
     token = register.body.data.token
+    putOnPlan(email)
 
     const photo = await upload()
 

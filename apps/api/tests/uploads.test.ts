@@ -4,6 +4,7 @@ import { app } from '../src/core/bootstrap'
 import request from 'parasito'
 import { randomBytes } from 'node:crypto'
 import sharp from 'sharp'
+import { seedPlans } from './support/plans'
 
 const pixel = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
@@ -22,6 +23,8 @@ describe('Uploads', () => {
   }
 
   beforeAll(async () => {
+    seedPlans()
+
     const register = await request(app)
       .post('/api/auth/register')
       .set({ Accept: 'application/json' })
@@ -71,11 +74,18 @@ describe('Uploads', () => {
     expect(avatar.status).toBe(422)
   })
 
-  it('refuses files over 25 MB before reading them in full', async () => {
-    const res = await send('/photos', [['photo', new Blob([Buffer.alloc(26 * 1024 * 1024)], { type: 'image/png' }), 'big.png']])
+  it('refuses files over the largest plan upload before reading them in full', async () => {
+    const res = await send('/photos', [['photo', new Blob([Buffer.alloc(51 * 1024 * 1024)], { type: 'image/png' }), 'big.png']])
 
     expect(res.status).toBe(413)
-    expect(res.body.message).toBe('Files can be up to 25 MB.')
+    expect(res.body.message).toBe('Files can be up to 50 MB.')
+  })
+
+  it('keeps free accounts to the upload setting', async () => {
+    const res = await send('/photos', [['photo', new Blob([Buffer.alloc(26 * 1024 * 1024)], { type: 'image/png' }), 'big.png']])
+
+    expect(res.status).toBe(422)
+    expect(res.body.errors.photo).toBeDefined()
   })
 
   it('takes one file per request', async () => {

@@ -4,6 +4,7 @@ export * from './flipbook'
 export * from './layouts'
 export * from './licenses'
 export * from './models'
+export * from './plans'
 export {
   COVER_DESIGNS,
   COVER_THEMES,

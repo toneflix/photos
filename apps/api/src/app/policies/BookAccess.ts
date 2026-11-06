@@ -3,6 +3,7 @@ import type { Book } from '@app/models/Book'
 import type { Photo } from '@app/models/Photo'
 import { BookAccessCode, type BookPermission } from '@app/models/BookAccessCode'
 import type { User } from '@app/models/User'
+import { Limits } from './Limits'
 
 /**
  * What one visitor may do with one book. Owners may do everything; anyone may open
@@ -34,6 +35,13 @@ export class BookAccess {
   /** Whether this visitor may download a photo's original from the book: owners and transfer holders always, everyone else only under an open licence. */
   mayDownload(photo: Photo): boolean {
     return this.can('transfer') || photo.allowsDownload()
+  }
+
+  /** Whether the whole book can be downloaded as a zip, which the owner's plan decides. */
+  async mayDownloadBook(): Promise<boolean> {
+    const owner = await this.book.user().first()
+
+    return (await Limits.for(owner)).allows('book_zip')
   }
 
   /** Every permission this visitor has, for clients to show the right controls. */

@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 
 import { app } from '../src/core/bootstrap'
 import request from 'parasito'
+import { putOnPlan } from './support/plans'
 
 const pixel = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
@@ -46,6 +47,7 @@ describe('Book access codes', () => {
       const register = await api('post', '/auth/register', { name: `Ada ${who}`, email, password: 'password123' })
 
       tokens[who] = register.body.data.token
+      putOnPlan(email)
     }
 
     photoId = (await upload('/photos', { Authorization: `Bearer ${tokens.photographer}` })).body.data.id

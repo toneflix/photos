@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 
 import { app } from '../src/core/bootstrap'
 import request from 'parasito'
+import { putOnPlan } from './support/plans'
 
 const pixel = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')
 
@@ -39,15 +40,18 @@ describe('Spaces', () => {
   let bookId = ''
 
   beforeAll(async () => {
+    const emails: Record<string, string> = { owner: `space-owner-${Date.now()}@toneflix.test`, other: `space-other-${Date.now()}@toneflix.test` }
+
     for (const who of ['owner', 'other']) {
       const register = await api(
         'post',
         '/auth/register',
-        { name: `Space ${who}`, email: `space-${who}-${Date.now()}@toneflix.test`, password: 'password123' },
+        { name: `Space ${who}`, email: emails[who], password: 'password123' },
         null,
       )
 
       tokens[who] = register.body.data.token
+      putOnPlan(emails[who])
     }
   })
 

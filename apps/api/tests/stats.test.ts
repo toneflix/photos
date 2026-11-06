@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { app } from '../src/core/bootstrap'
 import { execFileSync } from 'node:child_process'
 import request from 'parasito'
+import { putOnPlan } from './support/plans'
 
 const pixel = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')
 
@@ -32,6 +33,7 @@ describe('Views and downloads', () => {
 
       tokens[who] = register.body.data.token
       accounts[who] = { id: register.body.data.user.id, email }
+      putOnPlan(email)
     }
 
     execFileSync('npx', ['ark', 'users:role', accounts.admin.email, 'admin'], { cwd: process.cwd() })

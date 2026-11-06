@@ -1,14 +1,17 @@
 import { BaseController } from './BaseController'
 import { GenericResource } from 'resora'
 import { Settings } from '@app/support/Settings'
+import { Limits } from '@app/policies/Limits'
 
-/** Limits apps check before sending anything, so people hear about them early. */
+/** Limits apps check before sending anything, so people hear about them early. Signed in, they follow the account's plan. */
 export default class LimitsController extends BaseController {
   async show() {
+    const limits = await Limits.for(await this.viewer())
+
     return new GenericResource({
-      maxPhotoMb: await Settings.number('uploads.max_photo_mb'),
+      maxPhotoMb: (await limits.photoKb()) / 1024,
       maxAvatarMb: await Settings.number('uploads.max_avatar_mb'),
-      maxBookPages: await Settings.number('books.max_pages'),
+      maxBookPages: await limits.get('max_book_pages'),
       registrationOpen: Boolean(await Settings.get('accounts.registration_open')),
     }).additional({ status: 'success', message: 'OK', code: 200 })
   }

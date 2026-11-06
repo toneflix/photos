@@ -1,4 +1,5 @@
 import type {
+  AccountPlan,
   AdminOverview,
   AdminUser,
   AdminUserDetail,
@@ -18,6 +19,7 @@ import type {
   ModerationSort,
   BookQuery,
   PhotoQuery,
+  Plan,
   PageQuery,
   PaginatedResponse,
   PermissionDefinition,
@@ -60,6 +62,9 @@ export function createEndpoints(alova: PhotosAlova) {
     /** Upload sizes and other limits to check before sending anything. Works signed out. */
     limits: () => alova.Get<ApiResponse<AppLimits>>('/limits', { cacheFor: null }),
 
+    /** Plans on offer, cheapest first. Works signed out. */
+    plans: () => alova.Get<ApiResponse<Plan[]>>('/plans', { cacheFor: null }),
+
     auth: {
       /** Signs in, or asks for a two-factor code when the account has it on. */
       login: (data: { email: string; password: string }) =>
@@ -78,6 +83,7 @@ export function createEndpoints(alova: PhotosAlova) {
     },
 
     account: {
+      plan: () => alova.Get<ApiResponse<AccountPlan>>('/account/plan', { cacheFor: null }),
       updateProfile: (data: { name: string }) => alova.Put<ApiResponse<User>>('/account/profile', data),
       /** `file` is a File/Blob on web, or an RN `{ uri, name, type }` object. */
       updateAvatar: (file: Blob | { uri: string; name: string; type: string }) => {

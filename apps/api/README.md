@@ -21,6 +21,16 @@ npm install
 npx ark migrate dev
 ```
 
+### Seed the plans
+
+Creates the Free (default) and Premium plans. Plans that already exist are left alone.
+
+```sh
+npx ark seed PlanSeeder
+```
+
+Put an account on a plan without payment with `npx ark users:plan you@example.com premium` (`free` ends any paid time).
+
 ### Start dev server
 
 ```sh

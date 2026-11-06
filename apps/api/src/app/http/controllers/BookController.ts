@@ -8,7 +8,7 @@ import { BookDetailResource } from '@app/http/resources/BookDetailResource'
 import { Photo } from '@app/models/Photo'
 import { SORTS } from '@app/support/search'
 import { UUID, photoFile, photoPosition } from '@app/support/rules'
-import { Settings } from '@app/support/Settings'
+import { Limits } from '@app/policies/Limits'
 import { ContentStats } from '@app/services/ContentStats'
 
 const VISIBILITY = `in:${Book.VISIBILITIES.join(',')}`
@@ -16,6 +16,9 @@ const THEME = `in:${Book.THEMES.join(',')}`
 const PAPER = `in:${Book.PAPERS.join(',')}`
 const FRAME = `in:${Book.FRAMES.join(',')}`
 const COVER_DESIGN = `in:${Book.COVER_DESIGNS.join(',')}`
+
+/** The most pages one save may send. Each plan sets its own limit under this. */
+const MAX_PAGES = 2000
 
 /**
  * Photo books and their pages.
@@ -47,6 +50,11 @@ export default class BookController extends BaseController {
       frame: `nullable|${FRAME}`,
       spaceId: ['nullable', UUID],
     })
+
+    const limits = await Limits.for(this.user)
+
+    await limits.ensureCanCreateBook()
+    await limits.ensureCoverDesign(data.coverDesign)
 
     const space = data.spaceId ? await this.user.spaces().findOrFail(data.spaceId) : null
     const visibility = data.visibility || this.user.defaultVisibility || 'private'
@@ -100,6 +108,8 @@ export default class BookController extends BaseController {
 
     abortIf((!!data.visibility || 'spaceId' in data) && !access.isOwner, 'Only the owner can change who can open this book or its space.', 403)
 
+    await (await Limits.for(await book.user().first())).ensureCoverDesign(data.coverDesign, book.coverDesign)
+
     if (data.title) book.title = String(data.title).trim()
     if ('description' in data) book.description = data.description || null
     if (data.visibility) book.setVisibility(data.visibility)
@@ -137,7 +147,7 @@ export default class BookController extends BaseController {
     const access = (await this.access()).authorize('edit')
     const book = access.book
     const data = await this.validate({
-      pages: `present|array|max:${await Settings.number('books.max_pages')}`,
+      pages: `present|array|max:${MAX_PAGES}`,
       'pages.*.layout': `nullable|in:${Book.LAYOUTS.join(',')}`,
       'pages.*.frame': `nullable|${FRAME}`,
       'pages.*.caption': 'nullable|string|max:500',
@@ -149,6 +159,15 @@ export default class BookController extends BaseController {
       ...photoPosition('pages.*.photoPositions.*'),
     })
 
+    const limits = await Limits.for(await book.user().first())
+    const current = (await book.orderedPages()).map((page) => page.layout)
+
+    await limits.ensurePageCount(data.pages.length)
+    await limits.ensurePageLayouts(
+      data.pages.map((page: { layout?: string | null }) => page.layout),
+      current,
+    )
+
     await book.replacePages(data.pages)
 
     return new BookDetailResource(book).for(access).additional({ status: 'success', message: 'Book saved', code: 200 })
@@ -158,14 +177,18 @@ export default class BookController extends BaseController {
   async addPhoto() {
     const access = (await this.access()).authorize('add')
     const book = access.book
+    const owner = await book.user().firstOrFail()
+    const limits = await Limits.for(owner)
     const data = await this.validate({
-      photo: photoFile((await Settings.number('uploads.max_photo_mb')) * 1024),
+      photo: photoFile(await limits.photoKb()),
       width: 'nullable|integer|min:1',
       height: 'nullable|integer|min:1',
       caption: 'nullable|string|max:500',
     })
 
-    const owner = await book.user().firstOrFail()
+    await limits.ensurePageCount((await book.pages().count()) + 1, 'photo')
+    await limits.ensureRoomFor(Math.min(data.photo.size, await Photo.maxOriginalBytes()))
+
     const photo = await Photo.upload(owner, data.photo, {
       width: data.width ? Number(data.width) : null,
       height: data.height ? Number(data.height) : null,
@@ -183,6 +206,13 @@ export default class BookController extends BaseController {
   /** The book's original photos as a zip, limited to the ones this visitor may download. */
   async download() {
     const access = (await this.access()).authorize('view')
+
+    abortIf(
+      !(await access.mayDownloadBook()),
+      access.isOwner ? 'Book downloads are not included in your plan.' : 'This book can only be downloaded photo by photo.',
+      403,
+    )
+
     const archive = await BookArchive.for(access)
 
     abortIf(!archive.total, 'This book has no photos yet.', 404)
