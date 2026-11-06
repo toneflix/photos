@@ -2,6 +2,8 @@
 
 The API (`apps/api`) is deployed over SSH to `/var/www/api.photos.toneflix.net` by the **Deploy API** workflow (`.github/workflows/deploy-api.yml`). The workflow uploads the API's source, and the server installs, builds, migrates and restarts it. Each deploy is a separate release, so a bad deploy can be rolled back.
 
+To run the API on Railway instead, see [deploy-railway.md](./deploy-railway.md).
+
 ## How a deploy works
 
 1. **Check** (optional on manual runs): typecheck and test the API against a throwaway PostgreSQL, the same way CI does.
