@@ -1,5 +1,6 @@
 import { Form, Link, useNavigation, useSearchParams, useSubmit } from "react-router";
-import { Counts, UnpublishButton } from "~/components/admin/ContentParts";
+import { UnpublishButton } from "~/components/admin/ContentParts";
+import { Counts } from "~/components/stats/TopList";
 import type { ModerationItem, ModerationSort } from "@photos/types";
 import { AdminHeader } from "~/components/admin/AdminHeader";
 import { CONTENT_KINDS, contentKind } from "~/components/admin/content";

@@ -3,7 +3,7 @@ import type { PhotoLicense } from "@photos/types";
 import { licenseFor } from "~/lib/licenses";
 import { AdminHeader } from "~/components/admin/AdminHeader";
 import { UnpublishButton } from "~/components/admin/ContentParts";
-import { RANGES, RangePicker, StatTiles, StatsChart } from "~/components/admin/StatsChart";
+import { RANGES, RangePicker, StatTiles, StatsChart } from "~/components/stats/StatsChart";
 import { contentKind, publicLink } from "~/components/admin/content";
 import { Alert, buttonClass } from "~/components/ui";
 import { formError } from "~/lib/api.server";

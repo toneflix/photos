@@ -303,6 +303,11 @@ function PhotoDialog({ photo: initial, spaces, onClose }: { photo: Photo; spaces
 							</div>
 						)}
 						{photo.takenAt && <div>{new Date(photo.takenAt).toLocaleDateString(undefined, { dateStyle: "long" })}</div>}
+						<div>
+							<Link prefetch="intent" to={`/stats/photos/${photo.id}`} className="font-medium text-brand-700 hover:underline">
+								See views and downloads
+							</Link>
+						</div>
 					</dl>
 					<visibility.Form method="post" className="flex items-start justify-between gap-4 rounded-lg bg-surface-100 p-3">
 						<input type="hidden" name="intent" value="visibility" />
