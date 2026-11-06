@@ -33,6 +33,8 @@ export interface PageInput {
 export class Book extends Model {
   declare id: string
   declare userId: string
+  /** Who made the book. It keeps their branding and copyright after a client claims it. */
+  declare creatorId: string | null
   declare spaceId: string | null
   declare title: string
   declare description: string | null
@@ -46,6 +48,12 @@ export class Book extends Model {
   declare coverPosition: PhotoPosition | null
   declare paper: string
   declare frame: string
+  /** The owner's own line above the cover title, in place of the Toneflix one. */
+  declare kicker: string | null
+  /** The owner's brand, printed on the back cover above the imprint. */
+  declare brand: string | null
+  /** The owner's own name on the back cover, in place of Toneflix Photos. */
+  declare imprint: string | null
   declare publishedAt: Date | null
   declare viewCount: number
   declare downloadCount: number
@@ -63,6 +71,7 @@ export class Book extends Model {
 
   protected static override columns = {
     userId: 'user_id',
+    creatorId: 'creator_id',
     spaceId: 'space_id',
     coverPhotoId: 'cover_photo_id',
     coverDesign: 'cover_design',
@@ -86,6 +95,10 @@ export class Book extends Model {
 
   user() {
     return this.belongsTo(User, 'userId')
+  }
+
+  creator() {
+    return this.belongsTo(User, 'creatorId')
   }
 
   pages() {
@@ -166,6 +179,16 @@ export class Book extends Model {
 
   isOwnedBy(viewer: User | null): boolean {
     return viewer?.id === this.userId
+  }
+
+  /** Whether `viewer` made the book. Only the maker sets its branding. */
+  isMadeBy(viewer: User | null): boolean {
+    return !!viewer && viewer.id === (this.creatorId ?? this.userId)
+  }
+
+  /** Whose plan decides the book's branding: its maker, or its owner when the maker's account is gone. */
+  async brandedBy(): Promise<User | null> {
+    return (this.creatorId && (await this.creator().first())) || this.user().first()
   }
 
   /** Pages in reading order. */

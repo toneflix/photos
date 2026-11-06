@@ -1,11 +1,13 @@
 import type { Book } from '@app/models/Book'
 import { PhotoResource } from './PhotoResource'
 import { Resource } from 'resora'
+import { Limits } from '@app/policies/Limits'
 
 export class BookResource extends Resource {
   async data() {
     const book = this.resource as Book
     const cover = await book.coverPhoto()
+    const maker = await book.brandedBy()
 
     return {
       id: book.id,
@@ -23,6 +25,7 @@ export class BookResource extends Resource {
       coverText: book.coverText,
       paper: book.paper,
       frame: book.frame,
+      branding: await (await Limits.for(maker)).branding(book),
       pageCount: await book.pages().count(),
       createdAt: book.createdAt,
       updatedAt: book.updatedAt,

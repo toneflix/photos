@@ -3,6 +3,7 @@ import type { BookAccess } from '@app/policies/BookAccess'
 import { BookResource } from './BookResource'
 import { ContentStats } from '@app/services/ContentStats'
 import { Photo } from '@app/models/Photo'
+import { Limits } from '@app/policies/Limits'
 import { PhotoResource } from './PhotoResource'
 
 /** A book with every page and its photos, as the viewer and editor open it. */
@@ -43,6 +44,12 @@ export class BookDetailResource extends BookResource {
       permissions: this.access?.permissions() ?? ['view'],
       stats: ContentStats.shown(book, owner, this.access?.viewer ?? null),
       owner: { id: book.userId, name: owner && (owner.showOwnerName || this.access?.isOwner) ? owner.name : '' },
+      ...(book.isMadeBy(this.access?.viewer ?? null)
+        ? {
+            customBranding: { kicker: book.kicker, brand: book.brand, imprint: book.imprint },
+            brandingAllowed: await (await Limits.for(this.access!.viewer)).brandingAllowed(),
+          }
+        : {}),
     }
   }
 }
