@@ -68,7 +68,7 @@ Runs never overlap: a second deploy waits for the first to finish.
    | `APP_URL` | Public API address, e.g. `https://api.photos.toneflix.net` |
    | `FRONTEND_URL` | `https://photos.toneflix.net` |
    | `APP_HOST`, `APP_PORT` | `127.0.0.1` and the port the reverse proxy forwards to (the health check reads `APP_PORT`, default 3000) |
-   | `APP_KEY` | A new key. Generate one locally with `pnpm --filter @photos/api exec ark key:generate` and copy the value. |
+   | `APP_KEY` | A new key. Generate one locally with `pnpm ark key:generate` and copy the value. |
    | `DB_*`, `DATABASE_URL` | The production database |
    | `MAIL_*` | A real SMTP server (`MAIL_TRANSPORT` other than `file`) |
    | `CORS_ALLOWED_ORIGINS` | Origins allowed to call the API from a browser, if any |

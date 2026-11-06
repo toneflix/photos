@@ -23,7 +23,7 @@ pnpm install
 docker compose up -d                 # PostgreSQL on localhost:5432
 
 cp apps/api/.env.example apps/api/.env
-pnpm --filter @photos/api exec ark migrate
+pnpm ark migrate
 
 pnpm dev:api                         # http://localhost:3000/api
 pnpm dev:web                         # http://localhost:5173
