@@ -12,8 +12,8 @@ export function ClothPicker({ value, onChange, name }: { value: BookTheme; onCha
 						key={theme}
 						className={`flex cursor-pointer items-center gap-2 rounded-full border-[1.5px] py-1.5 pr-3.5 pl-1.5 text-sm font-medium has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-brand-600 ${
 							value === theme
-								? "border-brand-700 bg-brand-600 text-white shadow-[0_2px_0_0_var(--color-brand-800)]"
-								: "border-surface-300 bg-white shadow-[0_2px_0_0_var(--color-surface-200)] hover:border-ink-500"
+								? "border-brand-700 bg-brand-600 text-white"
+								: "border-surface-300 bg-white hover:border-ink-500"
 						}`}
 					>
 						<input type="radio" name={name} value={theme} checked={value === theme} onChange={() => onChange(theme)} className="sr-only" />

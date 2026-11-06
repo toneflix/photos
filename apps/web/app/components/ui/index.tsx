@@ -4,16 +4,16 @@ import { Link } from "react-router";
 type Variant = "primary" | "brand" | "dark" | "secondary" | "ghost" | "danger";
 
 const variants: Record<Variant, string> = {
-	primary: "border-gold-500 bg-gold-400 text-ink-900 shadow-[0_3px_0_0_var(--color-gold-600)] hover:bg-gold-300",
-	brand: "border-brand-700 bg-brand-600 text-white shadow-[0_3px_0_0_var(--color-brand-800)] hover:bg-brand-500",
-	dark: "border-ink-900 bg-ink-900 text-white shadow-[0_3px_0_0_rgb(0_0_0/0.35)] hover:bg-ink-700",
-	secondary: "border-surface-300 bg-white text-ink-900 shadow-[0_3px_0_0_var(--color-surface-200)] hover:border-ink-500",
+	primary: "border-transparent bg-gold-400 text-ink-900 hover:bg-gold-300",
+	brand: "border-transparent bg-brand-600 text-white hover:bg-brand-700",
+	dark: "border-transparent bg-ink-900 text-white hover:bg-ink-700",
+	secondary: "border-surface-300 bg-white text-ink-900 hover:border-ink-500",
 	ghost: "border-transparent text-ink-700 hover:bg-surface-100",
-	danger: "border-red-300 bg-white text-red-700 shadow-[0_3px_0_0_var(--color-red-100)] hover:bg-red-50",
+	danger: "border-red-300 bg-white text-red-700 hover:bg-red-50",
 };
 
 export function buttonClass(variant: Variant = "primary", extra = "") {
-	return `inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[0.625rem] border-[1.5px] px-4 py-2.5 text-sm font-semibold transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${extra}`;
+	return `inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[0.625rem] border-[1.5px] px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${extra}`;
 }
 
 export function Button({

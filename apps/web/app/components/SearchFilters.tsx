@@ -71,7 +71,7 @@ export function SearchFilters({ placeholder, filters }: { placeholder: string; f
 							defaultValue={params.get(field.name) ?? ""}
 							onChange={() => form.current?.requestSubmit()}
 							className={`cursor-pointer appearance-none rounded-full border-[1.5px] py-2.5 pr-9 pl-4 text-sm font-semibold transition ${
-								params.get(field.name) ? "border-brand-700 bg-brand-600 text-white shadow-[0_3px_0_0_var(--color-brand-800)]" : "border-surface-300 bg-white text-ink-700 shadow-[0_3px_0_0_var(--color-surface-200)] hover:border-ink-500"
+								params.get(field.name) ? "border-brand-700 bg-brand-600 text-white" : "border-surface-300 bg-white text-ink-700 hover:border-ink-500"
 							}`}
 						>
 							{field.options.map((option) => (

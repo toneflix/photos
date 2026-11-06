@@ -4,7 +4,7 @@ import { Logo, buttonClass } from "~/components/ui";
 import { AccountMenu } from "~/components/AccountMenu";
 
 const tab = ({ isActive }: { isActive: boolean }) =>
-	`rounded-full px-2.5 py-2 text-sm font-semibold transition sm:px-4 ${isActive ? "bg-brand-600 text-white shadow-[0_2px_0_0_var(--color-brand-800)]" : "text-ink-700 hover:bg-white"}`;
+	`rounded-full px-2.5 py-2 text-sm font-semibold transition sm:px-4 ${isActive ? "bg-brand-600 text-white" : "text-ink-700 hover:bg-white"}`;
 
 /** The top bar. Signed-in people get their library tabs; visitors get Explore and a way in. */
 export function AppHeader({ user }: { user: User | null }) {
