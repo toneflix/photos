@@ -5,6 +5,8 @@ import BookController from 'src/app/http/controllers/BookController'
 import ExploreController from 'src/app/http/controllers/ExploreController'
 import PhotoController from 'src/app/http/controllers/PhotoController'
 import SpaceController from 'src/app/http/controllers/SpaceController'
+import SpaceInviteController from 'src/app/http/controllers/SpaceInviteController'
+import SpaceMemberController from 'src/app/http/controllers/SpaceMemberController'
 import SessionController from 'src/app/http/controllers/SessionController'
 import TwoFactorController from 'src/app/http/controllers/TwoFactorController'
 import LimitsController from 'src/app/http/controllers/LimitsController'
@@ -78,6 +80,16 @@ Router.get('/explore/spaces/:space', [ExploreController, 'space'], [limiter(120,
 
 // Spaces: a creator's collections of photos and books
 Router.apiResource('/spaces', SpaceController, { middlewares: auth })
+
+// People invited into a space, and the signed-in user's own invites and joined spaces
+Router.get('/spaces/:space/members', [SpaceMemberController, 'index'], [auth])
+Router.post('/spaces/:space/members', [SpaceMemberController, 'create'], [auth, limiter(30, 60)])
+Router.put('/spaces/:space/members/:member', [SpaceMemberController, 'update'], [auth])
+Router.delete('/spaces/:space/members/:member', [SpaceMemberController, 'destroy'], [auth])
+Router.get('/account/space-invites', [SpaceInviteController, 'index'], [auth])
+Router.post('/account/space-invites/:invite/accept', [SpaceInviteController, 'accept'], [auth])
+Router.delete('/account/space-invites/:invite', [SpaceInviteController, 'decline'], [auth])
+Router.get('/account/shared-spaces', [SpaceInviteController, 'spaces'], [auth])
 
 // Photo library
 Router.get('/photos/:photo/download', [PhotoController, 'download'], [auth, limiter(30, 60)])

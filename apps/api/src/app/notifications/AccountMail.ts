@@ -1,4 +1,5 @@
 import { Notification } from '@arkstack/notifications'
+import type { Space } from '@app/models/Space'
 import type { User } from '@app/models/User'
 
 /** The emails Toneflix Photos sends about a user's account. */
@@ -43,6 +44,17 @@ export class AccountMail {
       `<p>Hi ${AccountMail.escape(user.name)},</p>
       <p>The email for your Toneflix Photos account was changed from this address to ${AccountMail.escape(user.email)}.</p>
       <p>If this wasn't you, reply to this email so we can help you recover the account.</p>`,
+    )
+  }
+
+  static spaceInvite(email: string, inviter: User, space: Space) {
+    return AccountMail.send(
+      email,
+      `${inviter.name} invited you to ${space.name}`,
+      `<p>Hi,</p>
+      <p>${AccountMail.escape(inviter.name)} invited you to join the space “${AccountMail.escape(space.name)}” on Toneflix Photos.</p>
+      ${AccountMail.button('See the invite', `${config('app.frontend_url')}/invites`)}
+      <p>Sign in or create an account with this email address to accept it. If you weren't expecting it, you can ignore this email.</p>`,
     )
   }
 

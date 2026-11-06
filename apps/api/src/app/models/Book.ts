@@ -164,6 +164,13 @@ export class Book extends Model {
     return query.where({ visibility: 'public' }).has('pages')
   }
 
+  /** Public books with pages, and every book of the user `ownerId` when given. */
+  scopeShownTo(query: QueryBuilder<Book>, ownerId: string | null = null): QueryBuilder<Book> {
+    if (!ownerId) return query.scope('public')
+
+    return query.where((shown: QueryBuilder<Book>) => shown.where((open: QueryBuilder<Book>) => open.scope('public')).orWhere({ userId: ownerId }))
+  }
+
   /** Leave out books that sit in private spaces. */
   scopeListed(query: QueryBuilder<Book>): QueryBuilder<Book> {
     return query.whereDoesntHave('space', (space: QueryBuilder<Space>) => space.where({ visibility: 'private' }))

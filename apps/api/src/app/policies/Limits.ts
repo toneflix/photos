@@ -1,5 +1,6 @@
 import { Feature, type FeatureKey } from './Feature'
 import type { Book } from '@app/models/Book'
+import type { Space } from '@app/models/Space'
 import { Photo } from '@app/models/Photo'
 import { Plan } from '@app/models/Plan'
 import type { User } from '@app/models/User'
@@ -119,6 +120,13 @@ export class Limits {
   /** Spaces can go public only on plans with public spaces. Going private is always allowed. */
   async ensureSpaceVisibility(visibility: string | null | undefined): Promise<void> {
     if (visibility === 'public') await this.ensureAllowed('public_spaces', 'visibility', 'Public spaces are not included in your plan.')
+  }
+
+  /** Invites count against the limit whether or not they have been accepted. Run on the space owner's limits. */
+  async ensureCanInvite(space: Space): Promise<void> {
+    const members = await space.members().count()
+
+    await this.ensureBelow('space_members', members, 'email', 'Your plan allows :limit members in each space.')
   }
 
   async ensurePageCount(count: number, field = 'pages'): Promise<void> {

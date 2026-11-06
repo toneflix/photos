@@ -1,7 +1,7 @@
-import { abortIf } from '@arkstack/common'
 import { Book } from './Book'
 import { Model } from '@arkstack/database'
 import { Photo } from './Photo'
+import { SpaceMember } from './SpaceMember'
 import { User } from './User'
 import { matches } from '@app/support/search'
 import type { QueryBuilder } from 'arkormx'
@@ -24,7 +24,8 @@ export interface SpaceDetails {
 
 /**
  * A creator's collection of photos and books, like an organisation with its own page.
- * Spaces start private; a public space has a browse page scoped to its contents.
+ * Spaces start private, open only to the owner and the members they invite; a public space
+ * has a browse page scoped to its contents.
  */
 export class Space extends Model {
   declare id: string
@@ -61,6 +62,11 @@ export class Space extends Model {
 
   books() {
     return this.hasMany(Book, 'spaceId')
+  }
+
+  /** Everyone invited into the space, whether or not they have joined yet. */
+  members() {
+    return this.hasMany(SpaceMember, 'spaceId')
   }
 
   /** Make a space for `owner`. The web address comes from the name unless one is given. */
@@ -114,20 +120,6 @@ export class Space extends Model {
     return filters.sort === 'oldest' ? query.oldest('publishedAt') : query.latest('publishedAt')
   }
 
-  /** The space at `slug` when `viewer` may browse it; a 404 otherwise. */
-  static async browse(slug: string, viewer: User | null): Promise<Space> {
-    const space = await Space.query().where({ slug }).with('user').first()
-
-    abortIf(!space?.isVisibleTo(viewer), 'Space not found!', 404)
-
-    return space!
-  }
-
-  /** Owners always see their spaces; everyone sees public ones. */
-  isVisibleTo(viewer: User | null): boolean {
-    return this.visibility === 'public' || this.isOwnedBy(viewer)
-  }
-
   isOwnedBy(viewer: User | null): boolean {
     return viewer?.id === this.userId
   }
@@ -140,13 +132,13 @@ export class Space extends Model {
     this.publishedAt = visibility === 'public' ? new Date() : null
   }
 
-  /** Photos in the space; only the public ones unless `everything`. */
-  contentPhotos(everything = false) {
-    return everything ? this.photos() : this.photos().scope('public')
+  /** Photos in the space that anyone who opens it sees, plus every photo of the user `ownerId` when given. */
+  contentPhotos(ownerId: string | null = null) {
+    return this.photos().scope('shownTo', ownerId)
   }
 
-  /** Books in the space; only the public ones with pages unless `everything`. */
-  contentBooks(everything = false) {
-    return everything ? this.books() : this.books().scope('public')
+  /** Books in the space that anyone who opens it sees, plus every book of the user `ownerId` when given. */
+  contentBooks(ownerId: string | null = null) {
+    return this.books().scope('shownTo', ownerId)
   }
 }

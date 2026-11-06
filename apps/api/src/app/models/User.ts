@@ -5,6 +5,7 @@ import { Photo, type PhotoLicense, type UploadedPhoto } from './Photo'
 import { PasswordReset } from './PasswordReset'
 import { PersonalAccessToken } from './PersonalAccessToken'
 import { Space } from './Space'
+import { SpaceMember } from './SpaceMember'
 import { Storage } from '@arkstack/filesystem'
 import { UserNotification } from './UserNotification'
 import { UserTwoFactor } from './UserTwoFactor'
@@ -82,6 +83,16 @@ export class User extends BaseUser {
 
   spaces() {
     return this.hasMany(Space, 'userId')
+  }
+
+  /** Spaces the user was invited into and joined. */
+  spaceMemberships() {
+    return this.hasMany(SpaceMember, 'userId').scope('joined')
+  }
+
+  /** Invites into other people's spaces sent to the user's address and not answered yet. */
+  spaceInvites() {
+    return this.hasMany(SpaceMember, 'email', 'email').scope('pending')
   }
 
   /** The photos and spaces the user owns, or the books they made. */
