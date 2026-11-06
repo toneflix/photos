@@ -7,6 +7,7 @@ import { UserResource } from '@app/http/resources/UserResource'
 import { abortIf } from '@arkstack/common'
 import { photoFile } from '@app/support/rules'
 import { User } from '@app/models/User'
+import { Settings } from '@app/support/Settings'
 
 /**
  * The signed-in user's profile, sign-in details, privacy choices and data.
@@ -22,7 +23,7 @@ export default class AccountController extends BaseController {
 
   async updateAvatar() {
     const data = await this.validate({
-      avatar: photoFile(User.AVATAR_MAX_KILOBYTES),
+      avatar: photoFile((await Settings.number('uploads.max_avatar_mb')) * 1024),
     })
 
     await this.user.setAvatar(data.avatar)

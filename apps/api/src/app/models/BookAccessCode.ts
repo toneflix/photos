@@ -1,5 +1,6 @@
 import { Book } from './Book'
 import { Model } from '@arkstack/database'
+import { Settings } from '@app/support/Settings'
 import { Throttle } from '@app/support/Throttle'
 import { randomInt } from 'node:crypto'
 
@@ -28,9 +29,6 @@ export class BookAccessCode extends Model {
   declare updatedAt: Date
 
   static readonly PERMISSIONS: BookPermission[] = ['view', 'add', 'edit', 'transfer']
-
-  /** Wrong codes one visitor may try within GUESS_WINDOW_SECONDS before their codes stop working for a while. */
-  static readonly MAX_GUESSES = 20
 
   static readonly GUESS_WINDOW_SECONDS = 15 * 60
 
@@ -104,16 +102,16 @@ export class BookAccessCode extends Model {
     return found && !found.isExpired() ? found : null
   }
 
-  /** Wrong codes counted against one visitor, usually their IP. */
-  static guesses(visitor: string): Throttle {
-    return new Throttle(`access-code:${visitor}`, BookAccessCode.MAX_GUESSES, BookAccessCode.GUESS_WINDOW_SECONDS)
+  /** Wrong codes counted against one visitor, usually their IP. The `books.max_code_guesses` setting caps them within GUESS_WINDOW_SECONDS. */
+  static async guesses(visitor: string): Promise<Throttle> {
+    return new Throttle(`access-code:${visitor}`, await Settings.number('books.max_code_guesses'), BookAccessCode.GUESS_WINDOW_SECONDS)
   }
 
   /** findUsable for a code a visitor sent: wrong codes count against them, and nothing is found while they are locked out. */
   static async attempt(input: string | null | undefined, visitor: string, bookId?: string): Promise<BookAccessCode | null> {
     if (!input?.trim()) return null
 
-    const guesses = BookAccessCode.guesses(visitor)
+    const guesses = await BookAccessCode.guesses(visitor)
 
     if (await guesses.tooManyAttempts()) return null
 

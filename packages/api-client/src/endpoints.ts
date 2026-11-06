@@ -1,5 +1,6 @@
 import type {
   ApiResponse,
+  AppLimits,
   Book,
   BookAccessCode,
   BookAccessCodeInput,
@@ -43,6 +44,9 @@ export function createEndpoints(alova: PhotosAlova) {
   const withCode = (code?: string | null) => (code ? { headers: { 'X-Access-Code': code } } : {})
 
   return {
+    /** Upload sizes and other limits to check before sending anything. Works signed out. */
+    limits: () => alova.Get<ApiResponse<AppLimits>>('/limits', { cacheFor: null }),
+
     auth: {
       /** Signs in, or asks for a two-factor code when the account has it on. */
       login: (data: { email: string; password: string }) =>

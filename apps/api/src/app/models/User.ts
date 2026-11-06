@@ -36,9 +36,6 @@ export class User extends BaseUser {
   declare createdAt: Date
   declare updatedAt: Date
 
-  /** The largest profile photo upload, in kilobytes. */
-  static readonly AVATAR_MAX_KILOBYTES = 10_240
-
   protected static override factoryClass = UserFactory
 
   protected static override columns = {

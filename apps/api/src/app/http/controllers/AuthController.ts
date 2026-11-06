@@ -4,8 +4,9 @@ import { AccessTokenResource } from '@app/http/resources/AccessTokenResource'
 import { AccountMail } from '@app/notifications/AccountMail'
 import { BaseController } from './BaseController'
 import { GenericResource } from 'resora'
-import { Hash, assertFound } from '@arkstack/common'
+import { Hash, abortIf, assertFound } from '@arkstack/common'
 import { PasswordReset } from '@app/models/PasswordReset'
+import { Settings } from '@app/support/Settings'
 import { SignIn } from '@app/services/SignIn'
 import { TwoFactorChallengeResource } from '@app/http/resources/TwoFactorChallengeResource'
 import { User } from '@app/models/User'
@@ -17,6 +18,8 @@ import { UserResource } from '@app/http/resources/UserResource'
  */
 export default class AuthController extends BaseController {
   async register() {
+    abortIf(!(await Settings.get('accounts.registration_open')), 'Sign-ups are closed right now.', 403)
+
     this.body.email = User.normalizeEmail(this.body.email)
 
     const data = await this.validate({
@@ -29,6 +32,8 @@ export default class AuthController extends BaseController {
       name: String(data.name).trim(),
       email: String(data.email),
       password: await Hash.make(String(data.password)),
+      defaultLicense: await Settings.get('accounts.default_license'),
+      defaultVisibility: await Settings.get('accounts.default_visibility'),
     })
 
     await user.sendVerificationEmail().catch((error) => console.error('Verification email failed', error))

@@ -1,6 +1,7 @@
 import { Auth, AuthenticationException } from '@arkstack/auth'
 import { Hash, abort } from '@arkstack/common'
 import { Cache } from '@arkstack/cache'
+import { Settings } from '@app/support/Settings'
 import { Throttle } from '@app/support/Throttle'
 import { TwoFactor } from '@app/support/TwoFactor'
 import type { Request } from 'express'
@@ -17,13 +18,8 @@ export interface TwoFactorAnswer {
  * are counted, and further tries are refused for a while once too many fail.
  */
 export class SignIn {
-  /** Wrong passwords allowed for one email from one IP within LOCKOUT_SECONDS. */
-  static readonly MAX_PASSWORD_ATTEMPTS = 5
-
-  /** Wrong two-step or recovery codes allowed for one account within LOCKOUT_SECONDS. */
+  /** Wrong two-step or recovery codes allowed for one account within the lockout. */
   static readonly MAX_CODE_ATTEMPTS = 5
-
-  static readonly LOCKOUT_SECONDS = 15 * 60
 
   /** How long a used authenticator code stays refused: its 30-second step plus the one either side. */
   static readonly USED_CODE_SECONDS = 90
@@ -37,9 +33,14 @@ export class SignIn {
     this.auth = Auth.make().setRequest(req as never)
   }
 
+  /** How long sign-in pauses after too many wrong guesses, from the `accounts.lockout_minutes` setting. */
+  static async lockoutSeconds(): Promise<number> {
+    return (await Settings.number('accounts.lockout_minutes')) * 60
+  }
+
   /** The account behind an email and password. A wrong password and an unknown email get the same answer. */
   async attempt(email: string, password: string): Promise<User> {
-    const throttle = new Throttle(`sign-in:${email}|${this.req.ip}`, SignIn.MAX_PASSWORD_ATTEMPTS, SignIn.LOCKOUT_SECONDS)
+    const throttle = new Throttle(`sign-in:${email}|${this.req.ip}`, await Settings.number('accounts.max_password_attempts'), await SignIn.lockoutSeconds())
 
     await throttle.ensureAllowed('Too many sign-in attempts.')
 
@@ -68,7 +69,7 @@ export class SignIn {
   /** The account a two-factor challenge was issued for, once its code or a recovery code checks out. */
   async completeTwoFactor(challengeToken: string, answer: TwoFactorAnswer): Promise<User> {
     const user = (await this.auth.authorizeTemporaryToken(challengeToken, 'two-factor-login')) as User
-    const throttle = new Throttle(`two-factor:${user.id}`, SignIn.MAX_CODE_ATTEMPTS, SignIn.LOCKOUT_SECONDS)
+    const throttle = new Throttle(`two-factor:${user.id}`, SignIn.MAX_CODE_ATTEMPTS, await SignIn.lockoutSeconds())
 
     await throttle.ensureAllowed('Too many wrong codes.')
 

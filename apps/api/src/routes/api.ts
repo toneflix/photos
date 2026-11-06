@@ -7,12 +7,16 @@ import PhotoController from 'src/app/http/controllers/PhotoController'
 import SpaceController from 'src/app/http/controllers/SpaceController'
 import SessionController from 'src/app/http/controllers/SessionController'
 import TwoFactorController from 'src/app/http/controllers/TwoFactorController'
+import LimitsController from 'src/app/http/controllers/LimitsController'
 import { Router } from '@arkstack/driver-express'
 import { auth, limiter } from '@arkstack/driver-express/middlewares'
 
 Router.get('/', () => {
   return { status: 'OK' }
 })
+
+// Upload sizes and other limits apps check up front
+Router.get('/limits', [LimitsController, 'show'], [limiter(120, 60)])
 
 // Auth
 Router.post('/auth/register', [AuthController, 'register'], [limiter(20, 60)])
