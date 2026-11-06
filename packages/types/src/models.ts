@@ -15,6 +15,12 @@ export type ID = string
  */
 export type Visibility = 'private' | 'shared' | 'public'
 
+/** What an account may do beyond its own library. */
+export type UserRole = 'user' | 'moderator' | 'admin'
+
+/** Admin areas a role can open. */
+export type AdminPermission = 'dashboard' | 'moderation' | 'users' | 'settings'
+
 export interface User {
   id: ID
   name: string
@@ -28,6 +34,9 @@ export interface User {
   showOwnerName: boolean
   /** Licence given to new uploads. */
   defaultLicense: PhotoLicense
+  role: UserRole
+  /** Admin areas this account can open; empty for members. */
+  permissions: AdminPermission[]
   createdAt: string
   updatedAt: string
 }

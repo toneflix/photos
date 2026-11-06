@@ -13,6 +13,7 @@ import { AccountMail } from '@app/notifications/AccountMail'
 import { ImageFile } from '@app/support/ImageFile'
 import { BookPage } from './BookPage'
 import { randomUUID } from 'node:crypto'
+import { Role, type AdminPermission, type UserRole } from '@app/policies/Role'
 
 export interface UserPreferences {
   defaultVisibility?: BookVisibility
@@ -30,6 +31,8 @@ export class User extends BaseUser {
   declare defaultVisibility: BookVisibility
   declare showOwnerName: boolean
   declare defaultLicense: PhotoLicense
+  declare role: UserRole
+  declare suspendedAt: Date | null
   declare createdAt: Date
   declare updatedAt: Date
 
@@ -45,6 +48,7 @@ export class User extends BaseUser {
     defaultVisibility: 'default_visibility',
     showOwnerName: 'show_owner_name',
     defaultLicense: 'default_license',
+    suspendedAt: 'suspended_at',
   }
 
   protected override casts = {
@@ -80,6 +84,33 @@ export class User extends BaseUser {
 
   notifications() {
     return this.hasMany(UserNotification, 'userId')
+  }
+
+  /** The user's role, with what it allows in the admin dashboard. */
+  access(): Role {
+    return new Role(this.role ?? 'user')
+  }
+
+  can(permission: AdminPermission): boolean {
+    return this.access().allows(permission)
+  }
+
+  isSuspended(): boolean {
+    return !!this.suspendedAt
+  }
+
+  /** Stop the account signing in and sign out every device. */
+  async suspend(): Promise<void> {
+    if (this.isSuspended()) return
+
+    await this.update({ suspendedAt: new Date() })
+    await this.signOutOtherSessions()
+  }
+
+  async reinstate(): Promise<void> {
+    if (!this.isSuspended()) return
+
+    await this.update({ suspendedAt: null })
   }
 
   checkPassword(password: string): Promise<boolean> {

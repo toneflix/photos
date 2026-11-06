@@ -60,6 +60,8 @@ export class SignIn {
 
     await throttle.clear()
 
+    if (user.isSuspended()) abort('This account is suspended. Contact support if you think this is a mistake.', 403)
+
     return user
   }
 
