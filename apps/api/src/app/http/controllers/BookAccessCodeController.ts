@@ -1,6 +1,7 @@
 import { abortIf, assertFound } from '@arkstack/common'
 import { BaseController } from './BaseController'
 import { BookAccess } from '@app/policies/BookAccess'
+import { Limits } from '@app/policies/Limits'
 import { BookAccessCode } from '@app/models/BookAccessCode'
 import { BookAccessCodeCollection } from '@app/http/resources/BookAccessCodeCollection'
 import { BookAccessCodeResource } from '@app/http/resources/BookAccessCodeResource'
@@ -30,6 +31,11 @@ export default class BookAccessCodeController extends BaseController {
       expiresAt: 'nullable|date',
     })
 
+    const limits = await Limits.for(this.user)
+
+    await limits.ensureCanIssueCode(book)
+    await limits.ensureCodePermissions(data.permissions)
+
     const code = await BookAccessCode.issue(book, data)
 
     return new BookAccessCodeResource(code)
@@ -46,6 +52,8 @@ export default class BookAccessCodeController extends BaseController {
       'permissions.*': PERMISSION,
       expiresAt: 'nullable|date',
     })
+
+    await (await Limits.for(this.user)).ensureCodePermissions(data.permissions, code.permissions)
 
     code.revise(data)
     await code.save()

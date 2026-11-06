@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { app } from '../src/core/bootstrap'
 import request from 'parasito'
 import { unzipSync } from 'fflate'
+import { putOnPlan } from './support/plans'
 
 const pixel = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
@@ -42,9 +43,11 @@ describe('Book downloads', () => {
 
   beforeAll(async () => {
     for (const who of ['photographer', 'client'] as const) {
-      const register = await api('post', '/auth/register', { name: `Zip ${who}`, email: `zip-${who}-${Date.now()}@toneflix.test`, password: 'password123' })
+      const email = `zip-${who}-${Date.now()}@toneflix.test`
+      const register = await api('post', '/auth/register', { name: `Zip ${who}`, email, password: 'password123' })
 
       tokens[who] = register.body.data.token
+      putOnPlan(email)
     }
 
     const kept = await upload('Kept Rights.png', 'all-rights-reserved')

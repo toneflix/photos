@@ -4,6 +4,7 @@ import { SpaceCollection } from '@app/http/resources/SpaceCollection'
 import { SpaceResource } from '@app/http/resources/SpaceResource'
 import { perPage } from '@arkstack/common'
 import { regex } from 'kanun'
+import { Limits } from '@app/policies/Limits'
 
 const VISIBILITY = `in:${Space.VISIBILITIES.join(',')}`
 const SLUG = regex(Space.SLUG)
@@ -29,6 +30,11 @@ export default class SpaceController extends BaseController {
       visibility: `nullable|${VISIBILITY}`,
     })
 
+    const limits = await Limits.for(this.user)
+
+    await limits.ensureCanCreateSpace()
+    await limits.ensureSpaceVisibility(data.visibility)
+
     const space = await Space.open(this.user, data)
 
     return new SpaceResource(space).additional({ status: 'success', message: 'Space created', code: 201 }).response().setStatusCode(201)
@@ -48,6 +54,8 @@ export default class SpaceController extends BaseController {
       description: 'nullable|string|max:1000',
       visibility: `nullable|${VISIBILITY}`,
     })
+
+    if (data.visibility !== space.visibility) await (await Limits.for(this.user)).ensureSpaceVisibility(data.visibility)
 
     if (data.name) space.name = String(data.name).trim()
     if (data.slug) space.slug = data.slug

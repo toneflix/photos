@@ -5,7 +5,7 @@ import { BaseController } from './BaseController'
 import { Photo } from '@app/models/Photo'
 import { PhotoCollection } from '@app/http/resources/PhotoCollection'
 import { PhotoResource } from '@app/http/resources/PhotoResource'
-import { Settings } from '@app/support/Settings'
+import { Limits } from '@app/policies/Limits'
 
 /**
  * The signed-in user's photo library.
@@ -26,8 +26,9 @@ export default class PhotoController extends BaseController {
   }
 
   async create() {
+    const limits = await Limits.for(this.user)
     const data = await this.validate({
-      photo: photoFile((await Settings.number('uploads.max_photo_mb')) * 1024),
+      photo: photoFile(await limits.photoKb()),
       width: 'nullable|integer|min:1',
       height: 'nullable|integer|min:1',
       caption: 'nullable|string|max:2000',
@@ -35,6 +36,8 @@ export default class PhotoController extends BaseController {
       spaceId: ['nullable', UUID],
       license: `nullable|in:${Photo.LICENSES.join(',')}`,
     })
+
+    await limits.ensureRoomFor(Math.min(data.photo.size, await Photo.maxOriginalBytes()))
 
     const space = data.spaceId ? await this.user.spaces().findOrFail(data.spaceId) : null
     const photo = await Photo.upload(this.user, data.photo, {
@@ -58,11 +61,14 @@ export default class PhotoController extends BaseController {
     return new PhotoResource(photo).additional({ status: 'success', message: 'OK', code: 200 })
   }
 
-  /** The owner's original, or a copy at a preset or custom size, whatever its licence. */
+  /** The owner's photo at a preset or custom size, whatever its licence. Full size needs a plan with original downloads. */
   async download() {
     const photo = await this.user.photos().findOrFail(String(this.params.photo))
+    const size = await this.validateQuery(downloadSize(Object.keys(Photo.DOWNLOAD_SIZES)))
 
-    return photo.download(await this.validateQuery(downloadSize(Object.keys(Photo.DOWNLOAD_SIZES))))
+    await (await Limits.for(this.user)).ensureDownloadSize(size)
+
+    return photo.download(size)
   }
 
   async update() {
