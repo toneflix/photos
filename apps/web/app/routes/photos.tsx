@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Form, Link, useFetcher, useNavigation, useSearchParams } from "react-router";
 import type { Photo, Space } from "@photos/types";
 import { requireSignIn } from "~/lib/session.server";
+import { spaceFiltered } from "~/lib/space-filter.server";
 import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
@@ -26,15 +27,15 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 	const { api } = await requireSignIn(request, context);
 	const url = new URL(request.url);
 	const pages = Math.max(1, Number(url.searchParams.get("pages")) || 1);
-	const { data: spaces } = await api.spaces.list({ per_page: 100 });
-	const space = spaces.find((item) => item.id === url.searchParams.get("space")) ?? null;
 	const filters = {
 		q: searchText(url),
 		orientation: filterParam(url, "orientation", ["landscape", "portrait", "square"] as const),
 		visibility: filterParam(url, "visibility", ["private", "public"] as const),
 		sort: filterParam(url, "sort", ["latest", "oldest"] as const),
 	};
-	const result = await api.photos.list({ ...filters, space: space?.id, page: 1, per_page: Math.min(PER_PAGE * pages, 600) });
+	const list = (space?: string) => api.photos.list({ ...filters, space, page: 1, per_page: Math.min(PER_PAGE * pages, 600) });
+
+	const { spaces, space, result } = await spaceFiltered(url, api, list);
 
 	return {
 		photos: result.data,

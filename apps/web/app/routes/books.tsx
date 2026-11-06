@@ -3,6 +3,7 @@ import { data, Form, Link, redirect, useNavigation } from "react-router";
 import { FlipbookModel, type Book, type BookTheme, type Space } from "@photos/types";
 import { formError } from "~/lib/api.server";
 import { requireSignIn } from "~/lib/session.server";
+import { spaceFiltered } from "~/lib/space-filter.server";
 import { useInfiniteList } from "~/lib/use-infinite-list";
 import { CoverView } from "@toneflix/flipbook-react";
 import { ClothPicker } from "~/components/book/CoverPickers";
@@ -17,16 +18,16 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 	const { api } = await requireSignIn(request, context);
 	const url = new URL(request.url);
 	const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
-	const { data: spaces } = await api.spaces.list({ per_page: 100 });
-	const space = spaces.find((item) => item.id === url.searchParams.get("space")) ?? null;
 	const filters = {
 		q: searchText(url),
 		theme: filterParam(url, "theme", ["classic", "linen", "midnight"] as const),
 		visibility: filterParam(url, "visibility", ["private", "shared", "public"] as const),
 		sort: filterParam(url, "sort", ["latest", "oldest"] as const),
 	};
+	const list = (space?: string) => api.books.list({ ...filters, space, page, per_page: BOOKS_PER_PAGE });
 
-	const { data: items, meta } = await api.books.list({ ...filters, space: space?.id, page, per_page: BOOKS_PER_PAGE });
+	const { spaces, space, result } = await spaceFiltered(url, api, list);
+	const { data: items, meta } = result;
 
 	return {
 		items,
