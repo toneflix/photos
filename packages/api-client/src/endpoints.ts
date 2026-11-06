@@ -1,4 +1,7 @@
 import type {
+  AdminOverview,
+  AdminUser,
+  AdminUserQuery,
   ApiResponse,
   AppLimits,
   Book,
@@ -8,6 +11,8 @@ import type {
   BookPageInput,
   BookWithPages,
   ID,
+  ModeratedKind,
+  ModerationItem,
   BookQuery,
   PhotoQuery,
   PageQuery,
@@ -20,6 +25,7 @@ import type {
   PublicPhotoDetail,
   PublicSpace,
   Session,
+  SettingGroup,
   SignedIn,
   Space,
   SpaceQuery,
@@ -28,6 +34,7 @@ import type {
   TwoFactorSetup,
   TwoFactorStatus,
   User,
+  UserRole,
   Visibility,
 } from '@photos/types'
 import type { PhotosAlova } from './client'
@@ -187,6 +194,23 @@ export function createEndpoints(alova: PhotosAlova) {
       updateAccessCode: (id: ID, codeId: ID, data: BookAccessCodeInput) =>
         alova.Put<ApiResponse<BookAccessCode>>(`/books/${id}/access-codes/${codeId}`, data),
       revokeAccessCode: (id: ID, codeId: ID) => alova.Delete<ApiResponse<BookAccessCode>>(`/books/${id}/access-codes/${codeId}`),
+    },
+
+    /** The admin dashboard. Each area needs a role that grants it (see `User.permissions`). */
+    admin: {
+      overview: () => alova.Get<ApiResponse<AdminOverview>>('/admin/overview', { cacheFor: null }),
+      users: (params: AdminUserQuery = {}) => alova.Get<PaginatedResponse<AdminUser>>('/admin/users', { params, cacheFor: null }),
+      user: (id: ID) => alova.Get<ApiResponse<AdminUser>>(`/admin/users/${id}`, { cacheFor: null }),
+      /** Change an account's role, or suspend it (`suspended: true`) and let it back in. */
+      updateUser: (id: ID, data: { role?: UserRole; suspended?: boolean }) => alova.Put<ApiResponse<AdminUser>>(`/admin/users/${id}`, data),
+      moderation: (kind: ModeratedKind, params: PageQuery & { q?: string } = {}) =>
+        alova.Get<PaginatedResponse<ModerationItem>>(`/admin/moderation/${kind}`, { params, cacheFor: null }),
+      /** Take a public photo, book or space off Explore. It becomes private for its owner. */
+      unpublish: (kind: ModeratedKind, id: ID) => alova.Post<ApiResponse<ModerationItem>>(`/admin/moderation/${kind}/${id}/unpublish`),
+      settings: () => alova.Get<ApiResponse<SettingGroup[]>>('/admin/settings', { cacheFor: null }),
+      /** Save a group's fields by name. Null puts a field back to its .env default. */
+      updateSettings: (group: string, values: Record<string, number | boolean | string | null>) =>
+        alova.Put<ApiResponse<SettingGroup>>(`/admin/settings/${group}`, values),
     },
 
     accessCodes: {

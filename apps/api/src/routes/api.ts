@@ -8,6 +8,11 @@ import SpaceController from 'src/app/http/controllers/SpaceController'
 import SessionController from 'src/app/http/controllers/SessionController'
 import TwoFactorController from 'src/app/http/controllers/TwoFactorController'
 import LimitsController from 'src/app/http/controllers/LimitsController'
+import ModerationController from 'src/app/http/controllers/admin/ModerationController'
+import OverviewController from 'src/app/http/controllers/admin/OverviewController'
+import SettingsController from 'src/app/http/controllers/admin/SettingsController'
+import UserController from 'src/app/http/controllers/admin/UserController'
+import { Authorize } from 'src/app/http/middlewares/Authorize'
 import { Router } from '@arkstack/driver-express'
 import { auth, limiter } from '@arkstack/driver-express/middlewares'
 
@@ -84,3 +89,13 @@ Router.put('/books/:book/access-codes/:code', [BookAccessCodeController, 'update
 Router.delete('/books/:book/access-codes/:code', [BookAccessCodeController, 'destroy'], [auth])
 Router.post('/access-codes/redeem', [BookAccessCodeController, 'redeem'], [limiter(10, 60)])
 Router.post('/access-codes/claim', [BookAccessCodeController, 'claim'], [auth, limiter(10, 60)])
+
+// Admin dashboard. Each area needs a role that grants it.
+Router.get('/admin/overview', [OverviewController, 'show'], [auth, Authorize.to('dashboard')])
+Router.get('/admin/users', [UserController, 'index'], [auth, Authorize.to('users')])
+Router.get('/admin/users/:user', [UserController, 'show'], [auth, Authorize.to('users')])
+Router.put('/admin/users/:user', [UserController, 'update'], [auth, Authorize.to('users')])
+Router.get('/admin/moderation/:kind', [ModerationController, 'index'], [auth, Authorize.to('moderation')])
+Router.post('/admin/moderation/:kind/:item/unpublish', [ModerationController, 'unpublish'], [auth, Authorize.to('moderation')])
+Router.get('/admin/settings', [SettingsController, 'index'], [auth, Authorize.to('settings')])
+Router.put('/admin/settings/:group', [SettingsController, 'update'], [auth, Authorize.to('settings')])
