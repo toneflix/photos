@@ -1,7 +1,7 @@
 import type { ID, Permission, UserRole } from './models'
 import type { PageQuery } from './api'
 
-/** Limits the API enforces that apps can check before sending anything. Open to everyone. */
+/** Limits the API enforces that apps can check before sending anything. Open to everyone; signed in, they follow the account's plan. */
 export interface AppLimits {
   maxPhotoMb: number
   maxAvatarMb: number

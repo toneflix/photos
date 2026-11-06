@@ -8,6 +8,7 @@ import SpaceController from 'src/app/http/controllers/SpaceController'
 import SessionController from 'src/app/http/controllers/SessionController'
 import TwoFactorController from 'src/app/http/controllers/TwoFactorController'
 import LimitsController from 'src/app/http/controllers/LimitsController'
+import PlanController from 'src/app/http/controllers/PlanController'
 import ModerationController from 'src/app/http/controllers/admin/ModerationController'
 import OverviewController from 'src/app/http/controllers/admin/OverviewController'
 import SettingsController from 'src/app/http/controllers/admin/SettingsController'
@@ -23,6 +24,10 @@ Router.get('/', () => {
 
 // Upload sizes and other limits apps check up front
 Router.get('/limits', [LimitsController, 'show'], [limiter(120, 60)])
+
+// Plans on offer and the signed-in account's own
+Router.get('/plans', [PlanController, 'index'], [limiter(120, 60)])
+Router.get('/account/plan', [PlanController, 'mine'], [auth])
 
 // Auth
 Router.post('/auth/register', [AuthController, 'register'], [limiter(20, 60)])
