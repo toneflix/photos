@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { Form, useNavigation, useSubmit } from "react-router";
-import { requireUser } from "~/lib/session.server";
+import { requireSignIn, requireUser } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
 import { Alert, Button, Field, Input, Notice } from "~/components/ui";
 import { Avatar } from "~/components/Avatar";
@@ -16,7 +16,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const form = await request.formData();
 	const intent = String(form.get("intent"));
 

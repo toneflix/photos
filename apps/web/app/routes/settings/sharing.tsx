@@ -1,7 +1,7 @@
 import { Form, Link, useNavigation } from "react-router";
 import type { PhotoLicense, Visibility } from "@photos/types";
 import { LICENSES } from "~/lib/licenses";
-import { requireUser } from "~/lib/session.server";
+import { requireSignIn, requireUser } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
 import { Button, Notice } from "~/components/ui";
 import { PageHeader, Section, resultFor } from "~/components/settings/Section";
@@ -22,7 +22,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const form = await request.formData();
 
 	if (form.get("intent") === "lock-books") {

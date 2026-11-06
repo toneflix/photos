@@ -1,5 +1,5 @@
 import { Form, Link, redirect, useNavigation } from "react-router";
-import { clearToken, requireUser } from "~/lib/session.server";
+import { clearToken, requireSignIn } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
 import { Alert, Button, Field, Input } from "~/components/ui";
 import { PageHeader, Section } from "~/components/settings/Section";
@@ -8,13 +8,13 @@ import type { Route } from "./+types/delete-account";
 export const meta = () => [{ title: "Delete account · Settings · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	await requireUser(request, context);
+	await requireSignIn(request, context);
 
 	return null;
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const password = String((await request.formData()).get("password") ?? "");
 
 	const result = await settingsAction("delete-account", async () => {

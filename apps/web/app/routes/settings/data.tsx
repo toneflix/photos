@@ -1,4 +1,4 @@
-import { requireUser } from "~/lib/session.server";
+import { requireSignIn } from "~/lib/session.server";
 import { buttonClass } from "~/components/ui";
 import { PageHeader, Section } from "~/components/settings/Section";
 import type { Route } from "./+types/data";
@@ -6,7 +6,7 @@ import type { Route } from "./+types/data";
 export const meta = () => [{ title: "Your data · Settings · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	await requireUser(request, context);
+	await requireSignIn(request, context);
 
 	return null;
 }

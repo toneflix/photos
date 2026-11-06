@@ -2,7 +2,7 @@ import { useState } from "react";
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 import { FlipbookModel, type Book, type BookTheme, type Space } from "@photos/types";
 import { formError } from "~/lib/api.server";
-import { requireUser } from "~/lib/session.server";
+import { requireSignIn } from "~/lib/session.server";
 import { useInfiniteList } from "~/lib/use-infinite-list";
 import { CoverView } from "@toneflix/flipbook-react";
 import { ClothPicker } from "~/components/book/CoverPickers";
@@ -14,7 +14,7 @@ import type { Route } from "./+types/books";
 export const meta = () => [{ title: "Your books · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const url = new URL(request.url);
 	const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
 	const { data: spaces } = await api.spaces.list({ per_page: 100 });
@@ -43,7 +43,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 const BOOKS_PER_PAGE = 24;
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const form = await request.formData();
 
 	try {

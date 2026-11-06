@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { requireUser } from "~/lib/session.server";
+import { requireSignIn, requireUser } from "~/lib/session.server";
 import { Avatar } from "~/components/Avatar";
 import { SETTINGS_GROUPS } from "~/components/settings/nav";
 import type { Route } from "./+types/index";
@@ -7,8 +7,12 @@ import type { Route } from "./+types/index";
 export const meta = () => [{ title: "Settings · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	const { user, api } = await requireUser(request, context);
-	const [{ data: twoFactor }, { data: sessions }] = await Promise.all([api.account.twoFactor(), api.account.sessions()]);
+	const { api } = await requireSignIn(request, context);
+	const [{ user }, { data: twoFactor }, { data: sessions }] = await Promise.all([
+		requireUser(request, context),
+		api.account.twoFactor(),
+		api.account.sessions(),
+	]);
 
 	return { user, twoFactorOn: twoFactor.enabled, devices: sessions.length };
 }

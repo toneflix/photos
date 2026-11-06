@@ -1,5 +1,5 @@
 import { Form, useNavigation } from "react-router";
-import { requireUser } from "~/lib/session.server";
+import { requireSignIn } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
 import { Button, Field, Input, Notice } from "~/components/ui";
 import { PageHeader, Section } from "~/components/settings/Section";
@@ -8,13 +8,13 @@ import type { Route } from "./+types/password";
 export const meta = () => [{ title: "Password · Settings · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	await requireUser(request, context);
+	await requireSignIn(request, context);
 
 	return null;
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const form = await request.formData();
 
 	return settingsAction("password", async () => {

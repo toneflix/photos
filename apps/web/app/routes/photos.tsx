@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Form, Link, useFetcher, useNavigation, useSearchParams } from "react-router";
 import type { Photo, Space } from "@photos/types";
-import { requireUser } from "~/lib/session.server";
+import { requireSignIn } from "~/lib/session.server";
 import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
@@ -23,7 +23,7 @@ export const meta = () => [{ title: "Your photos · Toneflix Photos" }];
 const PER_PAGE = 120;
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const url = new URL(request.url);
 	const pages = Math.max(1, Number(url.searchParams.get("pages")) || 1);
 	const { data: spaces } = await api.spaces.list({ per_page: 100 });
@@ -48,7 +48,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	return handlePhotoIntent(api, await request.formData());
 }
 

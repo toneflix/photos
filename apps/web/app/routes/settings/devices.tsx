@@ -1,6 +1,6 @@
 import { Form, useNavigation } from "react-router";
 import type { Session } from "@photos/types";
-import { requireUser } from "~/lib/session.server";
+import { requireSignIn } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
 import { Alert, Button, Notice } from "~/components/ui";
 import { PageHeader, Section, resultFor, type SettingsResult } from "~/components/settings/Section";
@@ -9,14 +9,14 @@ import type { Route } from "./+types/devices";
 export const meta = () => [{ title: "Devices · Settings · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const { data: sessions } = await api.account.sessions();
 
 	return { sessions };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const form = await request.formData();
 
 	if (form.get("intent") === "revoke-others") {

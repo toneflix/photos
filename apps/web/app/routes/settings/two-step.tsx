@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Form, useNavigation } from "react-router";
 import QRCode from "qrcode";
 import type { TwoFactorStatus } from "@photos/types";
-import { requireUser } from "~/lib/session.server";
+import { requireSignIn } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
 import { Button, Field, Input, Notice, OtpInput } from "~/components/ui";
 import { PageHeader, Section, resultFor, type SettingsResult } from "~/components/settings/Section";
@@ -11,14 +11,14 @@ import type { Route } from "./+types/two-step";
 export const meta = () => [{ title: "Two-step sign-in · Settings · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const { data: twoFactor } = await api.account.twoFactor();
 
 	return { twoFactor };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const form = await request.formData();
 	const intent = String(form.get("intent"));
 	const field = (name: string) => String(form.get(name) ?? "");
