@@ -2,13 +2,11 @@ import { AdminUserCollection } from '@app/http/resources/AdminUserCollection'
 import { AdminUserDetailResource } from '@app/http/resources/AdminUserDetailResource'
 import { AdminUserResource } from '@app/http/resources/AdminUserResource'
 import { BaseController } from '../BaseController'
-import type { QueryBuilder } from 'arkormx'
 import { Plan } from '@app/models/Plan'
 import { Role } from '@app/models/Role'
 import { Subscriptions } from '@app/services/Subscriptions'
 import { User } from '@app/models/User'
 import { abortIf, perPage } from '@arkstack/common'
-import { matches } from '@app/support/search'
 
 /** Admins find accounts, change their role and suspend them. */
 export default class UserController extends BaseController {
@@ -22,7 +20,7 @@ export default class UserController extends BaseController {
     const query = User.query()
     const text = filters.q?.trim()
 
-    if (text) query.where((match: QueryBuilder<User>) => match.where(matches('name', text)).orWhere(matches('email', text)))
+    if (text) query.scope('matching', text)
     if (filters.role) query.where({ role: filters.role })
     if (filters.status === 'suspended') query.whereNotNull('suspendedAt')
     if (filters.status === 'active') query.whereNull('suspendedAt')

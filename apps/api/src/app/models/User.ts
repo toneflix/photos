@@ -13,6 +13,8 @@ import { UserFactory } from 'src/database/factories/UserFactory'
 import { AccountMail } from '@app/notifications/AccountMail'
 import { ImageFile } from '@app/support/ImageFile'
 import { UUID_PATTERN } from '@app/support/rules'
+import type { QueryBuilder } from 'arkormx'
+import { matches } from '@app/support/search'
 import { randomBytes, randomUUID } from 'node:crypto'
 import type { PermissionName } from '@app/policies/Permission'
 import { Role } from './Role'
@@ -89,6 +91,27 @@ export class User extends BaseUser {
     while (await User.query().where({ username }).exists()) username = `${base}_${randomBytes(2).toString('hex')}`
 
     return username
+  }
+
+  /** The account `handle` names: its id, email address or username. */
+  static async lookup(handle: string): Promise<User | null> {
+    const value = handle.trim()
+
+    if (UUID_PATTERN.test(value)) return User.query().find(value)
+
+    return User.query()
+      .where(value.includes('@') ? { email: User.normalizeEmail(value) } : { username: value.toLowerCase() })
+      .first()
+  }
+
+  /** Accounts whose name, email address or username contains `text`. */
+  scopeMatching(query: QueryBuilder<User>, text: string): QueryBuilder<User> {
+    return query.where((match: QueryBuilder<User>) =>
+      match
+        .where(matches('name', text))
+        .orWhere(matches('email', text))
+        .orWhere(matches('username', text)),
+    )
   }
 
   books() {
