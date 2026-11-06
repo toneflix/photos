@@ -92,6 +92,12 @@ Runs never overlap: a second deploy waits for the first to finish.
 
    From then on, admins manage roles and other accounts in the dashboard at `/admin`.
 
+8. **Plans**: create the Free and Premium plans once. Running it again leaves existing plans as they are.
+
+   ```sh
+   cd /var/www/api.photos.toneflix.net/current/apps/api && pnpm exec ark seed PlanSeeder
+   ```
+
 ## Admin settings
 
 Upload limits, display copies, sign-ups, sign-in lockouts and book limits can be changed in the dashboard (Admin → Configuration). Each one has an env variable in `.env.example` that sets its default, and a value saved in the dashboard wins over it. Saving the same value as the env default removes the override, so the field follows `.env` again. Secrets and connection settings stay in `.env` only. With more than one API instance, use `CACHE_STORE=redis` so a saved setting reaches every instance within `SETTINGS_CACHE_SECONDS`.

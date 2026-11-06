@@ -14,6 +14,8 @@ import { ImageFile } from '@app/support/ImageFile'
 import { randomUUID } from 'node:crypto'
 import type { PermissionName } from '@app/policies/Permission'
 import { Role } from './Role'
+import { Plan } from './Plan'
+import { Subscription } from './Subscription'
 
 export interface UserPreferences {
   defaultVisibility?: BookVisibility
@@ -87,6 +89,18 @@ export class User extends BaseUser {
 
   notifications() {
     return this.hasMany(UserNotification, 'userId')
+  }
+
+  subscriptions() {
+    return this.hasMany(Subscription, 'userId')
+  }
+
+  /** The plan the user is on now: their current subscription's, else the default plan. */
+  async plan(): Promise<Plan> {
+    const current = await this.subscriptions().scope('current').first()
+    const plan = current ? await current.plan().first() : null
+
+    return plan ?? Plan.default()
   }
 
   /** What the user's role allows in the admin dashboard. */
