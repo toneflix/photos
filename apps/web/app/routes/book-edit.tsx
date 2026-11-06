@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { data, Link, redirect, useFetcher, type ShouldRevalidateFunctionArgs } from "react-router";
-import type { BookPageInput, BookPagePhoto, BookTheme, BookWithPages, FrameStyle, PageLayout, PaperColor, Photo, Space, Visibility } from "@photos/types";
+import type { BookPageInput, BookPagePhoto, BookTheme, BookWithPages, FrameStyle, PageLayout, PaperColor, Photo, PhotoPosition, Space, Visibility } from "@photos/types";
 import { coverHasText, FlipbookModel, FRAME_STYLES, PAGE_LAYOUTS, PAPER_COLORS, type CoverDesign } from "@photos/types";
-import { BookLookProvider, CoverView, PageView, PHOTO_DRAG_TYPE, PLACED_LAYOUTS, PrintedPhoto, TitlePageView } from "@toneflix/flipbook-react";
+import { BookLookProvider, CoverView, PageView, PHOTO_DRAG_TYPE, PLACED_LAYOUTS, PrintedPhoto, TitlePageView, usePhotoPositioner } from "@toneflix/flipbook-react";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { formError, getServerApi } from "~/lib/api.server";
 import { BookCodes } from "~/lib/book-codes.server";
@@ -11,6 +11,7 @@ import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
 import { ClothPicker, CoverDesignPicker } from "~/components/book/CoverPickers";
+import { PhotoPositionControls, storedPosition } from "~/components/book/PhotoPositionControls";
 import { Button, Field, Input, Textarea, buttonClass, Spinner } from "~/components/ui";
 import type { Route } from "./+types/book-edit";
 
@@ -91,8 +92,8 @@ type DraftPage = { key: string; layout: PageLayout; frame: FrameStyle | null; ca
 let keySeq = 0;
 const newKey = () => `p${Date.now().toString(36)}${(keySeq++).toString(36)}`;
 
-/** A library photo placed on a page, with its own frame or null to use the page's. */
-const placed = (photo: Photo, frame: FrameStyle | null = null): BookPagePhoto => ({ ...photo, frame });
+/** A library photo placed on a page, centred, with its own frame or null to use the page's. */
+const placed = (photo: Photo, frame: FrameStyle | null = null): BookPagePhoto => ({ ...photo, frame, position: null });
 
 const toDraft = (book: BookWithPages): DraftPage[] => book.pages.map((p) => ({ key: p.id, layout: p.layout, frame: p.frame ?? null, caption: p.caption ?? "", photos: p.photos }));
 
@@ -137,6 +138,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 						caption: p.caption || null,
 						photoIds: p.photos.map((ph) => ph.id),
 						photoFrames: p.photos.map((ph) => ph.frame),
+						photoPositions: p.photos.map((ph) => ph.position),
 					})),
 				},
 				{ method: "post", encType: "application/json" },
@@ -167,6 +169,13 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 	/** Set the frame of one photo on the selected page. Null follows the page's frame. */
 	const setPhotoFrame = (index: number, frame: FrameStyle | null) => {
 		change((prev) => prev.map((p, i) => (i === selected ? { ...p, photos: p.photos.map((ph, j) => (j === index ? { ...ph, frame } : ph)) } : p)));
+	};
+
+	/** Set which part of one photo on the selected page shows. Null centres it. */
+	const setPhotoPosition = (index: number, position: PhotoPosition | null) => {
+		const stored = storedPosition(position);
+
+		change((prev) => prev.map((p, i) => (i === selected ? { ...p, photos: p.photos.map((ph, j) => (j === index ? { ...ph, position: stored } : ph)) } : p)));
 	};
 
 	/** Make a frame the book's own and let every page follow it. */
@@ -294,6 +303,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 					number={index + 1}
 					side={side}
 					onSlotClick={isSelected ? setSlot : undefined}
+					onPhotoPosition={isSelected ? setPhotoPosition : undefined}
 					onSlotDrop={(s, id) => {
 						const photo = photoById.get(id);
 						if (photo) placePhoto(photo, index, s);
@@ -483,11 +493,18 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 
 								<div className="mt-2 flex w-full max-w-xl shrink-0 flex-col gap-3">
 									{slot !== null && current.photos[slot] && (
-										<div className="flex items-center justify-between rounded-xl bg-white px-3 py-2 text-sm shadow-sm">
-											<span className="text-ink-500">Photo {slot + 1} is selected. Pick or drop another to replace it.</span>
-											<button type="button" onClick={() => removePhoto(slot)} className="font-medium text-red-700 hover:underline">
-												Remove
-											</button>
+										<div className="space-y-2 rounded-xl bg-white px-3 py-2 text-sm shadow-sm">
+											<div className="flex items-center justify-between gap-3">
+												<span className="text-ink-500">Photo {slot + 1} is selected. Pick or drop another to replace it.</span>
+												<button type="button" onClick={() => removePhoto(slot)} className="font-medium text-red-700 hover:underline">
+													Remove
+												</button>
+											</div>
+											<PhotoPositionControls
+												position={current.photos[slot].position}
+												onChange={(position) => setPhotoPosition(slot, position)}
+												hint="Drag the photo on the page to choose what shows."
+											/>
 										</div>
 									)}
 									<div className="flex items-center gap-3">
@@ -745,12 +762,14 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 	const [coverText, setCoverText] = useState<boolean | null>(book.coverText);
 	const [visibility, setVisibility] = useState<Visibility>(book.visibility);
 	const [coverPhotoId, setCoverPhotoId] = useState<string | null>(book.coverPhotoId);
+	const [coverPosition, setCoverPosition] = useState<PhotoPosition | null>(book.coverPosition);
 	const [spaceId, setSpaceId] = useState(book.spaceId ?? "");
 	const [copied, setCopied] = useState(false);
 	const saving = fetcher.state !== "idle";
 	const uniquePhotos = useMemo(() => [...new Map(bookPhotos.map((p) => [p.id, p])).values()], [bookPhotos]);
 	const coverPhoto = uniquePhotos.find((p) => p.id === coverPhotoId) ?? uniquePhotos[0] ?? null;
-	const cover = { ...book, title: title || "Untitled", description, theme, coverDesign, coverText, coverPhoto };
+	const cover = { ...book, title: title || "Untitled", description, theme, coverDesign, coverText, coverPhoto, coverPosition };
+	const positioner = usePhotoPositioner(coverPosition, coverPhoto ? (position) => setCoverPosition(storedPosition(position)) : undefined);
 	const titled = coverHasText(FlipbookModel.cover(cover));
 	const submitted = useRef(false);
 
@@ -763,7 +782,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 		fetcher.submit(
 			{
 				intent: "update",
-				changes: { title, description: description || null, theme, coverDesign, coverText, coverPhotoId, ...(book.isOwner ? { visibility, spaceId: spaceId || null } : {}) },
+				changes: { title, description: description || null, theme, coverDesign, coverText, coverPhotoId, coverPosition, ...(book.isOwner ? { visibility, spaceId: spaceId || null } : {}) },
 			},
 			{ method: "post", encType: "application/json" },
 		);
@@ -790,10 +809,11 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 				</div>
 				<div className="flex-1 space-y-6 px-6 py-6">
 					<div className="mx-auto w-40">
-						<div className="relative aspect-[3/4] overflow-hidden rounded-r-md shadow-lg" style={{ containerType: "size" }}>
+						<div ref={positioner} className="relative aspect-[3/4] overflow-hidden rounded-r-md shadow-lg" style={{ containerType: "size" }}>
 							<CoverView book={FlipbookModel.cover(cover)} />
 						</div>
 					</div>
+					{coverPhoto && <PhotoPositionControls position={coverPosition} onChange={setCoverPosition} hint="Drag the cover photo to choose what shows." />}
 					<Field label="Title">
 						<Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={160} required />
 					</Field>
@@ -832,7 +852,10 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 									<button
 										key={p.id}
 										type="button"
-										onClick={() => setCoverPhotoId(p.id)}
+										onClick={() => {
+											setCoverPhotoId(p.id);
+											if (p.id !== coverPhotoId) setCoverPosition(null);
+										}}
 										className={`aspect-square overflow-hidden rounded-md ${coverPhotoId === p.id ? "ring-2 ring-brand-500 ring-offset-1" : ""}`}
 									>
 										<img src={p.url} alt="" className="h-full w-full object-cover" loading="lazy" />
