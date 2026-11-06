@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Form, useNavigation, useSubmit } from "react-router";
+import { Form, useNavigation, useRouteLoaderData, useSubmit } from "react-router";
 import { requireSignIn, requireUser } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
 import { Alert, Button, Field, Input, Notice } from "~/components/ui";
@@ -36,7 +36,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 			});
 		default:
 			return settingsAction("profile", async () => {
-				await api.account.updateProfile({ name: String(form.get("name") ?? "") });
+				await api.account.updateProfile({ name: String(form.get("name") ?? ""), username: String(form.get("username") ?? "") });
 
 				return { message: "Saved." };
 			});
@@ -52,6 +52,7 @@ export default function Profile({ loaderData, actionData }: Route.ComponentProps
 	const busy = (intent: string) => navigation.state !== "idle" && navigation.formData?.get("intent") === intent;
 	const avatar = resultFor(actionData, "avatar") ?? resultFor(actionData, "remove-avatar");
 	const profile = resultFor(actionData, "profile");
+	const origin = (useRouteLoaderData("root") as { origin?: string } | undefined)?.origin ?? "";
 
 	return (
 		<>
@@ -99,11 +100,29 @@ export default function Profile({ loaderData, actionData }: Route.ComponentProps
 					)}
 				</Section>
 
-				<Section title="Name">
+				<Section title="Name and username">
 					<Form method="post" className="max-w-md space-y-4">
 						<input type="hidden" name="intent" value="profile" />
 						<Field label="Your name" error={profile?.fieldErrors.name}>
 							<Input name="name" autoComplete="name" required maxLength={120} defaultValue={user.name} />
+						</Field>
+						<Field
+							label="Username"
+							error={profile?.fieldErrors.username}
+							hint={`Your profile lives at ${origin}/makers/${user.username}. Use 3 to 30 lower case letters, numbers or underscores.`}
+						>
+							<Input
+								name="username"
+								autoComplete="username"
+								autoCapitalize="none"
+								spellCheck={false}
+								required
+								minLength={3}
+								maxLength={30}
+								pattern="[A-Za-z0-9_]+"
+								key={user.username}
+								defaultValue={user.username}
+							/>
 						</Field>
 						<div className="flex items-center gap-3">
 							<Button type="submit" disabled={busy("profile")}>
