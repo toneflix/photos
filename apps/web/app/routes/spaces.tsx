@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { data, Form, Link, useNavigation, useSearchParams } from "react-router";
-import type { Space } from "@photos/types";
+import { data, Form, Link, useFetcher, useNavigation, useSearchParams } from "react-router";
+import { spacePermissionLabels, type SharedSpace, type Space } from "@photos/types";
 import { formError } from "~/lib/api.server";
 import { requireSignIn } from "~/lib/session.server";
 import { SpaceCard } from "~/components/spaces/SpaceCard";
@@ -11,9 +11,13 @@ export const meta = () => [{ title: "Your spaces · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const { api } = await requireSignIn(request, context);
-	const { data: spaces } = await api.spaces.list({ per_page: 100 });
+	const [{ data: spaces }, { data: shared }, invites] = await Promise.all([
+		api.spaces.list({ per_page: 100 }),
+		api.spaces.shared({ per_page: 100 }),
+		api.spaces.invites({ per_page: 1 }),
+	]);
 
-	return { spaces };
+	return { spaces, shared, invites: invites.meta.total };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
@@ -32,6 +36,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 		if (intent === "create") await api.spaces.create(details);
 		if (intent === "update") await api.spaces.update(id, details);
 		if (intent === "delete") await api.spaces.remove(id);
+		if (intent === "leave") await api.spaces.removeMember(id, String(form.get("membershipId")));
 
 		return { ok: true as const, intent };
 	} catch (error) {
@@ -40,10 +45,10 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function Spaces({ loaderData, actionData }: Route.ComponentProps) {
-	const { spaces } = loaderData;
+	const { spaces, shared, invites } = loaderData;
 	const [params, setParams] = useSearchParams();
 	const editing = spaces.find((space) => space.id === params.get("edit")) ?? null;
-	const [creating, setCreating] = useState(!spaces.length);
+	const [creating, setCreating] = useState(!spaces.length && !shared.length);
 	const failed = actionData && !actionData.ok ? actionData : undefined;
 
 	useEffect(() => {
@@ -64,7 +69,18 @@ export default function Spaces({ loaderData, actionData }: Route.ComponentProps)
 				{!creating && <Button onClick={() => setCreating(true)}>New space</Button>}
 			</div>
 
-			{creating && <SpaceForm error={failed?.intent === "create" ? failed : undefined} onCancel={spaces.length ? () => setCreating(false) : undefined} />}
+			{invites > 0 && (
+				<Link
+					prefetch="intent"
+					to="/invites"
+					className="mt-6 flex items-center justify-between gap-4 rounded-xl bg-brand-50 px-5 py-3 text-sm font-semibold text-brand-800 hover:bg-brand-100"
+				>
+					{invites === 1 ? "You have an invite to join a space." : `You have ${invites} invites to join spaces.`}
+					<span aria-hidden>→</span>
+				</Link>
+			)}
+
+			{creating && <SpaceForm error={failed?.intent === "create" ? failed : undefined} onCancel={spaces.length || shared.length ? () => setCreating(false) : undefined} />}
 
 			{spaces.length > 0 && (
 				<ul className="mt-10 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
@@ -80,6 +96,9 @@ export default function Spaces({ loaderData, actionData }: Route.ComponentProps)
 								<Link prefetch="intent" to={`/stats/spaces/${space.id}`} className="rounded-full bg-surface-100 px-3 py-1.5 text-ink-700 hover:bg-surface-200">
 									Stats
 								</Link>
+								<Link prefetch="intent" to={`/spaces/${space.slug}/members`} className="rounded-full bg-surface-100 px-3 py-1.5 text-ink-700 hover:bg-surface-200">
+									Members
+								</Link>
 								<Link to={`?edit=${space.id}`} preventScrollReset className="rounded-full bg-surface-100 px-3 py-1.5 text-ink-700 hover:bg-surface-200">
 									Edit
 								</Link>
@@ -87,6 +106,18 @@ export default function Spaces({ loaderData, actionData }: Route.ComponentProps)
 						</SpaceCard>
 					))}
 				</ul>
+			)}
+
+			{shared.length > 0 && (
+				<section className="mt-16">
+					<h2 className="font-display text-2xl font-bold tracking-tight text-ink-900">Shared with you</h2>
+					<p className="mt-1 text-ink-500">Spaces other people invited you into.</p>
+					<ul className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+						{shared.map((space) => (
+							<SharedSpaceCard key={space.id} space={space} />
+						))}
+					</ul>
+				</section>
 			)}
 
 			{editing && (
@@ -99,6 +130,52 @@ export default function Spaces({ loaderData, actionData }: Route.ComponentProps)
 				/>
 			)}
 		</main>
+	);
+}
+
+const pill = "rounded-full bg-surface-100 px-3 py-1.5 text-ink-700 hover:bg-surface-200";
+
+/** A space someone shared with the user, with what they can do there and a way to leave. */
+function SharedSpaceCard({ space }: { space: SharedSpace }) {
+	const fetcher = useFetcher();
+	const owner = space.owner.name ?? "A Toneflix member";
+
+	return (
+		<SpaceCard space={space}>
+			<p className="text-sm text-ink-500">
+				From {owner} · You can: {spacePermissionLabels(space.permissions)}
+			</p>
+			<div className="mt-3 flex flex-wrap gap-2 text-sm font-semibold">
+				{space.permissions.includes("create") && (
+					<>
+						<Link prefetch="intent" to={`/photos?space=${space.id}`} className={pill}>
+							Your photos
+						</Link>
+						<Link prefetch="intent" to={`/books?space=${space.id}`} className={pill}>
+							Your books
+						</Link>
+					</>
+				)}
+				{space.permissions.includes("manage") && (
+					<Link prefetch="intent" to={`/spaces/${space.slug}/members`} className={pill}>
+						Members
+					</Link>
+				)}
+				<fetcher.Form
+					method="post"
+					onSubmit={(event) => {
+						if (!confirm(`Leave “${space.name}”? Your photos and books leave the space and stay in your library.`)) event.preventDefault();
+					}}
+				>
+					<input type="hidden" name="intent" value="leave" />
+					<input type="hidden" name="spaceId" value={space.id} />
+					<input type="hidden" name="membershipId" value={space.membershipId} />
+					<button type="submit" disabled={fetcher.state !== "idle"} className={`${pill} text-red-700`}>
+						{fetcher.state !== "idle" ? "Leaving…" : "Leave"}
+					</button>
+				</fetcher.Form>
+			</div>
+		</SpaceCard>
 	);
 }
 
@@ -138,7 +215,7 @@ function SpaceFields({ space, error }: { space?: Space; error?: FormFailure }) {
 					<span className="text-ink-500">
 						{visibility === "public"
 							? "Anyone can browse its public photos and books, and it shows on Explore."
-							: "Only you can open it. Its photos and books stay off Explore."}
+							: "Only you and the people you invite can open it. Its photos and books stay off Explore."}
 					</span>
 				</span>
 				<input type="hidden" name="visibility" value={visibility} />

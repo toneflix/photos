@@ -7,6 +7,7 @@ import { cloudflareContext } from "~/lib/cloudflare";
 import { formError, getServerApi } from "~/lib/api.server";
 import { BookCodes } from "~/lib/book-codes.server";
 import { readToken } from "~/lib/session.server";
+import { workSpaces } from "~/lib/space-filter.server";
 import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
@@ -35,7 +36,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 	const photos = book.isOwner
 		? (await api.photos.list({ per_page: 200 })).data
 		: [...new Map(book.pages.flatMap((page) => page.photos).map((photo) => [photo.id, photo])).values()];
-	const spaces = book.isOwner ? (await api.spaces.list({ per_page: 100 })).data : [];
+	const spaces = book.isOwner ? await workSpaces(api) : [];
 
 	return { book, photos, spaces };
 }

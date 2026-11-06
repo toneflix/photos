@@ -210,7 +210,7 @@ export interface PublicBook extends Book {
 
 /**
  * Who can browse a space.
- * - private: only the owner. Its photos and books stay off Explore.
+ * - private: only the owner and the members they invite. Its photos and books stay off Explore.
  * - public: anyone, on its own page and on Explore.
  */
 export type SpaceVisibility = 'private' | 'public'
@@ -242,6 +242,45 @@ export interface PublicSpace extends Space {
   stats: ContentCounts | null
   /** True when the signed-in viewer owns the space. */
   canEdit: boolean
+  /** What the signed-in viewer may do in the space. Owners have every permission. */
+  permissions: SpacePermission[]
+}
+
+/**
+ * What a space member may do. Every member can view.
+ * - view: open the space and its public photos and books, even while the space is private.
+ * - create: add their own photos and books to the space.
+ * - edit: change the pages of every book in the space and add photos to them.
+ * - manage: rename the space and invite, change or remove members. Only the owner hands this out.
+ */
+export type SpacePermission = 'view' | 'create' | 'edit' | 'manage'
+
+/** A space the signed-in user joined, with their membership. */
+export interface SharedSpace extends PublicSpace {
+  membershipId: ID
+  joinedAt: string
+}
+
+/** Someone invited into a space, as its managers see them. `name` and `avatarUrl` appear once they join. */
+export interface SpaceMember {
+  id: ID
+  spaceId: ID
+  email: string
+  name: string | null
+  avatarUrl: string | null
+  permissions: SpacePermission[]
+  status: 'invited' | 'joined'
+  invitedAt: string
+  acceptedAt: string | null
+}
+
+/** An invite into someone's space, as the invited person sees it. */
+export interface SpaceInvite {
+  id: ID
+  permissions: SpacePermission[]
+  space: { id: ID; name: string; slug: string; description: string | null } | null
+  invitedBy: { name: string; avatarUrl: string | null } | null
+  invitedAt: string
 }
 
 /** One page of a book, holding one or more photos. */

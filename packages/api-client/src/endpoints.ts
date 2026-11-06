@@ -38,7 +38,11 @@ import type {
   Session,
   SettingGroup,
   SignedIn,
+  SharedSpace,
   Space,
+  SpaceInvite,
+  SpaceMember,
+  SpacePermission,
   SpaceQuery,
   SpaceVisibility,
   TwoFactorChallenge,
@@ -160,7 +164,7 @@ export function createEndpoints(alova: PhotosAlova) {
       photo: (id: ID) => alova.Get<ApiResponse<PublicPhotoDetail>>(`/explore/photos/${id}`),
       books: (params: Omit<BookQuery, 'visibility'> = {}) => alova.Get<PaginatedResponse<PublicBook>>('/explore/books', { params }),
       spaces: (params: SpaceQuery = {}) => alova.Get<PaginatedResponse<PublicSpace>>('/explore/spaces', { params }),
-      /** A space's page by its web address. Private spaces open only for their owner. */
+      /** A space's page by its web address. Private spaces open only for their owner and members. */
       space: (slug: string) => alova.Get<ApiResponse<PublicSpace>>(`/explore/spaces/${encodeURIComponent(slug)}`, { cacheFor: null }),
     },
 
@@ -174,6 +178,21 @@ export function createEndpoints(alova: PhotosAlova) {
         alova.Put<ApiResponse<Space>>(`/spaces/${id}`, data),
       /** Delete the space. Its photos and books stay in your library. */
       remove: (id: ID) => alova.Delete<ApiResponse<Space>>(`/spaces/${id}`),
+      /** Everyone invited into a space. Needs `manage`. */
+      members: (id: ID, params: PageQuery = {}) => alova.Get<PaginatedResponse<SpaceMember>>(`/spaces/${id}/members`, { params, cacheFor: null }),
+      /** Invite someone by email. They join once they accept from an account with that address. */
+      invite: (id: ID, data: { email: string; permissions: SpacePermission[] }) => alova.Post<ApiResponse<SpaceMember>>(`/spaces/${id}/members`, data),
+      updateMember: (id: ID, member: ID, permissions: SpacePermission[]) =>
+        alova.Put<ApiResponse<SpaceMember>>(`/spaces/${id}/members/${member}`, { permissions }),
+      /** Remove a member or cancel an invite, or leave the space when `member` is your own membership. Their photos and books leave the space. */
+      removeMember: (id: ID, member: ID) => alova.Delete<ApiResponse<SpaceMember>>(`/spaces/${id}/members/${member}`),
+      /** Spaces you were invited into and joined. */
+      shared: (params: PageQuery = {}) => alova.Get<PaginatedResponse<SharedSpace>>('/account/shared-spaces', { params, cacheFor: null }),
+      /** Invites into other people's spaces waiting for your answer. */
+      invites: (params: PageQuery = {}) => alova.Get<PaginatedResponse<SpaceInvite>>('/account/space-invites', { params, cacheFor: null }),
+      /** Join a space. Needs a confirmed email address. */
+      acceptInvite: (invite: ID) => alova.Post<ApiResponse<SharedSpace>>(`/account/space-invites/${invite}/accept`),
+      declineInvite: (invite: ID) => alova.Delete<ApiResponse<SpaceInvite>>(`/account/space-invites/${invite}`),
     },
 
     books: {
