@@ -34,14 +34,13 @@ export default function Plan() {
             <Text variant="title">{plan.plan.name}</Text>
             <Text variant="muted">
               {plan.endsAt
-                ? `Paid until ${dateFormat.format(new Date(plan.endsAt))}. It doesn't renew on its own; after that you're back on Free and keep everything you made.`
+                ? `Paid until ${dateFormat.format(new Date(plan.endsAt))}.`
                 : (plan.plan.description ?? '')}
             </Text>
             <Usage label="Storage" used={plan.usage.storage.used} limit={plan.usage.storage.limit} format={formatBytes} />
             <Usage label="Books" used={plan.usage.books} limit={Number(plan.features.max_books) || 0} />
             <Usage label="Spaces" used={plan.usage.spaces} limit={Number(plan.features.max_spaces) || 0} />
             <Button title={plan.premium ? 'Add more time' : 'See Premium'} variant={plan.premium ? 'secondary' : 'primary'} onPress={() => Linking.openURL(webUrl('/pricing')).catch(() => undefined)} />
-            <Text variant="small">Plans open on the Toneflix Photos website, where Flutterwave takes the payment.</Text>
           </Section>
 
           <Section title="What's included">

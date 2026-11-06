@@ -97,12 +97,11 @@ export default function Pricing({ loaderData, actionData }: Route.ComponentProps
 				})}
 			</div>
 
-			<p className="mt-10 text-center text-sm text-ink-500">
-				Payments are taken securely by Flutterwave. Plans don't renew on their own: when your time ends you're back on Free, and everything you made stays.
-				{current?.premium && current.endsAt && (
-					<> Time you add starts after your current plan ends on {new Date(current.endsAt).toLocaleDateString(undefined, { dateStyle: "medium" })}.</>
-				)}
-			</p>
+			{current?.premium && current.endsAt && (
+				<p className="mt-10 text-center text-sm text-ink-500">
+					Time you add starts after {new Date(current.endsAt).toLocaleDateString(undefined, { dateStyle: "medium" })}.
+				</p>
+			)}
 		</main>
 	);
 }

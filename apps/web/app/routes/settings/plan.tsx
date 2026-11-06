@@ -67,11 +67,7 @@ export default function PlanSettings({ loaderData }: Route.ComponentProps) {
 						<div>
 							<p className="text-xs font-semibold tracking-[0.14em] text-ink-500 uppercase">Your plan</p>
 							<p className="mt-1 font-display text-3xl font-bold tracking-tight text-ink-900">{plan.plan.name}</p>
-							<p className="mt-1 text-sm text-ink-500">
-								{endsAt
-									? `Paid until ${endsAt}. It doesn't renew on its own; after that you're back on Free and keep everything you made.`
-									: plan.plan.description}
-							</p>
+							<p className="mt-1 text-sm text-ink-500">{endsAt ? `Paid until ${endsAt}.` : plan.plan.description}</p>
 						</div>
 						<Link prefetch="intent" to="/pricing" className={buttonClass(plan.premium ? "secondary" : "primary")}>
 							{plan.premium ? "Add more time" : "See Premium"}

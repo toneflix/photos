@@ -184,7 +184,7 @@ function RegionEditor({ region }: { region: PaymentRegion | null }) {
 				{result?.error && <Alert>{result.error}</Alert>}
 				<div className="grid gap-5 sm:grid-cols-2">
 					{field("Name", "name", { required: true, maxLength: 80, placeholder: "Ghana" })}
-					{field("Currency", "currency", { required: true, maxLength: 3, placeholder: "GHS" }, "The three-letter code Flutterwave charges in.")}
+					{field("Currency", "currency", { required: true, maxLength: 3, placeholder: "GHS" }, "The three-letter code payers are charged in.")}
 					{field(
 						"Countries",
 						"countries",

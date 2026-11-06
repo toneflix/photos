@@ -47,12 +47,12 @@ export default function CheckoutComplete({ loaderData }: Route.ComponentProps) {
 			: payment.status === "rejected"
 				? {
 						title: "This payment didn't go through",
-						body: "Nothing was added to your plan. If you were charged, Flutterwave returns it, or contact us with the reference below.",
+						body: "Nothing was added to your plan. If you were charged, contact us with the reference below.",
 						tone: "warn",
 					}
 				: {
 						title: "Confirming your payment",
-						body: "This page updates as soon as Flutterwave confirms it. You can leave it; your plan updates either way.",
+						body: "This page updates once the payment is confirmed.",
 						tone: "wait",
 					};
 
