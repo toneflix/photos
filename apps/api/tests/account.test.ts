@@ -51,6 +51,22 @@ describe('account', () => {
     expect(res.body.data).toMatchObject({ email, emailVerified: false, defaultVisibility: 'private', showOwnerName: true })
   })
 
+  it('confirms the email from the emailed link alone', async () => {
+    const html = await lastMailTo(email)
+    const href = html.match(/href="([^"]*verify-email[^"]*)"/)![1]
+    const params = new URL(href).searchParams
+
+    expect(href).not.toContain('&')
+    expect([...params.keys()]).toEqual(['token'])
+
+    await api('post', '/auth/verify-email', { token: params.get('token'), email: 'someone-else@toneflix.test' }).expect(422)
+    await api('post', '/auth/verify-email', { token: params.get('token') }).expect(200)
+
+    const me = await api('get', '/auth/me')
+
+    expect(me.body.data.emailVerified).toBe(true)
+  })
+
   it('saves the profile and privacy choices', async () => {
     await api('put', '/account/profile', { name: 'Ada Person' }).expect(200)
     await api('put', '/account/privacy', { defaultVisibility: 'shared', showOwnerName: false }).expect(200)

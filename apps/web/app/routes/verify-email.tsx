@@ -17,7 +17,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 	try {
 		const { data: user } = await (await getServerApi(request, env, null)).auth.verifyEmail({
 			token: params.get("token") ?? "",
-			email: params.get("email") ?? "",
+			email: params.get("email") || undefined,
 		});
 
 		return { verified: true, email: user.email, error: null, signedIn };

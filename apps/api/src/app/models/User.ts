@@ -185,18 +185,33 @@ export class User extends BaseUser {
   /** Email a link that proves this user owns their current address. */
   async sendVerificationEmail(): Promise<void> {
     const token = await Auth.make().createTemporaryToken(this as never, `verify-email:${this.email}`, '24h')
-    const query = new URLSearchParams({ token, email: this.email })
+    const query = new URLSearchParams({ token })
 
     await AccountMail.verifyEmail(this, `${config('app.frontend_url')}/verify-email?${query}`)
   }
 
   /** The user a verification link was sent to, while the link is valid and the address unchanged. */
-  static async fromVerificationToken(token: string, email: string): Promise<User | null> {
+  static async fromVerificationToken(token: string, email?: string | null): Promise<User | null> {
+    email ||= User.verificationTokenEmail(token)
+
+    if (!email) return null
+
     const user = (await Auth.make()
       .authorizeTemporaryToken(token, `verify-email:${email}`)
       .catch(() => null)) as User | null
 
     return user?.email === email ? user : null
+  }
+
+  /** The `email` claim of a verification token, read before its signature is verified. */
+  private static verificationTokenEmail(token: string): string | null {
+    try {
+      const claims = JSON.parse(Buffer.from(token.split('.')[1] ?? '', 'base64url').toString('utf8'))
+
+      return typeof claims?.email === 'string' ? claims.email : null
+    } catch {
+      return null
+    }
   }
 
   async markEmailVerified(): Promise<void> {
