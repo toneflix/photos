@@ -148,10 +148,10 @@ export default class AuthController extends BaseController {
   async verifyEmail() {
     const data = await this.validate({
       token: 'required|string',
-      email: 'required|email',
+      email: 'nullable|email',
     })
 
-    const user = await User.fromVerificationToken(String(data.token), String(data.email))
+    const user = await User.fromVerificationToken(String(data.token), data.email ? String(data.email) : null)
 
     assertFound(user, 'This confirmation link has expired. Send yourself a new one from settings.', 422)
 
