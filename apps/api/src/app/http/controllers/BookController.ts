@@ -17,6 +17,13 @@ const PAPER = `in:${Book.PAPERS.join(',')}`
 const FRAME = `in:${Book.FRAMES.join(',')}`
 const COVER_DESIGN = `in:${Book.COVER_DESIGNS.join(',')}`
 
+/** The owner's own cover line and back cover text, each allowed by their plan. */
+const BRANDING = {
+  kicker: 'nullable|string|max:60',
+  brand: 'nullable|string|max:60',
+  imprint: 'nullable|string|max:60',
+}
+
 /** The most pages one save may send. Each plan sets its own limit under this. */
 const MAX_PAGES = 2000
 
@@ -49,12 +56,14 @@ export default class BookController extends BaseController {
       paper: `nullable|${PAPER}`,
       frame: `nullable|${FRAME}`,
       spaceId: ['nullable', UUID],
+      ...BRANDING,
     })
 
     const limits = await Limits.for(this.user)
 
     await limits.ensureCanCreateBook()
     await limits.ensureCoverDesign(data.coverDesign)
+    await limits.ensureBranding(data)
 
     const space = data.spaceId ? await this.user.spaces().findOrFail(data.spaceId) : null
     const visibility = data.visibility || this.user.defaultVisibility || 'private'
@@ -70,6 +79,9 @@ export default class BookController extends BaseController {
       coverText: data.coverText ?? null,
       paper: data.paper || 'ivory',
       frame: data.frame || 'none',
+      kicker: data.kicker?.trim() || null,
+      brand: data.brand?.trim() || null,
+      imprint: data.imprint?.trim() || null,
     })
 
     return new BookDetailResource(book)
@@ -104,11 +116,17 @@ export default class BookController extends BaseController {
       coverPhotoId: ['nullable', UUID],
       ...photoPosition('coverPosition'),
       spaceId: ['nullable', UUID],
+      ...BRANDING,
     })
+    const branded = 'kicker' in data || 'brand' in data || 'imprint' in data
 
     abortIf((!!data.visibility || 'spaceId' in data) && !access.isOwner, 'Only the owner can change who can open this book or its space.', 403)
+    abortIf(branded && !access.isOwner, 'Only the owner can change the branding of this book.', 403)
 
-    await (await Limits.for(await book.user().first())).ensureCoverDesign(data.coverDesign, book.coverDesign)
+    const limits = await Limits.for(await book.user().first())
+
+    await limits.ensureCoverDesign(data.coverDesign, book.coverDesign)
+    await limits.ensureBranding(data, book)
 
     if (data.title) book.title = String(data.title).trim()
     if ('description' in data) book.description = data.description || null
@@ -118,6 +136,9 @@ export default class BookController extends BaseController {
     if ('coverText' in data) book.coverText = data.coverText ?? null
     if (data.paper) book.paper = data.paper
     if (data.frame) book.frame = data.frame
+    if ('kicker' in data) book.kicker = data.kicker?.trim() || null
+    if ('brand' in data) book.brand = data.brand?.trim() || null
+    if ('imprint' in data) book.imprint = data.imprint?.trim() || null
     if ('spaceId' in data) book.spaceId = data.spaceId ? (await access.viewer!.spaces().findOrFail(data.spaceId)).id : null
     if ('coverPhotoId' in data) {
       const coverPhotoId = data.coverPhotoId ? ((await book.ownedPhotoIds([data.coverPhotoId]))[0] ?? null) : null

@@ -13,11 +13,30 @@ const MB = 1024 * 1024
 /** The largest photo upload when a plan sets no limit, matching the most the upload setting allows. */
 const PHOTO_CEILING_MB = 200
 
+export type BrandingField = 'kicker' | 'brand' | 'imprint'
+
+export interface BookBranding {
+  kicker: string
+  brand: string | null
+  imprint: string
+  colophon: string | null
+}
+
 /**
  * What one account's plan lets it do, and the checks that stop it going further.
  * Every plan limit is enforced here. A limit of 0 means no limit.
  */
 export class Limits {
+  static readonly KICKER = 'A Toneflix photo book'
+  static readonly IMPRINT = 'Toneflix Photos'
+  static readonly COLOPHON = 'Preserved for all time with Toneflix Photos.'
+
+  private static readonly BRANDING_MESSAGES: Record<BrandingField, string> = {
+    kicker: 'Your own cover line is not included in your plan.',
+    brand: 'Your brand on the back cover is not included in your plan.',
+    imprint: 'Your own back cover is not included in your plan.',
+  }
+
   private constructor(
     readonly user: User | null,
     readonly plan: Plan,
@@ -142,6 +161,40 @@ export class Limits {
     const original = custom ? custom > largest : !request.size || request.size === 'original'
 
     abortIf(original, `Full-size downloads are not included in your plan. Pick a size up to ${largest}px.`, 403)
+  }
+
+  /** The cover line, brand and back cover a book prints. Saved text shows only while the owner's plan includes it. */
+  async branding(book: Book): Promise<BookBranding> {
+    const customImprint = (await this.allows('custom_imprint')) && !!book.imprint
+
+    return {
+      kicker: ((await this.allows('custom_kicker')) && book.kicker) || Limits.KICKER,
+      brand: ((await this.allows('brand_imprint')) || (await this.allows('custom_imprint'))) && book.brand ? book.brand : null,
+      imprint: customImprint ? book.imprint! : Limits.IMPRINT,
+      colophon: customImprint ? null : Limits.COLOPHON,
+    }
+  }
+
+  /** Which branding fields the plan lets the owner set. */
+  async brandingAllowed(): Promise<Record<BrandingField, boolean>> {
+    const customImprint = await this.allows('custom_imprint')
+
+    return {
+      kicker: await this.allows('custom_kicker'),
+      brand: customImprint || (await this.allows('brand_imprint')),
+      imprint: customImprint,
+    }
+  }
+
+  /** New branding text must be on the plan. Clearing a field, or keeping its saved text, is always allowed. */
+  async ensureBranding(input: Partial<Record<BrandingField, string | null>>, book?: Book): Promise<void> {
+    const allowed = await this.brandingAllowed()
+
+    for (const field of ['kicker', 'brand', 'imprint'] as const) {
+      const value = input[field]?.trim()
+
+      if (value && value !== book?.[field] && !allowed[field]) await this.fail(field, Limits.BRANDING_MESSAGES[field])
+    }
   }
 
   static readable(bytes: number): string {

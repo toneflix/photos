@@ -46,6 +46,12 @@ export class Book extends Model {
   declare coverPosition: PhotoPosition | null
   declare paper: string
   declare frame: string
+  /** The owner's own line above the cover title, in place of the Toneflix one. */
+  declare kicker: string | null
+  /** The owner's brand, printed on the back cover above the imprint. */
+  declare brand: string | null
+  /** The owner's own name on the back cover, in place of Toneflix Photos. */
+  declare imprint: string | null
   declare publishedAt: Date | null
   declare viewCount: number
   declare downloadCount: number
