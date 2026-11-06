@@ -108,6 +108,7 @@ function Book({ book, code, startPage, reload }: { book: BookWithPages; code: st
         topRight={
           <>
             {book.isOwner && <Chip title="Access codes" onPress={() => router.push({ pathname: '/books/[id]/access', params: { id: book.id } })} />}
+            {book.isOwner && <Chip title="Stats" onPress={() => router.push({ pathname: '/stats/[kind]/[id]', params: { kind: 'books', id: book.id } })} />}
             {!book.isOwner && can('add') && <Chip title="Add photos" onPress={() => setPanel('add')} />}
             {!book.isOwner && can('transfer') && <Chip title="Make it yours" onPress={() => setPanel('claim')} />}
             {book.canEdit && <Chip title="Edit" onPress={() => router.push({ pathname: '/books/[id]/edit', params: { id: book.id } })} />}

@@ -82,6 +82,9 @@ export default function PhotoDetail() {
             </Text>
           ) : null}
           {photo.takenAt ? <Text variant="muted">{new Date(photo.takenAt).toLocaleDateString(undefined, { dateStyle: 'long' })}</Text> : null}
+          <Text variant="link" accessibilityRole="button" onPress={() => router.push({ pathname: '/stats/[kind]/[id]', params: { kind: 'photos', id: photo.id } })}>
+            See views and downloads
+          </Text>
         </View>
 
         {problem.message ? <Callout>{problem.message}</Callout> : null}

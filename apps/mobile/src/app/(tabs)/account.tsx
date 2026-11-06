@@ -56,6 +56,15 @@ export default function Account() {
         </View>
       </Pressable>
 
+      <Pressable accessibilityRole="button" onPress={() => router.push('/stats')} style={({ pressed }) => [styles.list, styles.row, pressed && styles.pressed]}>
+        <Ionicons name="stats-chart-outline" size={20} color={colors.ink700} />
+        <View style={styles.flex}>
+          <Text style={styles.label}>Your stats</Text>
+          <Text variant="small">Views and downloads of your photos, books and spaces</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={16} color={colors.ink500} />
+      </Pressable>
+
       {SETTINGS_GROUPS.map((group) => (
         <View key={group.label} style={styles.group}>
           <Text style={styles.groupLabel}>{group.label.toUpperCase()}</Text>
