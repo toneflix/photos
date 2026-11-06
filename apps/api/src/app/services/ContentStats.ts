@@ -16,7 +16,7 @@ export interface StatsDay {
   downloads: number
 }
 
-/** Which counts to add up: one item, everything one person owns, one kind, or everything. */
+/** Which counts to add up: one item, everything one person made (`ownerId`), one kind, or everything. */
 export interface StatsScope {
   kind?: CountedKind
   subjectId?: string
@@ -25,13 +25,19 @@ export interface StatsScope {
 
 /**
  * Views and downloads of photos, books and spaces. Each item keeps running totals,
- * and `content_stats` keeps one row per item per day for charts. Owners don't count,
+ * and `content_stats` keeps one row per item per day for charts, filed under its maker.
+ * Owners and makers don't count,
  * and one visitor counts once per item and action within VISITOR_WINDOW_SECONDS.
  */
 export class ContentStats {
   static readonly VISITOR_WINDOW_SECONDS = 6 * 60 * 60
 
   constructor(readonly subject: Counted) {}
+
+  /** Whose work the item is: a book's maker, else its owner. Their stats include it. */
+  get makerId(): string {
+    return this.subject instanceof Book ? (this.subject.creatorId ?? this.subject.userId) : this.subject.userId
+  }
 
   get kind(): CountedKind {
     if (this.subject instanceof Photo) return 'photo'
@@ -52,7 +58,7 @@ export class ContentStats {
 
   /** What the item's counts show to `viewer`: always to the owner, to others only when the owner chose to show them. */
   static shown(subject: Counted, owner: User | null, viewer: User | null): { views: number; downloads: number | null } | null {
-    const isOwner = !!viewer && viewer.id === subject.userId
+    const isOwner = !!viewer && (viewer.id === subject.userId || viewer.id === new ContentStats(subject).makerId)
 
     if (!isOwner && !owner?.showCounts) return null
 
@@ -106,7 +112,7 @@ export class ContentStats {
   }
 
   private async record(column: 'views' | 'downloads', visitor: string | null, viewer: User | null): Promise<boolean> {
-    if (!visitor || viewer?.id === this.subject.userId) return false
+    if (!visitor || viewer?.id === this.subject.userId || viewer?.id === this.makerId) return false
 
     const fresh = await Cache.add(`counted:${this.kind}:${this.subject.id}:${column}:${visitor}`, true, ContentStats.VISITOR_WINDOW_SECONDS)
 
@@ -118,7 +124,7 @@ export class ContentStats {
     await DB.raw(
       `insert into content_stats (subject_type, subject_id, owner_id, day, ${column}) values (?, ?, ?, current_date, 1)
         on conflict (subject_type, subject_id, day) do update set ${column} = content_stats.${column} + 1`,
-      [this.kind, this.subject.id, this.subject.userId],
+      [this.kind, this.subject.id, this.makerId],
     )
     await DB.raw(`update ${table} set ${total} = ${total} + 1 where id = ?`, [this.subject.id])
 

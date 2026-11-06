@@ -148,4 +148,19 @@ describe('Views and downloads', () => {
     expect(book.body.data).toMatchObject({ viewCount: 1, daily: null })
     expect((await api('get', `/account/stats/spaces/${spaceId}`)).body.data.daily).toHaveLength(30)
   })
+
+  it('keeps a claimed book in its maker\'s stats', async () => {
+    putOnPlan(accounts.owner.email)
+
+    const book = (await api('post', '/books', { title: 'Handed over', visibility: 'public' })).body.data.id
+    const transfer = (await api('post', `/books/${book}/access-codes`, { permissions: ['transfer'] })).body.data.code
+
+    expect((await api('post', '/access-codes/claim', { code: transfer }, 'visitor')).status).toBe(200)
+
+    await api('get', `/books/${book}`, undefined, 'admin')
+
+    expect((await api('get', `/account/stats/books/${book}`)).body.data.viewCount).toBe(1)
+    expect((await api('get', `/account/stats/books/${book}`, undefined, 'visitor')).status).toBe(404)
+    expect((await api('get', '/account/stats')).body.data).toMatchObject({ bookCount: 2, totals: { views: 4 } })
+  })
 })

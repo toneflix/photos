@@ -71,6 +71,11 @@ export class User extends BaseUser {
     return this.hasMany(Book, 'userId')
   }
 
+  /** Books the user made, which stay theirs to brand and track after a client claims them. */
+  createdBooks() {
+    return this.hasMany(Book, 'creatorId')
+  }
+
   photos() {
     return this.hasMany(Photo, 'userId')
   }
@@ -79,10 +84,10 @@ export class User extends BaseUser {
     return this.hasMany(Space, 'userId')
   }
 
-  /** The user's own photos, books or spaces. */
+  /** The photos and spaces the user owns, or the books they made. */
   work(kind: 'photos' | 'books' | 'spaces') {
     if (kind === 'photos') return this.photos()
-    if (kind === 'books') return this.books()
+    if (kind === 'books') return this.createdBooks()
 
     return this.spaces()
   }

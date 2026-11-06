@@ -18,12 +18,12 @@ export class MakerStatsResource extends Resource {
     const user = this.resource as User
     const top = async (items: Moderated[]) => Promise.all(items.map((item) => new ModerationItemResource(item).data()))
     const photos = await user.photos().with('user').latest('viewCount').take(5).getResults()
-    const books = await user.books().with('user').latest('viewCount').take(5).getResults()
+    const books = await user.createdBooks().with('user').latest('viewCount').take(5).getResults()
     const spaces = await user.spaces().with('user').latest('viewCount').take(5).getResults()
 
     return {
       photoCount: await user.photos().count(),
-      bookCount: await user.books().count(),
+      bookCount: await user.createdBooks().count(),
       spaceCount: await user.spaces().count(),
       totals: await ContentStats.totals({ ownerId: user.id }),
       daily: await ContentStats.daily({ ownerId: user.id }, this.days),

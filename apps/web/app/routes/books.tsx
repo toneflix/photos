@@ -146,12 +146,14 @@ function BookCard({ book }: { book: Book }) {
 					>
 						Edit
 					</Link>
-					<Link prefetch="intent"
-						to={`/stats/books/${book.id}`}
-						className="rounded-lg bg-white/95 px-3 py-1.5 text-xs font-semibold text-ink-900 shadow hover:bg-white"
-					>
-						Stats
-					</Link>
+					{book.creatorId === book.userId && (
+						<Link prefetch="intent"
+							to={`/stats/books/${book.id}`}
+							className="rounded-lg bg-white/95 px-3 py-1.5 text-xs font-semibold text-ink-900 shadow hover:bg-white"
+						>
+							Stats
+						</Link>
+					)}
 				</div>
 				{book.visibility !== "private" && (
 					<span className="absolute bottom-2 left-2 rounded-md bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur">
