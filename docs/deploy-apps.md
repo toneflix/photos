@@ -58,7 +58,7 @@ One-time setup:
 ### Build times
 
 - `eas`: the job takes about a minute; the build itself waits in the EAS queue and then runs on Expo's servers, with its progress on expo.dev.
-- `runner`: the first build takes the longest. Gradle's caches are saved between runs, and the APK is compiled for `APK_ARCHITECTURES` only, so later builds are much quicker. App Bundles for Google Play always include every architecture.
+- `runner`: most of the time goes on compiling C++ for each CPU architecture (about 3 minutes per architecture for the app alone, plus the native libraries). The APK is compiled for `APK_ARCHITECTURES` only, and Gradle's caches and the C++ compiler cache (ccache) are saved between runs, so builds after the first are quicker. App Bundles for Google Play always include every architecture.
 - The APK job stops after 60 minutes and the Play Store job after 120, so a stuck build can't hold a runner for hours.
 
 ## GitHub settings

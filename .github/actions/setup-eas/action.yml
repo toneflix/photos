@@ -62,16 +62,30 @@ runs:
         path: |
           ~/.gradle/caches
           ~/.gradle/wrapper
-        key: gradle-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'apps/mobile/app.json') }}
-        restore-keys: gradle-${{ runner.os }}-
+          ~/.cache/ccache
+        key: android-build-${{ runner.os }}-${{ inputs.android-architectures }}-${{ hashFiles('pnpm-lock.yaml', 'apps/mobile/app.json') }}
+        restore-keys: android-build-${{ runner.os }}-${{ inputs.android-architectures }}-
 
     - if: inputs.builder == 'runner'
-      name: Tune Gradle for runner builds
+      name: Tune runner builds
       shell: bash
       env:
         ANDROID_ARCHITECTURES: ${{ inputs.android-architectures }}
       run: |
-        echo "GRADLE_OPTS=-Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.project.reactNativeArchitectures=$ANDROID_ARCHITECTURES" >> "$GITHUB_ENV"
+        sudo apt-get install -y --no-install-recommends ccache > /dev/null
+
+        workdir="$RUNNER_TEMP/eas-build"
+
+        {
+          echo "GRADLE_OPTS=-Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.project.reactNativeArchitectures=$ANDROID_ARCHITECTURES"
+          echo "EAS_LOCAL_BUILD_WORKINGDIR=$workdir"
+          echo "CMAKE_C_COMPILER_LAUNCHER=ccache"
+          echo "CMAKE_CXX_COMPILER_LAUNCHER=ccache"
+          echo "CCACHE_DIR=$HOME/.cache/ccache"
+          echo "CCACHE_BASEDIR=$workdir"
+          echo "CCACHE_NOHASHDIR=true"
+          echo "CCACHE_MAXSIZE=2G"
+        } >> "$GITHUB_ENV"
 
     - uses: expo/expo-github-action@v9
       with:

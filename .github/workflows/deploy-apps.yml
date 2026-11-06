@@ -98,6 +98,7 @@ jobs:
         run: |
           if [ "$ANDROID_BUILDER" = "runner" ]; then
             eas build --platform android --profile preview --local --non-interactive --output "$RUNNER_TEMP/app.apk"
+            ccache --show-stats || true
             echo "apk=true" >> "$GITHUB_OUTPUT"
           elif [ "$WAIT_FOR_EAS" = "true" ]; then
             eas build --platform android --profile preview --non-interactive --wait --json > "$RUNNER_TEMP/build.json"
