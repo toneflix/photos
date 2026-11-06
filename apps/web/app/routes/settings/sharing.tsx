@@ -1,7 +1,7 @@
 import { Form, Link, useNavigation } from "react-router";
 import type { PhotoLicense, Visibility } from "@photos/types";
 import { LICENSES } from "~/lib/licenses";
-import { requireUser } from "~/lib/session.server";
+import { requireSignIn, requireUser } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
 import { Button, Notice } from "~/components/ui";
 import { PageHeader, Section, resultFor } from "~/components/settings/Section";
@@ -22,7 +22,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const form = await request.formData();
 
 	if (form.get("intent") === "lock-books") {
@@ -89,7 +89,7 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 							<legend className="mb-1 text-sm font-medium text-ink-700">Licence for new photos</legend>
 							<p className="mb-3 text-xs text-ink-500">
 								What people may do with your photos once they're on Explore. You can change it for any photo from your library.{" "}
-								<Link to="/licenses" className="font-medium text-brand-700 hover:underline">
+								<Link prefetch="intent" to="/licenses" className="font-medium text-brand-700 hover:underline">
 									About licences
 								</Link>
 							</p>

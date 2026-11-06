@@ -7,7 +7,7 @@ import { SpaceCover } from "./SpaceCover";
 export function SpaceCard({ space, children }: { space: Space; children?: ReactNode }) {
 	return (
 		<li className="group min-w-0">
-			<Link
+			<Link prefetch="intent"
 				to={`/spaces/${space.slug}`}
 				className="relative block aspect-[4/3] overflow-hidden rounded-xl shadow-sm transition duration-300 group-hover:-translate-y-1 group-hover:shadow-xl"
 				aria-label={`Open ${space.name}`}

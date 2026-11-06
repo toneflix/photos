@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { data, Form, Link, useNavigation, useSearchParams } from "react-router";
 import type { Space } from "@photos/types";
 import { formError } from "~/lib/api.server";
-import { requireUser } from "~/lib/session.server";
+import { requireSignIn } from "~/lib/session.server";
 import { SpaceCard } from "~/components/spaces/SpaceCard";
 import { Alert, Button, Field, Input, Textarea } from "~/components/ui";
 import type { Route } from "./+types/spaces";
@@ -10,14 +10,14 @@ import type { Route } from "./+types/spaces";
 export const meta = () => [{ title: "Your spaces · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const { data: spaces } = await api.spaces.list({ per_page: 100 });
 
 	return { spaces };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const form = await request.formData();
 	const intent = form.get("intent");
 	const id = String(form.get("spaceId") ?? "");
@@ -71,10 +71,10 @@ export default function Spaces({ loaderData, actionData }: Route.ComponentProps)
 					{spaces.map((space) => (
 						<SpaceCard key={space.id} space={space}>
 							<div className="mt-3 flex flex-wrap gap-2 text-sm font-semibold">
-								<Link to={`/photos?space=${space.id}`} className="rounded-full bg-surface-100 px-3 py-1.5 text-ink-700 hover:bg-surface-200">
+								<Link prefetch="intent" to={`/photos?space=${space.id}`} className="rounded-full bg-surface-100 px-3 py-1.5 text-ink-700 hover:bg-surface-200">
 									Photos
 								</Link>
-								<Link to={`/books?space=${space.id}`} className="rounded-full bg-surface-100 px-3 py-1.5 text-ink-700 hover:bg-surface-200">
+								<Link prefetch="intent" to={`/books?space=${space.id}`} className="rounded-full bg-surface-100 px-3 py-1.5 text-ink-700 hover:bg-surface-200">
 									Books
 								</Link>
 								<Link to={`?edit=${space.id}`} preventScrollReset className="rounded-full bg-surface-100 px-3 py-1.5 text-ink-700 hover:bg-surface-200">

@@ -1,5 +1,5 @@
 import { Form, Link, redirect, useNavigation } from "react-router";
-import { clearToken, requireUser } from "~/lib/session.server";
+import { clearToken, requireSignIn } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
 import { Alert, Button, Field, Input } from "~/components/ui";
 import { PageHeader, Section } from "~/components/settings/Section";
@@ -8,13 +8,13 @@ import type { Route } from "./+types/delete-account";
 export const meta = () => [{ title: "Delete account · Settings · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	await requireUser(request, context);
+	await requireSignIn(request, context);
 
 	return null;
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const password = String((await request.formData()).get("password") ?? "");
 
 	const result = await settingsAction("delete-account", async () => {
@@ -40,7 +40,7 @@ export default function DeleteAccount({ actionData }: Route.ComponentProps) {
 				<p className="text-ink-700">This deletes your account, every book and every photo for good. Links you've shared stop working.</p>
 				<p className="mt-2 text-sm text-ink-500">
 					Want to keep them?{" "}
-					<Link to="/settings/data" className="font-medium text-brand-700 hover:underline">
+					<Link prefetch="intent" to="/settings/data" className="font-medium text-brand-700 hover:underline">
 						Download your data
 					</Link>{" "}
 					first.

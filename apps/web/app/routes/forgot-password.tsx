@@ -31,7 +31,7 @@ export default function ForgotPassword({ actionData }: Route.ComponentProps) {
 			subtitle={
 				<>
 					Remembered it?{" "}
-					<Link to="/signin" className="font-medium text-brand-700 hover:underline">
+					<Link prefetch="intent" to="/signin" className="font-medium text-brand-700 hover:underline">
 						Sign in
 					</Link>
 				</>

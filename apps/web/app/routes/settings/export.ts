@@ -1,12 +1,12 @@
 import { cloudflareContext } from "~/lib/cloudflare";
 import { visitorHeaders } from "~/lib/api.server";
-import { requireUser } from "~/lib/session.server";
+import { requireSignIn } from "~/lib/session.server";
 import type { Route } from "./+types/export";
 
 /** Streams the account zip from the API, which needs the token the browser never sees. */
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const { env } = context.get(cloudflareContext);
-	const { token } = await requireUser(request, context);
+	const { token } = await requireSignIn(request, context);
 
 	const upstream = await fetch(`${env.API_URL}/account/export`, {
 		headers: { ...visitorHeaders(request), Authorization: `Bearer ${token}` },

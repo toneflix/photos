@@ -1,4 +1,4 @@
-import { createCookie, redirect } from "react-router";
+import { createContext, createCookie, redirect } from "react-router";
 import type { User } from "@photos/types";
 import { cloudflareContext } from "./cloudflare";
 import { PhotosApiError } from "@photos/api-client";
@@ -38,43 +38,89 @@ export function safeRedirect(to: FormDataEntryValue | string | null | undefined,
 }
 
 /**
- * Load the signed-in user, or send the visitor to sign in. Returns an API
- * client that acts as that user.
+ * The visitor's session for one request. Every loader and action in the
+ * request shares it, so the account is fetched from the API at most once.
  */
+export class Session {
+	private static readonly current = createContext<Promise<Session> | null>(null);
+
+	private account?: Promise<User>;
+
+	private constructor(
+		private readonly request: Request,
+		private readonly env: Env,
+		readonly token: string | null,
+	) {}
+
+	static for(request: Request, context: Readonly<RouterContextProvider>): Promise<Session> {
+		let session = context.get(Session.current);
+
+		if (!session) {
+			const { env } = context.get(cloudflareContext);
+			session = readToken(request).then((token) => new Session(request, env, token));
+			context.set(Session.current, session);
+		}
+
+		return session;
+	}
+
+	/** An API client acting as the visitor. */
+	api(onUnauthorized?: () => void) {
+		return getServerApi(this.request, this.env, this.token, onUnauthorized);
+	}
+
+	/** The signed-in account. Rejects with the API error when the token is missing or no longer works. */
+	me(): Promise<User> {
+		this.account ??= this.token ? this.api().then(async (api) => (await api.auth.me()).data) : Promise.reject(new PhotosApiError(401, "Unauthenticated."));
+
+		return this.account;
+	}
+
+	/** Sends the visitor to sign in, then back to this page, forgetting a token that stopped working. */
+	async signIn(): Promise<Response> {
+		const next = new URL(this.request.url).pathname.replace(/(\/_root)?\.data$/, "") || "/";
+		const headers: HeadersInit = this.token ? { "Set-Cookie": await clearToken(this.request) } : {};
+
+		return redirect(`/signin?next=${encodeURIComponent(next)}`, { headers });
+	}
+}
+
+/**
+ * For pages that only need to act as the visitor. Nobody signed in, or an API
+ * answer of 401, sends them to sign in. The account itself is not fetched.
+ */
+export async function requireSignIn(request: Request, context: Readonly<RouterContextProvider>) {
+	const session = await Session.for(request, context);
+	const signIn = await session.signIn();
+
+	if (!session.token) throw signIn;
+
+	const api = await session.api(() => {
+		throw signIn;
+	});
+
+	return { api, token: session.token };
+}
+
+/** Like `requireSignIn`, and also loads the signed-in user. */
 export async function requireUser(request: Request, context: Readonly<RouterContextProvider>) {
-	const { env } = context.get(cloudflareContext);
-	const token = await readToken(request);
-	const next = new URL(request.url).pathname;
-	const signIn = `/signin?next=${encodeURIComponent(next)}`;
-
-	if (!token) throw redirect(signIn);
-
-	const api = await getServerApi(request, env, token);
+	const { api, token } = await requireSignIn(request, context);
+	const session = await Session.for(request, context);
 
 	try {
-		const { data: user } = await api.auth.me();
-		return { user, api, token };
+		return { user: await session.me(), api, token };
 	} catch (error) {
-		if (error instanceof PhotosApiError && error.code === 401) {
-			throw redirect(signIn, { headers: { "Set-Cookie": await clearToken(request) } });
-		}
+		if (error instanceof PhotosApiError && error.code === 401) throw await session.signIn();
+
 		throw error;
 	}
 }
 
 /** The signed-in user if there is one, without redirecting. */
-export async function optionalUser(
-	request: Request,
-	context: Readonly<RouterContextProvider>,
-): Promise<User | null> {
-	const { env } = context.get(cloudflareContext);
-	const token = await readToken(request);
-	if (!token) return null;
+export async function optionalUser(request: Request, context: Readonly<RouterContextProvider>): Promise<User | null> {
+	const session = await Session.for(request, context);
 
-	const api = await getServerApi(request, env, token);
-	try {
-		return (await api.auth.me()).data;
-	} catch {
-		return null;
-	}
+	if (!session.token) return null;
+
+	return session.me().catch(() => null);
 }

@@ -1,4 +1,4 @@
-import type { EntryContext, RouterContextProvider } from "react-router";
+import type { EntryContext, HandleDataRequestFunction, RouterContextProvider } from "react-router";
 import { ServerRouter } from "react-router";
 import { isbot } from "isbot";
 import { renderToReadableStream } from "react-dom/server";
@@ -41,3 +41,19 @@ export default async function handleRequest(
 		status: responseStatusCode,
 	});
 }
+
+/**
+ * Page data that a link prefetches on hover or touch stays in the browser's
+ * cache for a few seconds, so the click that follows opens it straight away.
+ */
+export const handleDataRequest: HandleDataRequestFunction = (response, { request }) => {
+	const prefetch = request.headers.get("sec-purpose")?.startsWith("prefetch") || request.headers.get("purpose") === "prefetch";
+	const cacheable = request.method === "GET" && response.status === 200 && !response.headers.has("Set-Cookie") && !response.headers.has("Cache-Control");
+
+	if (prefetch && cacheable) {
+		response.headers.set("Cache-Control", "private, max-age=5");
+		response.headers.append("Vary", "Cookie");
+	}
+
+	return response;
+};

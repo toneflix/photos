@@ -13,7 +13,7 @@ export default function SettingsLayout() {
 		<main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
 			<div className="gap-10 md:grid md:grid-cols-[15rem_1fr]">
 				<aside className="hidden md:block">
-					<Link to="/settings" className="font-display font-bold tracking-tight text-3xl text-ink-900 hover:text-brand-800">
+					<Link prefetch="intent" to="/settings" className="font-display font-bold tracking-tight text-3xl text-ink-900 hover:text-brand-800">
 						Settings
 					</Link>
 					<nav className="mt-8 space-y-7" aria-label="Settings">
@@ -23,7 +23,7 @@ export default function SettingsLayout() {
 								<ul className="mt-2 space-y-0.5">
 									{group.pages.map((page) => (
 										<li key={page.to}>
-											<NavLink
+											<NavLink prefetch="intent"
 												to={page.to}
 												className={({ isActive }) =>
 													`block rounded-lg px-3 py-2 text-sm transition ${
@@ -46,7 +46,7 @@ export default function SettingsLayout() {
 				</aside>
 				<div className="min-w-0">
 					{!home && (
-						<Link to="/settings" className="mb-6 inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-900 md:hidden">
+						<Link prefetch="intent" to="/settings" className="mb-6 inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-900 md:hidden">
 							<svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
 								<path d="M12.5 4.5 7 10l5.5 5.5" strokeLinecap="round" strokeLinejoin="round" />
 							</svg>

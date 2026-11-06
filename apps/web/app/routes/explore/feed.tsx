@@ -12,13 +12,13 @@ export default function ExploreFeed() {
 			<h1 className="font-display text-4xl font-bold tracking-tight text-ink-900 sm:text-5xl">Explore</h1>
 			<p className="mt-2 max-w-xl text-ink-500">Photos, books and spaces people chose to share with everyone.</p>
 			<nav className="mt-8 flex gap-6 border-b border-surface-200">
-				<NavLink to="/explore" end className={tab}>
+				<NavLink prefetch="intent" to="/explore" end className={tab}>
 					Photos
 				</NavLink>
-				<NavLink to="/explore/books" className={tab}>
+				<NavLink prefetch="intent" to="/explore/books" className={tab}>
 					Books
 				</NavLink>
-				<NavLink to="/explore/spaces" className={tab}>
+				<NavLink prefetch="intent" to="/explore/spaces" className={tab}>
 					Spaces
 				</NavLink>
 			</nav>

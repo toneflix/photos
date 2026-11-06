@@ -71,7 +71,7 @@ export default function ExploreBooks({ loaderData }: Route.ComponentProps) {
 function PublicBookCard({ book }: { book: PublicBook }) {
 	return (
 		<li className="group min-w-0">
-			<Link
+			<Link prefetch="intent"
 				to={`/books/${book.id}`}
 				className="relative block aspect-[3/4] overflow-hidden rounded-lg bg-surface-100 shadow-sm transition duration-300 group-hover:-translate-y-1 group-hover:shadow-xl"
 				style={{ containerType: "size" }}
