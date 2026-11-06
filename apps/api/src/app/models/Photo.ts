@@ -6,6 +6,7 @@ import { BookPage } from './BookPage'
 import { Model } from '@arkstack/database'
 import { abortIf } from '@arkstack/common'
 import { Space } from './Space'
+import { SpaceAccess } from '@app/policies/SpaceAccess'
 import { Storage } from '@arkstack/filesystem'
 import { User } from './User'
 import { matches } from '@app/support/search'
@@ -266,6 +267,13 @@ export class Photo extends Model {
     return query.where({ visibility: 'public' })
   }
 
+  /** Public photos, and every photo of the user `ownerId` when given. */
+  scopeShownTo(query: QueryBuilder<Photo>, ownerId: string | null = null): QueryBuilder<Photo> {
+    if (!ownerId) return query.scope('public')
+
+    return query.where((shown: QueryBuilder<Photo>) => shown.where({ visibility: 'public' }).orWhere({ userId: ownerId }))
+  }
+
   /** Leave out photos that sit in private spaces. */
   scopeListed(query: QueryBuilder<Photo>): QueryBuilder<Photo> {
     return query.whereDoesntHave('space', (space: QueryBuilder<Space>) => space.where({ visibility: 'private' }))
@@ -395,7 +403,7 @@ export class Photo extends Model {
   async isListedFor(viewer: User | null): Promise<boolean> {
     const space = await this.space().first()
 
-    return !space || space.isVisibleTo(viewer)
+    return !space || (await SpaceAccess.resolve(space, viewer)).can('view')
   }
 
   user() {

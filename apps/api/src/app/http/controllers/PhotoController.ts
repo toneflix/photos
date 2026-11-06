@@ -6,6 +6,7 @@ import { Photo } from '@app/models/Photo'
 import { PhotoCollection } from '@app/http/resources/PhotoCollection'
 import { PhotoResource } from '@app/http/resources/PhotoResource'
 import { Limits } from '@app/policies/Limits'
+import { SpaceAccess } from '@app/policies/SpaceAccess'
 
 /**
  * The signed-in user's photo library.
@@ -39,7 +40,7 @@ export default class PhotoController extends BaseController {
 
     await limits.ensureRoomFor(Math.min(data.photo.size, await Photo.maxOriginalBytes()))
 
-    const space = data.spaceId ? await this.user.spaces().findOrFail(data.spaceId) : null
+    const space = data.spaceId ? (await SpaceAccess.find(data.spaceId, this.user)).authorize('create').space : null
     const photo = await Photo.upload(this.user, data.photo, {
       spaceId: space?.id ?? null,
       width: data.width ? Number(data.width) : null,
@@ -81,7 +82,7 @@ export default class PhotoController extends BaseController {
       license: `nullable|in:${Photo.LICENSES.join(',')}`,
     })
 
-    if ('spaceId' in data) photo.spaceId = data.spaceId ? (await this.user.spaces().findOrFail(data.spaceId)).id : null
+    if ('spaceId' in data) photo.spaceId = data.spaceId ? (await SpaceAccess.find(data.spaceId, this.user)).authorize('create').space.id : null
     if (data.visibility) photo.setVisibility(data.visibility)
     if (data.license) photo.license = data.license
     if ('caption' in data) photo.caption = data.caption || null

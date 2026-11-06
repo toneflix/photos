@@ -4,21 +4,30 @@ import type { Photo } from '@app/models/Photo'
 import { BookAccessCode, type BookPermission } from '@app/models/BookAccessCode'
 import type { User } from '@app/models/User'
 import { Limits } from './Limits'
+import { SpaceAccess } from './SpaceAccess'
 
 /**
  * What one visitor may do with one book. Owners may do everything; anyone may open
- * shared and public books; everything else comes from the access code they hold.
+ * shared and public books; members who may edit the book's space can open, add to and
+ * edit it; everything else comes from the access code they hold.
  */
 export class BookAccess {
+  /** What members with `edit` on the book's space may do with it. */
+  static readonly SPACE_EDITOR: BookPermission[] = ['view', 'add', 'edit']
+
   constructor(
     readonly book: Book,
     readonly viewer: User | null,
     readonly code: BookAccessCode | null = null,
+    readonly space: SpaceAccess | null = null,
   ) {}
 
-  /** Resolve a visitor's access, looking up the code they sent if any. `visitor` (their IP) is who wrong codes count against. */
+  /** Resolve a visitor's access from their space membership and the code they sent, if any. `visitor` (their IP) is who wrong codes count against. */
   static async resolve(book: Book, viewer: User | null, visitor: string, code?: string | null): Promise<BookAccess> {
-    return new BookAccess(book, viewer, await BookAccessCode.attempt(code, visitor, book.id))
+    const space = viewer && book.spaceId && !book.isOwnedBy(viewer) ? await book.space().first() : null
+    const spaceAccess = space ? await SpaceAccess.resolve(space, viewer) : null
+
+    return new BookAccess(book, viewer, await BookAccessCode.attempt(code, visitor, book.id), spaceAccess)
   }
 
   get isOwner(): boolean {
@@ -28,6 +37,7 @@ export class BookAccess {
   can(permission: BookPermission): boolean {
     if (this.isOwner) return true
     if (permission === 'view' && this.book.visibility !== 'private') return true
+    if (BookAccess.SPACE_EDITOR.includes(permission) && this.space?.can('edit')) return true
 
     return !!this.code?.allows(permission)
   }

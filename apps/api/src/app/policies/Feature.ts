@@ -7,6 +7,7 @@ export type FeatureKey =
   | 'max_book_pages'
   | 'max_spaces'
   | 'public_spaces'
+  | 'space_members'
   | 'access_codes'
   | 'transfer_codes'
   | 'premium_covers'
@@ -89,6 +90,13 @@ export class Feature {
       description: 'Give a space its own public page.',
       type: 'toggle',
       fallback: false,
+    },
+    {
+      key: 'space_members',
+      title: 'Members per space',
+      description: 'How many people you can invite into each space.',
+      type: 'limit',
+      fallback: 3,
     },
     {
       key: 'access_codes',

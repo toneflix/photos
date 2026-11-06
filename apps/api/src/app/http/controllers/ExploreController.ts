@@ -9,12 +9,13 @@ import { PublicSpaceResource } from '@app/http/resources/PublicSpaceResource'
 import { SORTS } from '@app/support/search'
 import { downloadSize } from '@app/support/rules'
 import { Space } from '@app/models/Space'
+import { SpaceAccess } from '@app/policies/SpaceAccess'
 import { abortIf, perPage } from '@arkstack/common'
 import { ContentStats } from '@app/services/ContentStats'
 
 /**
  * The public timeline: photos, books and spaces their owners chose to show everyone.
- * Photo and book lists take a `space` web address to browse one space; owners can preview their private ones.
+ * Photo and book lists take a `space` web address to browse one space; owners and members can open private ones.
  * Nothing here needs an account.
  */
 export default class ExploreController extends BaseController {
@@ -26,7 +27,7 @@ export default class ExploreController extends BaseController {
       space: 'nullable|string|max:60',
     })
 
-    const space = filters.space ? await Space.browse(filters.space, await this.viewer()) : null
+    const space = filters.space ? (await SpaceAccess.browse(filters.space, await this.viewer())).space : null
     const photos = await Photo.scope('published', { ...filters, space: space?.id })
       .with(['user', 'space'])
       .paginate(perPage(this.query, { perPage: 40, maxPerPage: 100 }))
@@ -68,7 +69,7 @@ export default class ExploreController extends BaseController {
       space: 'nullable|string|max:60',
     })
 
-    const space = filters.space ? await Space.browse(filters.space, await this.viewer()) : null
+    const space = filters.space ? (await SpaceAccess.browse(filters.space, await this.viewer())).space : null
     const books = await Book.scope('published', { ...filters, space: space?.id })
       .with(['user', 'space'])
       .paginate(perPage(this.query, { perPage: 24, maxPerPage: 100 }))
@@ -89,13 +90,13 @@ export default class ExploreController extends BaseController {
     return new PublicSpaceCollection(spaces).additional({ status: 'success', message: 'OK', code: 200 })
   }
 
-  /** A space's page header. Private spaces open only for their owner. */
+  /** A space's page header. Private spaces open only for their owner and members. */
   async space() {
     const viewer = await this.viewer()
-    const space = await Space.browse(String(this.params.space), viewer)
+    const access = await SpaceAccess.browse(String(this.params.space), viewer)
 
-    await new ContentStats(space).view(this.visitor(viewer), viewer)
+    await new ContentStats(access.space).view(this.visitor(viewer), viewer)
 
-    return new PublicSpaceResource(space).for(viewer).additional({ status: 'success', message: 'OK', code: 200 })
+    return new PublicSpaceResource(access.space).for(access).additional({ status: 'success', message: 'OK', code: 200 })
   }
 }

@@ -59,6 +59,8 @@ export default function RootLayout() {
           <Stack.Screen name="books/new" options={{ presentation: 'modal' }} />
           <Stack.Screen name="space-form" options={{ presentation: 'modal' }} />
           <Stack.Screen name="books/[id]/access" />
+          <Stack.Screen name="space-members" />
+          <Stack.Screen name="invites" />
           <Stack.Screen name="settings" />
           <Stack.Screen name="stats/index" />
           <Stack.Screen name="stats/[kind]/[id]" />

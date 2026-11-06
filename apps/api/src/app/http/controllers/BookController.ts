@@ -9,6 +9,7 @@ import { Photo } from '@app/models/Photo'
 import { SORTS } from '@app/support/search'
 import { UUID, photoFile, photoPosition } from '@app/support/rules'
 import { Limits } from '@app/policies/Limits'
+import { SpaceAccess } from '@app/policies/SpaceAccess'
 import { ContentStats } from '@app/services/ContentStats'
 
 const VISIBILITY = `in:${Book.VISIBILITIES.join(',')}`
@@ -65,7 +66,7 @@ export default class BookController extends BaseController {
     await limits.ensureCoverDesign(data.coverDesign)
     await limits.ensureBranding(data)
 
-    const space = data.spaceId ? await this.user.spaces().findOrFail(data.spaceId) : null
+    const space = data.spaceId ? (await SpaceAccess.find(data.spaceId, this.user)).authorize('create').space : null
     const visibility = data.visibility || this.user.defaultVisibility || 'private'
     const book = await Book.query().create({
       userId: this.user.id,
@@ -139,7 +140,7 @@ export default class BookController extends BaseController {
     if ('kicker' in data) book.kicker = data.kicker?.trim() || null
     if ('brand' in data) book.brand = data.brand?.trim() || null
     if ('imprint' in data) book.imprint = data.imprint?.trim() || null
-    if ('spaceId' in data) book.spaceId = data.spaceId ? (await access.viewer!.spaces().findOrFail(data.spaceId)).id : null
+    if ('spaceId' in data) book.spaceId = data.spaceId ? (await SpaceAccess.find(data.spaceId, access.viewer)).authorize('create').space.id : null
     if ('coverPhotoId' in data) {
       const coverPhotoId = data.coverPhotoId ? ((await book.ownedPhotoIds([data.coverPhotoId]))[0] ?? null) : null
 

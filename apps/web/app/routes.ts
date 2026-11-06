@@ -15,6 +15,7 @@ export default [
 		route("books", "routes/books.tsx"),
 		route("photos", "routes/photos.tsx"),
 		route("spaces", "routes/spaces.tsx"),
+		route("invites", "routes/invites.tsx"),
 		route("books/:id/access", "routes/book-access.tsx"),
 		route("checkout/complete", "routes/checkout-complete.tsx"),
 		route("stats", "routes/stats/overview.tsx"),
@@ -64,6 +65,7 @@ export default [
 		route("spaces/:slug", "routes/space/layout.tsx", [
 			index("routes/explore/photos.tsx", { id: "space-photos" }),
 			route("books", "routes/explore/books.tsx", { id: "space-books" }),
+			route("members", "routes/space/members.tsx"),
 		]),
 		route("licenses", "routes/licenses.tsx"),
 		route("pricing", "routes/pricing.tsx"),

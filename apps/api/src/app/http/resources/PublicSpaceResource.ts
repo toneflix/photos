@@ -1,16 +1,16 @@
 import { ContentStats } from '@app/services/ContentStats'
 import { OwnerResource } from './OwnerResource'
 import type { Space } from '@app/models/Space'
+import type { SpaceAccess } from '@app/policies/SpaceAccess'
 import { SpaceResource } from './SpaceResource'
-import type { User } from '@app/models/User'
 
-/** A space as visitors see it: only public photos and books count. Expects the `user` relation to be loaded. */
+/** A space as visitors and members see it: only public photos and books count. Expects the `user` relation to be loaded. */
 export class PublicSpaceResource extends SpaceResource {
   protected override everything = false
-  private viewer: User | null = null
+  private access: SpaceAccess | null = null
 
-  for(viewer: User | null) {
-    this.viewer = viewer
+  for(access: SpaceAccess) {
+    this.access = access
 
     return this
   }
@@ -18,12 +18,14 @@ export class PublicSpaceResource extends SpaceResource {
   async data() {
     const space = this.resource as Space
     const owner = space.getAttribute('user')
+    const viewer = this.access?.viewer ?? null
 
     return {
       ...(await super.data()),
       owner: await new OwnerResource(owner ?? {}).data(),
-      stats: ContentStats.shown(space, owner, this.viewer),
-      canEdit: space.isOwnedBy(this.viewer),
+      stats: ContentStats.shown(space, owner, viewer),
+      canEdit: space.isOwnedBy(viewer),
+      permissions: this.access?.permissions() ?? ['view'],
     }
   }
 }

@@ -5,12 +5,15 @@ import { SpaceResource } from '@app/http/resources/SpaceResource'
 import { perPage } from '@arkstack/common'
 import { regex } from 'kanun'
 import { Limits } from '@app/policies/Limits'
+import { SpaceAccess } from '@app/policies/SpaceAccess'
+import { abortIf } from '@arkstack/common'
 
 const VISIBILITY = `in:${Space.VISIBILITIES.join(',')}`
 const SLUG = regex(Space.SLUG)
 
 /**
- * The signed-in creator's spaces.
+ * The signed-in creator's spaces. Members with `manage` can open and rename them too;
+ * only the owner changes the web address, visibility, or deletes one.
  */
 export default class SpaceController extends BaseController {
   async index() {
@@ -41,19 +44,24 @@ export default class SpaceController extends BaseController {
   }
 
   async show() {
-    const space = await this.user.spaces().findOrFail(String(this.params.space))
+    const { space } = (await SpaceAccess.find(String(this.params.space), this.user)).authorize('manage')
 
     return new SpaceResource(space).additional({ status: 'success', message: 'OK', code: 200 })
   }
 
   async update() {
-    const space = await this.user.spaces().findOrFail(String(this.params.space))
+    const access = (await SpaceAccess.find(String(this.params.space), this.user)).authorize('manage')
+    const space = access.space
     const data = await this.validate({
       name: 'nullable|string|max:80',
       slug: ['nullable', 'string', 'min:3', 'max:60', SLUG, `unique:spaces,slug,${space.slug}`],
       description: 'nullable|string|max:1000',
       visibility: `nullable|${VISIBILITY}`,
     })
+
+    const ownerOnly = (!!data.slug && data.slug !== space.slug) || (!!data.visibility && data.visibility !== space.visibility)
+
+    abortIf(ownerOnly && !access.isOwner, 'Only the space owner can change its web address or who can open it.', 403)
 
     if (data.visibility !== space.visibility) await (await Limits.for(this.user)).ensureSpaceVisibility(data.visibility)
 

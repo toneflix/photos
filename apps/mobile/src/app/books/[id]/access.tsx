@@ -6,7 +6,7 @@ import * as Clipboard from 'expo-clipboard'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRequest } from 'alova/client'
 import { BOOK_PERMISSIONS, type BookAccessCode, type BookPermission, type BookWithPages } from '@photos/types'
-import { Button, Callout, Field, Input, Select, Text } from '@/components/ui'
+import { Button, Callout, CheckOption, Field, Input, Select, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { confirm } from '@/lib/confirm'
 import { FormProblem } from '@/lib/forms'
@@ -200,9 +200,9 @@ function PermissionPicker({ selected, onChange }: { selected: BookPermission[]; 
 
   return (
     <View style={styles.permissions}>
-      <Option label={BOOK_PERMISSIONS.view.label} description={`${BOOK_PERMISSIONS.view.description}. Every code allows this.`} checked disabled />
+      <CheckOption label={BOOK_PERMISSIONS.view.label} description={`${BOOK_PERMISSIONS.view.description}. Every code allows this.`} checked disabled />
       {EXTRA.map((permission) => (
-        <Option
+        <CheckOption
           key={permission}
           label={BOOK_PERMISSIONS[permission].label}
           description={BOOK_PERMISSIONS[permission].description}
@@ -211,18 +211,6 @@ function PermissionPicker({ selected, onChange }: { selected: BookPermission[]; 
         />
       ))}
     </View>
-  )
-}
-
-function Option({ label, description, checked, disabled, onPress }: { label: string; description: string; checked: boolean; disabled?: boolean; onPress?: () => void }) {
-  return (
-    <Pressable onPress={onPress} disabled={disabled} accessibilityRole="checkbox" accessibilityState={{ checked, disabled }} style={[styles.option, disabled && styles.optionFixed]}>
-      <View style={[styles.box, checked && styles.boxOn]}>{checked && <Ionicons name="checkmark" size={14} color={colors.white} />}</View>
-      <View style={styles.flex}>
-        <Text style={styles.optionLabel}>{label}</Text>
-        <Text variant="muted">{description}</Text>
-      </View>
-    </Pressable>
   )
 }
 
@@ -247,9 +235,4 @@ const styles = StyleSheet.create({
   badge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: radius.full, backgroundColor: colors.surface100 },
   badgeText: { fontSize: 12, fontFamily: fonts.medium, color: colors.ink700 },
   permissions: { gap: 8 },
-  option: { flexDirection: 'row', gap: 12, padding: 12, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.surface300 },
-  optionFixed: { backgroundColor: colors.surface100 },
-  optionLabel: { fontFamily: fonts.semibold, color: colors.ink900 },
-  box: { width: 20, height: 20, marginTop: 2, borderRadius: 5, borderWidth: 2, borderColor: colors.surface300, alignItems: 'center', justifyContent: 'center' },
-  boxOn: { borderColor: colors.ink900, backgroundColor: colors.ink900 },
 })

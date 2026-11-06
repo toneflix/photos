@@ -9,6 +9,7 @@ export type FeatureKey =
   | 'max_book_pages'
   | 'max_spaces'
   | 'public_spaces'
+  | 'space_members'
   | 'access_codes'
   | 'transfer_codes'
   | 'premium_covers'

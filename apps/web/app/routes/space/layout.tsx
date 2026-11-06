@@ -24,7 +24,7 @@ export function meta({ loaderData }: Route.MetaArgs) {
 	return [{ title: `${space.name} · Toneflix Photos` }, { name: "description", content: space.description ?? `Photos and books from ${space.name}.` }];
 }
 
-/** A space's page. Public spaces open for everyone; private ones only for their owner. */
+/** A space's page. Public spaces open for everyone; private ones only for their owner and members. */
 export async function loader({ request, params, context }: Route.LoaderArgs) {
 	const { env } = context.get(cloudflareContext);
 	const api = await getServerApi(request, env);
@@ -48,6 +48,8 @@ const tab = ({ isActive }: { isActive: boolean }) =>
 export default function SpaceLayout({ loaderData }: Route.ComponentProps) {
 	const { space } = loaderData;
 	const [copied, setCopied] = useState(false);
+	const canAdd = !space.canEdit && space.permissions.includes("create");
+	const canManage = space.permissions.includes("manage");
 
 	const share = async () => {
 		await navigator.clipboard?.writeText(window.location.href.split("?")[0]).catch(() => {});
@@ -59,10 +61,16 @@ export default function SpaceLayout({ loaderData }: Route.ComponentProps) {
 		<main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
 			{space.canEdit && space.visibility === "private" && (
 				<p className="mb-6 rounded-xl bg-surface-100 px-5 py-3 text-sm text-ink-700">
-					Only you can see this page. It shows what visitors will see once you make the space public: its public photos and books.{" "}
+					Only you and the people you invite can see this page. It shows its public photos and books, which everyone will see once you make the space
+					public.{" "}
 					<Link prefetch="intent" to={`/spaces?edit=${space.id}`} className="font-semibold text-brand-700 hover:underline">
 						Make it public
 					</Link>
+				</p>
+			)}
+			{!space.canEdit && space.visibility === "private" && (
+				<p className="mb-6 rounded-xl bg-surface-100 px-5 py-3 text-sm text-ink-700">
+					This space is private. You can see it because you're a member.
 				</p>
 			)}
 			<header className="flex flex-col-reverse gap-6 md:flex-row md:items-end md:justify-between">
@@ -93,6 +101,16 @@ export default function SpaceLayout({ loaderData }: Route.ComponentProps) {
 								</Link>
 							</>
 						)}
+						{canAdd && (
+							<>
+								<Link prefetch="intent" to={`/photos?space=${space.id}`} className={buttonClass("primary")}>
+									Add your photos
+								</Link>
+								<Link prefetch="intent" to={`/books?space=${space.id}`} className={buttonClass("secondary")}>
+									Add a book
+								</Link>
+							</>
+						)}
 					</div>
 				</div>
 				{space.previews.length > 0 && (
@@ -106,6 +124,11 @@ export default function SpaceLayout({ loaderData }: Route.ComponentProps) {
 				<NavLink prefetch="intent" to={`/spaces/${space.slug}/books`} className={tab}>
 					Books
 				</NavLink>
+				{canManage && (
+					<NavLink prefetch="intent" to={`/spaces/${space.slug}/members`} className={tab}>
+						Members
+					</NavLink>
+				)}
 			</nav>
 			<div className="mt-8">
 				<Outlet />

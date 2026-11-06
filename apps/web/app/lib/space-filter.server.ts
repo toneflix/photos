@@ -1,8 +1,16 @@
+import type { Space } from "@photos/types";
 import type { ServerApi } from "./api.server";
 
+/** The spaces the user can put work in: their own, then the shared ones that let them add. */
+export async function workSpaces(api: ServerApi): Promise<Space[]> {
+	const [{ data: owned }, { data: shared }] = await Promise.all([api.spaces.list({ per_page: 100 }), api.spaces.shared({ per_page: 100 })]);
+
+	return [...owned, ...shared.filter((space) => space.permissions.includes("create"))];
+}
+
 /**
- * Loads the user's spaces and a library list kept to the `?space=` one, both
- * at once. A space that isn't theirs falls back to the whole library.
+ * Loads the spaces the user can put work in and a library list kept to the `?space=`
+ * one, both at once. A space they can't use falls back to the whole library.
  */
 export async function spaceFiltered<T>(url: URL, api: ServerApi, list: (space?: string) => Promise<T>) {
 	const requested = url.searchParams.get("space") || undefined;
@@ -11,7 +19,7 @@ export async function spaceFiltered<T>(url: URL, api: ServerApi, list: (space?: 
 		(error: unknown) => ({ error }),
 	);
 
-	const [{ data: spaces }, first] = await Promise.all([api.spaces.list({ per_page: 100 }), filtered]);
+	const [spaces, first] = await Promise.all([workSpaces(api), filtered]);
 	const space = spaces.find((item) => item.id === requested) ?? null;
 
 	if (requested && !space) return { spaces, space, result: await list() };
