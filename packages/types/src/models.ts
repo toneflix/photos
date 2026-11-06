@@ -15,6 +15,12 @@ export type ID = string
  */
 export type Visibility = 'private' | 'shared' | 'public'
 
+/** The slug of an account's role. `user` (members) and `admin` are built in; admins add others. */
+export type UserRole = string
+
+/** Something a role can be allowed to do in the admin dashboard. */
+export type Permission = 'dashboard.view' | 'users.view' | 'users.manage' | 'content.moderate' | 'settings.manage' | 'roles.manage'
+
 export interface User {
   id: ID
   name: string
@@ -28,6 +34,9 @@ export interface User {
   showOwnerName: boolean
   /** Licence given to new uploads. */
   defaultLicense: PhotoLicense
+  role: UserRole
+  /** What this account's role allows in the admin dashboard; empty for members. */
+  permissions: Permission[]
   createdAt: string
   updatedAt: string
 }

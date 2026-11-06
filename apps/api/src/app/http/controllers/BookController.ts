@@ -8,6 +8,7 @@ import { BookDetailResource } from '@app/http/resources/BookDetailResource'
 import { Photo } from '@app/models/Photo'
 import { SORTS } from '@app/support/search'
 import { UUID, photoFile, photoPosition } from '@app/support/rules'
+import { Settings } from '@app/support/Settings'
 
 const VISIBILITY = `in:${Book.VISIBILITIES.join(',')}`
 const THEME = `in:${Book.THEMES.join(',')}`
@@ -133,7 +134,7 @@ export default class BookController extends BaseController {
     const access = (await this.access()).authorize('edit')
     const book = access.book
     const data = await this.validate({
-      pages: `present|array|max:${Book.MAX_PAGES}`,
+      pages: `present|array|max:${await Settings.number('books.max_pages')}`,
       'pages.*.layout': `nullable|in:${Book.LAYOUTS.join(',')}`,
       'pages.*.frame': `nullable|${FRAME}`,
       'pages.*.caption': 'nullable|string|max:500',
@@ -155,7 +156,7 @@ export default class BookController extends BaseController {
     const access = (await this.access()).authorize('add')
     const book = access.book
     const data = await this.validate({
-      photo: photoFile(Photo.MAX_KILOBYTES),
+      photo: photoFile((await Settings.number('uploads.max_photo_mb')) * 1024),
       width: 'nullable|integer|min:1',
       height: 'nullable|integer|min:1',
       caption: 'nullable|string|max:500',

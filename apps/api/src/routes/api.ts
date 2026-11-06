@@ -7,12 +7,22 @@ import PhotoController from 'src/app/http/controllers/PhotoController'
 import SpaceController from 'src/app/http/controllers/SpaceController'
 import SessionController from 'src/app/http/controllers/SessionController'
 import TwoFactorController from 'src/app/http/controllers/TwoFactorController'
+import LimitsController from 'src/app/http/controllers/LimitsController'
+import ModerationController from 'src/app/http/controllers/admin/ModerationController'
+import OverviewController from 'src/app/http/controllers/admin/OverviewController'
+import SettingsController from 'src/app/http/controllers/admin/SettingsController'
+import RoleController from 'src/app/http/controllers/admin/RoleController'
+import UserController from 'src/app/http/controllers/admin/UserController'
+import { Authorize } from 'src/app/http/middlewares/Authorize'
 import { Router } from '@arkstack/driver-express'
 import { auth, limiter } from '@arkstack/driver-express/middlewares'
 
 Router.get('/', () => {
   return { status: 'OK' }
 })
+
+// Upload sizes and other limits apps check up front
+Router.get('/limits', [LimitsController, 'show'], [limiter(120, 60)])
 
 // Auth
 Router.post('/auth/register', [AuthController, 'register'], [limiter(20, 60)])
@@ -80,3 +90,17 @@ Router.put('/books/:book/access-codes/:code', [BookAccessCodeController, 'update
 Router.delete('/books/:book/access-codes/:code', [BookAccessCodeController, 'destroy'], [auth])
 Router.post('/access-codes/redeem', [BookAccessCodeController, 'redeem'], [limiter(10, 60)])
 Router.post('/access-codes/claim', [BookAccessCodeController, 'claim'], [auth, limiter(10, 60)])
+
+// Admin dashboard. Each area needs a role that grants it.
+Router.get('/admin/overview', [OverviewController, 'show'], [auth, Authorize.to('dashboard.view')])
+Router.get('/admin/users', [UserController, 'index'], [auth, Authorize.to('users.view', 'users.manage')])
+Router.get('/admin/users/:user', [UserController, 'show'], [auth, Authorize.to('users.view', 'users.manage')])
+Router.put('/admin/users/:user', [UserController, 'update'], [auth, Authorize.to('users.manage')])
+Router.get('/admin/moderation/:kind', [ModerationController, 'index'], [auth, Authorize.to('content.moderate')])
+Router.post('/admin/moderation/:kind/:item/unpublish', [ModerationController, 'unpublish'], [auth, Authorize.to('content.moderate')])
+Router.get('/admin/settings', [SettingsController, 'index'], [auth, Authorize.to('settings.manage')])
+Router.put('/admin/settings/:group', [SettingsController, 'update'], [auth, Authorize.to('settings.manage')])
+Router.get('/admin/roles', [RoleController, 'index'], [auth, Authorize.to('roles.manage', 'users.view', 'users.manage')])
+Router.post('/admin/roles', [RoleController, 'create'], [auth, Authorize.to('roles.manage')])
+Router.put('/admin/roles/:role', [RoleController, 'update'], [auth, Authorize.to('roles.manage')])
+Router.delete('/admin/roles/:role', [RoleController, 'destroy'], [auth, Authorize.to('roles.manage')])

@@ -1,0 +1,186 @@
+/**
+ * App settings admins can change in the dashboard, in the groups it shows them.
+ * Each field overrides the config value at `key`; until it is saved, that config value
+ * (and so its env variable) is used. Secrets never belong here: they stay in .env.
+ */
+export default () => {
+  return {
+    /**
+     * Seconds each API process keeps saved settings before reading them again.
+     */
+    cache_seconds: Number(env('SETTINGS_CACHE_SECONDS', 60)),
+
+    groups: [
+      {
+        id: 'uploads',
+        title: 'Uploads',
+        description: 'How big photos can be when they arrive and once stored.',
+        icon: 'upload',
+        fields: [
+          {
+            name: 'max_photo_mb',
+            key: 'uploads.max_photo_mb',
+            env: 'UPLOADS_MAX_PHOTO_MB',
+            type: 'number',
+            label: 'Largest photo upload',
+            help: 'Bigger files are turned away before they finish uploading.',
+            unit: 'MB',
+            min: 1,
+            max: 200,
+          },
+          {
+            name: 'max_original_mb',
+            key: 'photos.max_original_mb',
+            env: 'PHOTOS_MAX_ORIGINAL_MB',
+            type: 'number',
+            label: 'Largest stored original',
+            help: 'Originals over this are compressed until they fit. HEIC files are kept as uploaded.',
+            unit: 'MB',
+            min: 1,
+            max: 200,
+          },
+          {
+            name: 'max_avatar_mb',
+            key: 'uploads.max_avatar_mb',
+            env: 'UPLOADS_MAX_AVATAR_MB',
+            type: 'number',
+            label: 'Largest profile photo',
+            help: 'For profile photos in account settings.',
+            unit: 'MB',
+            min: 1,
+            max: 50,
+          },
+        ],
+      },
+      {
+        id: 'display',
+        title: 'Display copies',
+        description: 'The lighter WebP copy shown in books and on Explore.',
+        icon: 'image',
+        fields: [
+          {
+            name: 'display_max_edge',
+            key: 'photos.display_max_edge',
+            env: 'PHOTOS_DISPLAY_MAX_EDGE',
+            type: 'number',
+            label: 'Longest side',
+            help: 'Applies to new uploads. Downloads always come from the original.',
+            unit: 'px',
+            min: 512,
+            max: 8192,
+          },
+          {
+            name: 'display_quality',
+            key: 'photos.display_quality',
+            env: 'PHOTOS_DISPLAY_QUALITY',
+            type: 'number',
+            label: 'Quality',
+            help: 'From 1 to 100. Higher looks sharper and takes more space.',
+            min: 1,
+            max: 100,
+          },
+        ],
+      },
+      {
+        id: 'accounts',
+        title: 'Accounts',
+        description: 'Sign-ups and what new accounts start with.',
+        icon: 'users',
+        fields: [
+          {
+            name: 'registration_open',
+            key: 'accounts.registration_open',
+            env: 'REGISTRATION_OPEN',
+            type: 'boolean',
+            label: 'Open sign-ups',
+            help: 'When off, nobody new can create an account.',
+          },
+          {
+            name: 'default_license',
+            key: 'accounts.default_license',
+            env: 'DEFAULT_LICENSE',
+            type: 'select',
+            label: 'Licence for new accounts',
+            help: 'What new accounts give their photos until they choose another.',
+            options: [
+              { value: 'all-rights-reserved', label: 'All rights reserved' },
+              { value: 'cc-by', label: 'CC BY' },
+              { value: 'cc-by-nc', label: 'CC BY-NC' },
+              { value: 'cc0', label: 'CC0' },
+            ],
+          },
+          {
+            name: 'default_visibility',
+            key: 'accounts.default_visibility',
+            env: 'DEFAULT_BOOK_VISIBILITY',
+            type: 'select',
+            label: 'Who can open new books',
+            help: 'What new accounts start with until they choose otherwise.',
+            options: [
+              { value: 'private', label: 'Only the owner' },
+              { value: 'shared', label: 'Anyone with the link' },
+              { value: 'public', label: 'Public' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'security',
+        title: 'Sign-in',
+        description: 'Wrong guesses allowed before a pause.',
+        icon: 'shield',
+        fields: [
+          {
+            name: 'max_password_attempts',
+            key: 'accounts.max_password_attempts',
+            env: 'SIGN_IN_MAX_ATTEMPTS',
+            type: 'number',
+            label: 'Wrong passwords',
+            help: 'For one email from one network, before sign-in pauses.',
+            min: 1,
+            max: 50,
+          },
+          {
+            name: 'lockout_minutes',
+            key: 'accounts.lockout_minutes',
+            env: 'SIGN_IN_LOCKOUT_MINUTES',
+            type: 'number',
+            label: 'Pause length',
+            help: 'How long sign-in waits after too many wrong passwords or codes.',
+            unit: 'min',
+            min: 1,
+            max: 1440,
+          },
+          {
+            name: 'max_code_guesses',
+            key: 'books.max_code_guesses',
+            env: 'ACCESS_CODE_MAX_GUESSES',
+            type: 'number',
+            label: 'Wrong book access codes',
+            help: 'For one visitor within 15 minutes, before their codes stop working for a while.',
+            min: 1,
+            max: 200,
+          },
+        ],
+      },
+      {
+        id: 'books',
+        title: 'Books',
+        description: 'Limits for photo books.',
+        icon: 'book',
+        fields: [
+          {
+            name: 'max_pages',
+            key: 'books.max_pages',
+            env: 'BOOKS_MAX_PAGES',
+            type: 'number',
+            label: 'Most pages in a book',
+            help: 'Saving a book with more pages is refused.',
+            min: 10,
+            max: 2000,
+          },
+        ],
+      },
+    ],
+  }
+}

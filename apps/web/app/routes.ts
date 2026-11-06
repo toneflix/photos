@@ -30,6 +30,17 @@ export default [
 	]),
 	...prefix("settings", [route("export", "routes/settings/export.ts")]),
 
+	// Admin dashboard. Each page needs a role that grants it.
+	...prefix("admin", [
+		layout("routes/admin/layout.tsx", [
+			index("routes/admin/overview.tsx"),
+			route("users", "routes/admin/users.tsx"),
+			route("moderation/:kind?", "routes/admin/moderation.tsx"),
+			route("roles/:role?", "routes/admin/roles.tsx"),
+			route("configuration/:group?", "routes/admin/configuration.tsx"),
+		]),
+	]),
+
 	// Public timeline, open to everyone.
 	layout("routes/explore/layout.tsx", [
 		layout("routes/explore/feed.tsx", [

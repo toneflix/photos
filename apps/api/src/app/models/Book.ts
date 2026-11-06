@@ -56,7 +56,6 @@ export class Book extends Model {
   static readonly PAPERS = Object.keys(PAPER_COLORS)
   static readonly FRAMES = Object.keys(FRAME_STYLES)
   static readonly LAYOUTS = Object.keys(PAGE_LAYOUTS)
-  static readonly MAX_PAGES = 500
 
   protected static override table = 'books'
 
