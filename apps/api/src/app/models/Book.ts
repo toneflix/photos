@@ -47,6 +47,8 @@ export class Book extends Model {
   declare paper: string
   declare frame: string
   declare publishedAt: Date | null
+  declare viewCount: number
+  declare downloadCount: number
   declare createdAt: Date
   declare updatedAt: Date
 
@@ -56,7 +58,6 @@ export class Book extends Model {
   static readonly PAPERS = Object.keys(PAPER_COLORS)
   static readonly FRAMES = Object.keys(FRAME_STYLES)
   static readonly LAYOUTS = Object.keys(PAGE_LAYOUTS)
-  static readonly MAX_PAGES = 500
 
   protected static override table = 'books'
 
@@ -68,6 +69,8 @@ export class Book extends Model {
     coverText: 'cover_text',
     coverPosition: 'cover_position',
     publishedAt: 'published_at',
+    viewCount: 'view_count',
+    downloadCount: 'download_count',
   }
 
   protected override casts = {

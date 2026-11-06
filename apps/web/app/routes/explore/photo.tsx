@@ -5,6 +5,7 @@ import { cloudflareContext } from "~/lib/cloudflare";
 import { getServerApi, PhotosApiError } from "~/lib/api.server";
 import { DownloadDialog } from "~/components/DownloadDialog";
 import { Owner } from "~/components/explore/Owner";
+import { ContentCounts } from "~/components/ContentCounts";
 import { PublicPhotoGrid } from "~/components/explore/PublicPhotoGrid";
 import { buttonClass } from "~/components/ui";
 import { PreviewImage } from "~/lib/preview-image";
@@ -92,6 +93,7 @@ export default function ExplorePhoto({ loaderData }: Route.ComponentProps) {
 					<p className="mt-1 text-sm text-ink-500">
 						{photo.takenAt ? `Taken ${formatDate(photo.takenAt)} · ` : ""}Shared {formatDate(photo.publishedAt ?? photo.createdAt)}
 					</p>
+					<ContentCounts stats={photo.stats} className="mt-2" />
 				</div>
 
 				<div className="w-full shrink-0 space-y-6 md:w-80">

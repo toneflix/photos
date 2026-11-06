@@ -12,10 +12,13 @@ import { UserFactory } from 'src/database/factories/UserFactory'
 import { AccountMail } from '@app/notifications/AccountMail'
 import { ImageFile } from '@app/support/ImageFile'
 import { randomUUID } from 'node:crypto'
+import type { PermissionName } from '@app/policies/Permission'
+import { Role } from './Role'
 
 export interface UserPreferences {
   defaultVisibility?: BookVisibility
   showOwnerName?: boolean
+  showCounts?: boolean
   defaultLicense?: PhotoLicense
 }
 
@@ -28,12 +31,14 @@ export class User extends BaseUser {
   declare avatarDisk: string | null
   declare defaultVisibility: BookVisibility
   declare showOwnerName: boolean
+  /** Whether visitors see view and download counts on this user's public photos, books and spaces. */
+  declare showCounts: boolean
   declare defaultLicense: PhotoLicense
+  /** The slug of the user's role. */
+  declare role: string
+  declare suspendedAt: Date | null
   declare createdAt: Date
   declare updatedAt: Date
-
-  /** The largest profile photo upload, in kilobytes. */
-  static readonly AVATAR_MAX_KILOBYTES = 10_240
 
   protected static override factoryClass = UserFactory
 
@@ -44,10 +49,13 @@ export class User extends BaseUser {
     defaultVisibility: 'default_visibility',
     showOwnerName: 'show_owner_name',
     defaultLicense: 'default_license',
+    suspendedAt: 'suspended_at',
+    showCounts: 'show_counts',
   }
 
   protected override casts = {
     showOwnerName: 'boolean',
+    showCounts: 'boolean',
   } as never
 
   protected override hidden = ['password']
@@ -79,6 +87,33 @@ export class User extends BaseUser {
 
   notifications() {
     return this.hasMany(UserNotification, 'userId')
+  }
+
+  /** What the user's role allows in the admin dashboard. */
+  permissions(): Promise<PermissionName[]> {
+    return Role.permissionsFor(this.role)
+  }
+
+  async can(permission: PermissionName): Promise<boolean> {
+    return (await this.permissions()).includes(permission)
+  }
+
+  isSuspended(): boolean {
+    return !!this.suspendedAt
+  }
+
+  /** Stop the account signing in and sign out every device. */
+  async suspend(): Promise<void> {
+    if (this.isSuspended()) return
+
+    await this.update({ suspendedAt: new Date() })
+    await this.signOutOtherSessions()
+  }
+
+  async reinstate(): Promise<void> {
+    if (!this.isSuspended()) return
+
+    await this.update({ suspendedAt: null })
   }
 
   checkPassword(password: string): Promise<boolean> {

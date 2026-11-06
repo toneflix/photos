@@ -34,6 +34,7 @@ export class Space extends Model {
   declare description: string | null
   declare visibility: SpaceVisibility
   declare publishedAt: Date | null
+  declare viewCount: number
   declare createdAt: Date
   declare updatedAt: Date
 
@@ -47,6 +48,7 @@ export class Space extends Model {
   protected static override columns = {
     userId: 'user_id',
     publishedAt: 'published_at',
+    viewCount: 'view_count',
   }
 
   user() {

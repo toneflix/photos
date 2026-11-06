@@ -27,7 +27,7 @@ export default (): MiddlewareConfig => {
         origin: cConf.allowed_origins.length > 0 ? cConf.allowed_origins : true,
         credentials: true,
       }),
-      (req, res, next) => uploads.handler(req, res, next),
+      (req, res, next) => uploads.handler(req, res, next).catch(next),
       // Local disks sign file URLs as APP_URL/<path>, so serve stored photos and avatars from there.
       ...['photos', 'avatars'].map((folder) =>
         express.Router().use(

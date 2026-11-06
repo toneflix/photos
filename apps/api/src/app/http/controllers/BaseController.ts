@@ -51,6 +51,13 @@ export class BaseController extends Controller<HttpContext> {
       .catch(() => null)) as User | null
   }
 
+  /** Who views and downloads count against: the signed-in viewer, else their IP. Null for prefetches, which don't count. */
+  protected visitor(viewer: User | null): string | null {
+    if (String(this.ctx.req.get('purpose') ?? this.ctx.req.get('sec-purpose') ?? '').includes('prefetch')) return null
+
+    return viewer?.id ?? String(this.ctx.req.ip)
+  }
+
   /** The signed-in user. Only call this behind the `auth` middleware. */
   protected get user(): User {
     return (this.ctx.req as any).user as User

@@ -5,6 +5,7 @@ import { BaseController } from './BaseController'
 import { Photo } from '@app/models/Photo'
 import { PhotoCollection } from '@app/http/resources/PhotoCollection'
 import { PhotoResource } from '@app/http/resources/PhotoResource'
+import { Settings } from '@app/support/Settings'
 
 /**
  * The signed-in user's photo library.
@@ -26,7 +27,7 @@ export default class PhotoController extends BaseController {
 
   async create() {
     const data = await this.validate({
-      photo: photoFile(Photo.MAX_KILOBYTES),
+      photo: photoFile((await Settings.number('uploads.max_photo_mb')) * 1024),
       width: 'nullable|integer|min:1',
       height: 'nullable|integer|min:1',
       caption: 'nullable|string|max:2000',

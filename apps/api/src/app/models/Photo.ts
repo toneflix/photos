@@ -1,6 +1,7 @@
 import { Book } from './Book'
 import { ImageFile } from '@app/support/ImageFile'
 import { PhotoImage } from '@app/support/PhotoImage'
+import { Settings } from '@app/support/Settings'
 import { BookPage } from './BookPage'
 import { Model } from '@arkstack/database'
 import { abortIf } from '@arkstack/common'
@@ -73,6 +74,8 @@ export class Photo extends Model {
   declare visibility: PhotoVisibility
   declare publishedAt: Date | null
   declare license: PhotoLicense
+  declare viewCount: number
+  declare downloadCount: number
   declare createdAt: Date
   declare updatedAt: Date
 
@@ -85,9 +88,6 @@ export class Photo extends Model {
 
   /** Preset download sizes, by their longest side in pixels. */
   static readonly DOWNLOAD_SIZES: Record<string, number> = { large: 1920, medium: 1280, small: 640 }
-
-  /** The largest photo upload, in kilobytes. */
-  static readonly MAX_KILOBYTES = 25_600
 
   /** File extension for each accepted image type. */
   static readonly EXTENSIONS: Record<string, string> = {
@@ -110,6 +110,8 @@ export class Photo extends Model {
     mimeType: 'mime_type',
     takenAt: 'taken_at',
     publishedAt: 'published_at',
+    viewCount: 'view_count',
+    downloadCount: 'download_count',
   }
 
   protected override casts = {
@@ -126,8 +128,8 @@ export class Photo extends Model {
   }
 
   /** The largest original kept, in bytes. Bigger uploads are compressed to fit before they are stored. */
-  static maxOriginalBytes(): number {
-    return Math.round(Number(config('photos.max_original_mb')) * 1024 * 1024)
+  static async maxOriginalBytes(): Promise<number> {
+    return Math.round((await Settings.number('photos.max_original_mb')) * 1024 * 1024)
   }
 
   /**
@@ -139,7 +141,7 @@ export class Photo extends Model {
     const image = ImageFile.read(file.buffer)
     const mimeType = image?.mimeType ?? file.mimetype
     const upload = new PhotoImage(file.buffer, mimeType)
-    const original = await upload.fitWithin(Photo.maxOriginalBytes()).catch(() => null)
+    const original = await upload.fitWithin(await Photo.maxOriginalBytes()).catch(() => null)
     const bytes = original?.bytes ?? file.buffer
     const disk = Photo.disk()
     const name = `photos/${owner.id}/${randomUUID()}`
@@ -168,7 +170,9 @@ export class Photo extends Model {
 
   /** Write the WebP display copy of `image` to `path`. Null when the image can't be read. */
   static async storeDisplay(disk: string, path: string, image: PhotoImage): Promise<string | null> {
-    const display = await image.display(Number(config('photos.display_max_edge')), Number(config('photos.display_quality'))).catch(() => null)
+    const edge = await Settings.number('photos.display_max_edge')
+    const quality = await Settings.number('photos.display_quality')
+    const display = await image.display(edge, quality).catch(() => null)
 
     if (!display) return null
 

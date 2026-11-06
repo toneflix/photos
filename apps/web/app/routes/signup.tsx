@@ -4,6 +4,7 @@ import { formError, getServerApi } from "~/lib/api.server";
 import { commitToken, optionalUser, safeRedirect } from "~/lib/session.server";
 import { Alert, Button, Field, Input } from "~/components/ui";
 import { AuthFrame } from "~/components/AuthFrame";
+import { useLimits } from "~/lib/limits";
 import type { Route } from "./+types/signup";
 
 export const meta = () => [{ title: "Create an account · Toneflix Photos" }];
@@ -36,6 +37,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
 export default function SignUp({ loaderData, actionData }: Route.ComponentProps) {
 	const busy = useNavigation().state !== "idle";
+	const { registrationOpen } = useLimits();
 
 	return (
 		<AuthFrame
@@ -52,7 +54,8 @@ export default function SignUp({ loaderData, actionData }: Route.ComponentProps)
 				</>
 			}
 		>
-			<Form method="post" className="space-y-5">
+			{!registrationOpen && <Alert>Sign-ups are closed right now. If you already have an account, sign in instead.</Alert>}
+			<Form method="post" className={`space-y-5 ${registrationOpen ? "" : "hidden"}`}>
 				{loaderData?.next && <input type="hidden" name="next" value={loaderData.next} />}
 				{actionData?.error && !Object.keys(actionData.fieldErrors).length && <Alert>{actionData.error}</Alert>}
 				<Field label="Your name" error={actionData?.fieldErrors.name}>

@@ -1,5 +1,10 @@
 import type {
+  AdminOverview,
+  AdminUser,
+  AdminUserDetail,
+  AdminUserQuery,
   ApiResponse,
+  AppLimits,
   Book,
   BookAccessCode,
   BookAccessCodeInput,
@@ -7,10 +12,15 @@ import type {
   BookPageInput,
   BookWithPages,
   ID,
+  ModeratedKind,
+  ModerationItem,
+  ModerationItemDetail,
+  ModerationSort,
   BookQuery,
   PhotoQuery,
   PageQuery,
   PaginatedResponse,
+  PermissionDefinition,
   Photo,
   PhotoLicense,
   PhotoVisibility,
@@ -18,7 +28,10 @@ import type {
   PublicPhoto,
   PublicPhotoDetail,
   PublicSpace,
+  Role,
+  RoleInput,
   Session,
+  SettingGroup,
   SignedIn,
   Space,
   SpaceQuery,
@@ -27,6 +40,7 @@ import type {
   TwoFactorSetup,
   TwoFactorStatus,
   User,
+  UserRole,
   Visibility,
 } from '@photos/types'
 import type { PhotosAlova } from './client'
@@ -43,6 +57,9 @@ export function createEndpoints(alova: PhotosAlova) {
   const withCode = (code?: string | null) => (code ? { headers: { 'X-Access-Code': code } } : {})
 
   return {
+    /** Upload sizes and other limits to check before sending anything. Works signed out. */
+    limits: () => alova.Get<ApiResponse<AppLimits>>('/limits', { cacheFor: null }),
+
     auth: {
       /** Signs in, or asks for a two-factor code when the account has it on. */
       login: (data: { email: string; password: string }) =>
@@ -75,7 +92,7 @@ export function createEndpoints(alova: PhotosAlova) {
       sendVerification: () => alova.Post<ApiResponse<User>>('/account/email/verification'),
       updatePassword: (data: { currentPassword: string; password: string; password_confirmation: string }) =>
         alova.Put<ApiResponse<User>>('/account/password', data),
-      updatePrivacy: (data: { defaultVisibility?: Visibility; showOwnerName?: boolean; defaultLicense?: PhotoLicense }) =>
+      updatePrivacy: (data: { defaultVisibility?: Visibility; showOwnerName?: boolean; showCounts?: boolean; defaultLicense?: PhotoLicense }) =>
         alova.Put<ApiResponse<User>>('/account/privacy', data),
       /** Make every book private. */
       lockBooks: () => alova.Post<ApiResponse<{ updated: number }>>('/account/privacy/lock-books'),
@@ -183,6 +200,33 @@ export function createEndpoints(alova: PhotosAlova) {
       updateAccessCode: (id: ID, codeId: ID, data: BookAccessCodeInput) =>
         alova.Put<ApiResponse<BookAccessCode>>(`/books/${id}/access-codes/${codeId}`, data),
       revokeAccessCode: (id: ID, codeId: ID) => alova.Delete<ApiResponse<BookAccessCode>>(`/books/${id}/access-codes/${codeId}`),
+    },
+
+    /** The admin dashboard. Each area needs a role that grants it (see `User.permissions`). */
+    admin: {
+      overview: () => alova.Get<ApiResponse<AdminOverview>>('/admin/overview', { cacheFor: null }),
+      users: (params: AdminUserQuery = {}) => alova.Get<PaginatedResponse<AdminUser>>('/admin/users', { params, cacheFor: null }),
+      /** One account with views and downloads of its work per day over `days` (default 30). */
+      user: (id: ID, days?: number) => alova.Get<ApiResponse<AdminUserDetail>>(`/admin/users/${id}`, { params: { days }, cacheFor: null }),
+      /** Change an account's role, or suspend it (`suspended: true`) and let it back in. */
+      updateUser: (id: ID, data: { role?: UserRole; suspended?: boolean }) => alova.Put<ApiResponse<AdminUser>>(`/admin/users/${id}`, data),
+      moderation: (kind: ModeratedKind, params: PageQuery & { q?: string; sort?: ModerationSort } = {}) =>
+        alova.Get<PaginatedResponse<ModerationItem>>(`/admin/moderation/${kind}`, { params, cacheFor: null }),
+      /** One public photo, book or space with views and downloads per day over `days` (default 30). */
+      moderationItem: (kind: ModeratedKind, id: ID, days?: number) =>
+        alova.Get<ApiResponse<ModerationItemDetail>>(`/admin/moderation/${kind}/${id}`, { params: { days }, cacheFor: null }),
+      /** Take a public photo, book or space off Explore. It becomes private for its owner. */
+      unpublish: (kind: ModeratedKind, id: ID) => alova.Post<ApiResponse<ModerationItem>>(`/admin/moderation/${kind}/${id}/unpublish`),
+      /** Every role, with the permissions there are to choose from. */
+      roles: () => alova.Get<ApiResponse<Role[]> & { permissions: PermissionDefinition[] }>('/admin/roles', { cacheFor: null }),
+      createRole: (data: RoleInput) => alova.Post<ApiResponse<Role>>('/admin/roles', data),
+      updateRole: (id: ID, data: Partial<RoleInput>) => alova.Put<ApiResponse<Role>>(`/admin/roles/${id}`, data),
+      /** Refused for built-in roles and roles someone still has. */
+      removeRole: (id: ID) => alova.Delete<ApiResponse<Role>>(`/admin/roles/${id}`),
+      settings: () => alova.Get<ApiResponse<SettingGroup[]>>('/admin/settings', { cacheFor: null }),
+      /** Save a group's fields by name. Null puts a field back to its .env default. */
+      updateSettings: (group: string, values: Record<string, number | boolean | string | null>) =>
+        alova.Put<ApiResponse<SettingGroup>>(`/admin/settings/${group}`, values),
     },
 
     accessCodes: {

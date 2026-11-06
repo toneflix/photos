@@ -67,7 +67,7 @@ export default class BookAccessCodeController extends BaseController {
     const data = await this.validate({ code: 'required|string|max:32' })
     const visitor = String(this.ctx.req.ip)
 
-    await BookAccessCode.guesses(visitor).ensureAllowed('Too many wrong access codes.')
+    await (await BookAccessCode.guesses(visitor)).ensureAllowed('Too many wrong access codes.')
 
     const code = await BookAccessCode.attempt(data.code, visitor)
 
@@ -85,7 +85,7 @@ export default class BookAccessCodeController extends BaseController {
     const data = await this.validate({ code: 'required|string|max:32' })
     const visitor = String(this.ctx.req.ip)
 
-    await BookAccessCode.guesses(visitor).ensureAllowed('Too many wrong access codes.')
+    await (await BookAccessCode.guesses(visitor)).ensureAllowed('Too many wrong access codes.')
 
     const code = await BookAccessCode.attempt(data.code, visitor)
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ContentCounts } from "~/components/ContentCounts";
 import { data, Link, NavLink, Outlet, type MetaDescriptor, type ShouldRevalidateFunctionArgs } from "react-router";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { getServerApi } from "~/lib/api.server";
@@ -74,6 +75,7 @@ export default function SpaceLayout({ loaderData }: Route.ComponentProps) {
 					<div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
 						<Owner owner={space.owner} />
 						<span className="text-sm text-ink-500">{spaceCounts(space)}</span>
+						<ContentCounts stats={space.stats} />
 					</div>
 					<div className="mt-5 flex flex-wrap gap-2">
 						{space.visibility === "public" && (

@@ -30,6 +30,21 @@ export default [
 	]),
 	...prefix("settings", [route("export", "routes/settings/export.ts")]),
 
+	// Admin dashboard. Each page needs a role that grants it.
+	...prefix("admin", [
+		layout("routes/admin/layout.tsx", [
+			index("routes/admin/overview.tsx"),
+			route("users", "routes/admin/users.tsx"),
+			route("users/:id", "routes/admin/user.tsx"),
+			...(["photos", "books", "spaces"] as const).flatMap((kind) => [
+				route(kind, "routes/admin/content.tsx", { id: `admin-${kind}` }),
+				route(`${kind}/:id`, "routes/admin/content-item.tsx", { id: `admin-${kind}-item` }),
+			]),
+			route("roles/:role?", "routes/admin/roles.tsx"),
+			route("configuration/:group?", "routes/admin/configuration.tsx"),
+		]),
+	]),
+
 	// Public timeline, open to everyone.
 	layout("routes/explore/layout.tsx", [
 		layout("routes/explore/feed.tsx", [

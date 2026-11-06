@@ -23,7 +23,8 @@ export type ServerApi = Awaited<ReturnType<typeof getServerApi>>;
 
 /**
  * The visitor's browser and IP, so the API can name their signed-in device.
- * Without these every session would look like the Worker itself.
+ * Without these every session would look like the Worker itself. Prefetches
+ * are marked so a hovered link doesn't count as a view.
  */
 export function visitorHeaders(request: Request): Record<string, string> {
 	const headers: Record<string, string> = {};
@@ -32,6 +33,7 @@ export function visitorHeaders(request: Request): Record<string, string> {
 
 	if (userAgent) headers["User-Agent"] = userAgent;
 	if (ip) headers["X-Forwarded-For"] = ip;
+	if ((request.headers.get("sec-purpose") ?? request.headers.get("purpose"))?.includes("prefetch")) headers.Purpose = "prefetch";
 
 	return headers;
 }

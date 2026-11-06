@@ -9,6 +9,9 @@ import {
 
 import type { Route } from "./+types/root";
 import { NavigationProgress } from "./components/NavigationProgress";
+import { cloudflareContext } from "./lib/cloudflare";
+import { getServerApi } from "./lib/api.server";
+import { DEFAULT_LIMITS } from "./lib/limits";
 import "@toneflix/flipbook-react/style.css";
 import "./app.css";
 
@@ -27,8 +30,15 @@ export const links: Route.LinksFunction = () => [
 	},
 ];
 
-export function loader({ request }: Route.LoaderArgs) {
-	return { origin: new URL(request.url).origin };
+export async function loader({ request, context }: Route.LoaderArgs) {
+	const { env } = context.get(cloudflareContext);
+	const api = await getServerApi(request, env, null);
+	const limits = await api
+		.limits()
+		.then(({ data }) => data)
+		.catch(() => DEFAULT_LIMITS);
+
+	return { origin: new URL(request.url).origin, limits };
 }
 
 export const shouldRevalidate = () => false;
