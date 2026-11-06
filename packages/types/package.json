@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@toneflix/flipbook-core": "^0.3.5",
-    "@toneflix/money": "^1.0.1"
+    "@toneflix/money": "^1.0.2"
   },
   "devDependencies": {
     "typescript": "^6.0.0"
