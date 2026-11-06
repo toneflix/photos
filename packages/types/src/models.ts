@@ -32,6 +32,8 @@ export interface User {
   defaultVisibility: Visibility
   /** Whether people opening a shared or public book see the owner's name. */
   showOwnerName: boolean
+  /** Whether visitors see view and download counts on this account's public work. */
+  showCounts: boolean
   /** Licence given to new uploads. */
   defaultLicense: PhotoLicense
   role: UserRole
@@ -155,6 +157,14 @@ export interface PublicPhoto extends Photo {
 /** A public photo with the owner's public books it appears in, and the page it is first on. */
 export interface PublicPhotoDetail extends PublicPhoto {
   books: { id: ID; title: string; theme: BookTheme; page: number }[]
+  /** Shown to the owner always, and to others when the owner chose to show counts. */
+  stats: ContentCounts | null
+}
+
+/** How often something was viewed and downloaded. Spaces have no downloads. */
+export interface ContentCounts {
+  views: number
+  downloads: number | null
 }
 
 /** The cloth of a book's cover. */
@@ -225,6 +235,7 @@ export interface Space {
 /** A space as visitors see it: counts and previews include only public photos and books. */
 export interface PublicSpace extends Space {
   owner: Owner
+  stats: ContentCounts | null
   /** True when the signed-in viewer owns the space. */
   canEdit: boolean
 }
@@ -268,6 +279,7 @@ export const BOOK_PERMISSIONS: Record<BookPermission, { label: string; descripti
 /** A book with all of its pages, as returned by `GET /books/:id`. */
 export interface BookWithPages extends Book {
   pages: BookPage[]
+  stats: ContentCounts | null
   /** True when the visitor may edit the book, as its owner or with an access code. */
   canEdit: boolean
   isOwner: boolean

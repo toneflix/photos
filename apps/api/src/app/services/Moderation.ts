@@ -18,8 +18,10 @@ export class Moderation {
 
   constructor(readonly kind: ModeratedKind) {}
 
-  /** Public items of this kind, newest first. Words match titles and owner names or emails. */
-  listed(q?: string | null): QueryBuilder<Moderated> {
+  static readonly SORTS = ['latest', 'views', 'downloads']
+
+  /** Public items of this kind, newest or most viewed or downloaded first. Words match titles and owner names or emails. */
+  listed(q?: string | null, sort?: string | null): QueryBuilder<Moderated> {
     const text = q?.trim()
     const query = this.query().where({ visibility: 'public' }).with('user') as QueryBuilder<Moderated>
 
@@ -31,11 +33,15 @@ export class Moderation {
       )
     }
 
+    if (sort === 'views') return query.latest('viewCount')
+    if (sort === 'downloads' && this.kind !== 'spaces') return query.latest('downloadCount')
+
     return query.latest('publishedAt')
   }
 
+  /** A public item of this kind, or a 404. */
   find(id: string): Promise<Moderated> {
-    return this.query().findOrFail(id) as Promise<Moderated>
+    return this.query().where({ visibility: 'public' }).with('user').findOrFail(id) as Promise<Moderated>
   }
 
   /** Take an item off Explore. Its owner keeps it, now private. */

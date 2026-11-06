@@ -1,4 +1,5 @@
 import { AdminUserCollection } from '@app/http/resources/AdminUserCollection'
+import { AdminUserDetailResource } from '@app/http/resources/AdminUserDetailResource'
 import { AdminUserResource } from '@app/http/resources/AdminUserResource'
 import { BaseController } from '../BaseController'
 import type { QueryBuilder } from 'arkormx'
@@ -29,10 +30,14 @@ export default class UserController extends BaseController {
     return new AdminUserCollection(users).additional({ status: 'success', message: 'OK', code: 200 })
   }
 
+  /** One account with its holdings and views and downloads per day. */
   async show() {
+    const filters = await this.validateQuery({ days: 'nullable|integer|min:7|max:365' })
     const user = await User.query().findOrFail(String(this.params.user))
 
-    return new AdminUserResource(user).additional({ status: 'success', message: 'OK', code: 200 })
+    return new AdminUserDetailResource(user)
+      .over(Number(filters.days) || 30)
+      .additional({ status: 'success', message: 'OK', code: 200 })
   }
 
   /** Change an account's role or suspend it. Admins can't do either to themselves. */

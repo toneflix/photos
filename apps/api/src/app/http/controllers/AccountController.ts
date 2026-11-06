@@ -83,12 +83,14 @@ export default class AccountController extends BaseController {
     const data = await this.validate({
       defaultVisibility: `nullable|in:${Book.VISIBILITIES.join(',')}`,
       showOwnerName: 'nullable|boolean',
+      showCounts: 'nullable|boolean',
       defaultLicense: `nullable|in:${Photo.LICENSES.join(',')}`,
     })
 
     await this.user.updatePreferences({
       defaultVisibility: data.defaultVisibility || undefined,
       showOwnerName: typeof data.showOwnerName === 'boolean' ? data.showOwnerName : undefined,
+      showCounts: typeof data.showCounts === 'boolean' ? data.showCounts : undefined,
       defaultLicense: data.defaultLicense || undefined,
     })
 

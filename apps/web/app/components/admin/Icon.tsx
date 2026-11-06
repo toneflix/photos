@@ -12,6 +12,9 @@ const PATHS: Record<string, string> = {
 	key: "M14.5 9.5a4 4 0 1 0-3.9 3.1L4 19.2V21h3v-2h2v-2h2l1.6-1.6a4 4 0 0 0 1.9-5.9zM16 8h.01",
 	plus: "M12 5v14M5 12h14",
 	chevron: "M9 6l6 6-6 6",
+	grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
+	eye: "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6",
+	download: "M12 4v12M7 11l5 5 5-5M4 20h16",
 	search: "M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14M20 20l-4-4",
 };
 

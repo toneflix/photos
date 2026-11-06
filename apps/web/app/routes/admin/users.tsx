@@ -1,11 +1,11 @@
-import { Form, Link, useNavigation, useSearchParams, useSubmit } from "react-router";
+import { Form, Link, useNavigation, useSearchParams } from "react-router";
+import { AccountControls } from "~/components/admin/AccountControls";
 import type { AdminUser, Role, UserRole } from "@photos/types";
 import { AdminHeader } from "~/components/admin/AdminHeader";
 import { Avatar } from "~/components/Avatar";
 import { Alert, Button, Input, Select, buttonClass } from "~/components/ui";
 import { Icon } from "~/components/admin/Icon";
-import { formError } from "~/lib/api.server";
-import { requireAdmin } from "~/lib/admin.server";
+import { requireAdmin, updateAccount } from "~/lib/admin.server";
 import type { Route } from "./+types/users";
 
 export const meta = () => [{ title: "Users · Admin · Toneflix Photos" }];
@@ -30,17 +30,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export async function action({ request, context }: Route.ActionArgs) {
 	const { api } = await requireAdmin(request, context, "users.manage");
-	const form = await request.formData();
-	const id = String(form.get("id"));
 
-	try {
-		if (form.get("intent") === "role") await api.admin.updateUser(id, { role: String(form.get("role")) as UserRole });
-		if (form.get("intent") === "suspend") await api.admin.updateUser(id, { suspended: form.get("suspended") === "true" });
-
-		return { error: null };
-	} catch (error) {
-		return { error: formError(error).error };
-	}
+	return updateAccount(api, await request.formData());
 }
 
 export default function AdminUsers({ loaderData, actionData }: Route.ComponentProps) {
@@ -125,7 +116,6 @@ export default function AdminUsers({ loaderData, actionData }: Route.ComponentPr
 }
 
 function UserRow({ account, roles, isMe, canManage }: { account: AdminUser; roles: Role[]; isMe: boolean; canManage: boolean }) {
-	const submit = useSubmit();
 	const navigation = useNavigation();
 	const busy = navigation.state !== "idle" && navigation.formData?.get("id") === account.id;
 
@@ -134,7 +124,9 @@ function UserRow({ account, roles, isMe, canManage }: { account: AdminUser; role
 			<Avatar user={account} />
 			<div className="min-w-0 flex-1 basis-56">
 				<p className="flex items-center gap-2 truncate text-sm font-semibold text-ink-900">
-					{account.name}
+					<Link prefetch="intent" to={`/admin/users/${account.id}`} className="truncate hover:text-brand-700 hover:underline">
+						{account.name}
+					</Link>
 					{isMe && <span className="rounded-md bg-brand-50 px-1.5 py-0.5 text-xs font-semibold text-brand-700">You</span>}
 					{account.suspended && <span className="rounded-md bg-red-50 px-1.5 py-0.5 text-xs font-semibold text-red-700">Suspended</span>}
 				</p>
@@ -147,33 +139,7 @@ function UserRow({ account, roles, isMe, canManage }: { account: AdminUser; role
 				{account.photoCount} {account.photoCount === 1 ? "photo" : "photos"} · {account.bookCount} {account.bookCount === 1 ? "book" : "books"} · joined {new Date(account.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })}
 			</p>
 			{canManage ? (
-			<div className="flex items-center gap-2">
-				<Form method="post" onChange={(event) => submit(event.currentTarget, { preventScrollReset: true })}>
-					<input type="hidden" name="intent" value="role" />
-					<input type="hidden" name="id" value={account.id} />
-					<Select name="role" defaultValue={account.role} disabled={isMe || busy} aria-label={`Role for ${account.name}`} className="w-auto !py-2 text-sm">
-						{roles.map((role) => (
-							<option key={role.slug} value={role.slug}>
-								{role.name}
-							</option>
-						))}
-					</Select>
-				</Form>
-				<Form
-					method="post"
-					preventScrollReset
-					onSubmit={(event) => {
-						if (!account.suspended && !confirm(`Suspend ${account.name}? They are signed out everywhere and can't sign in until you let them back in.`)) event.preventDefault();
-					}}
-				>
-					<input type="hidden" name="intent" value="suspend" />
-					<input type="hidden" name="id" value={account.id} />
-					<input type="hidden" name="suspended" value={String(!account.suspended)} />
-					<Button type="submit" variant={account.suspended ? "secondary" : "danger"} disabled={isMe || busy} className="!py-2">
-						{account.suspended ? "Let back in" : "Suspend"}
-					</Button>
-				</Form>
-			</div>
+				<AccountControls account={account} roles={roles} isMe={isMe} busy={busy} />
 			) : (
 				<span className="rounded-md bg-surface-100 px-2 py-1 text-sm font-medium text-ink-700">{roles.find((role) => role.slug === account.role)?.name ?? account.role}</span>
 			)}

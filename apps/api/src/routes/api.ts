@@ -97,6 +97,7 @@ Router.get('/admin/users', [UserController, 'index'], [auth, Authorize.to('users
 Router.get('/admin/users/:user', [UserController, 'show'], [auth, Authorize.to('users.view', 'users.manage')])
 Router.put('/admin/users/:user', [UserController, 'update'], [auth, Authorize.to('users.manage')])
 Router.get('/admin/moderation/:kind', [ModerationController, 'index'], [auth, Authorize.to('content.moderate')])
+Router.get('/admin/moderation/:kind/:item', [ModerationController, 'show'], [auth, Authorize.to('content.moderate')])
 Router.post('/admin/moderation/:kind/:item/unpublish', [ModerationController, 'unpublish'], [auth, Authorize.to('content.moderate')])
 Router.get('/admin/settings', [SettingsController, 'index'], [auth, Authorize.to('settings.manage')])
 Router.put('/admin/settings/:group', [SettingsController, 'update'], [auth, Authorize.to('settings.manage')])

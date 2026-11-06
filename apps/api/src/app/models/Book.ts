@@ -47,6 +47,8 @@ export class Book extends Model {
   declare paper: string
   declare frame: string
   declare publishedAt: Date | null
+  declare viewCount: number
+  declare downloadCount: number
   declare createdAt: Date
   declare updatedAt: Date
 
@@ -67,6 +69,8 @@ export class Book extends Model {
     coverText: 'cover_text',
     coverPosition: 'cover_position',
     publishedAt: 'published_at',
+    viewCount: 'view_count',
+    downloadCount: 'download_count',
   }
 
   protected override casts = {

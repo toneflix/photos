@@ -10,6 +10,7 @@ import { SORTS } from '@app/support/search'
 import { downloadSize } from '@app/support/rules'
 import { Space } from '@app/models/Space'
 import { abortIf, perPage } from '@arkstack/common'
+import { ContentStats } from '@app/services/ContentStats'
 
 /**
  * The public timeline: photos, books and spaces their owners chose to show everyone.
@@ -34,22 +35,28 @@ export default class ExploreController extends BaseController {
   }
 
   async photo() {
+    const viewer = await this.viewer()
     const photo = await Photo.query()
       .where({ visibility: 'public' })
       .with(['user', 'space'])
       .findOrFail(String(this.params.photo))
 
-    abortIf(!(await photo.isListedFor(await this.viewer())), 'Photo not found!', 404)
+    abortIf(!(await photo.isListedFor(viewer)), 'Photo not found!', 404)
 
-    return new PublicPhotoDetailResource(photo).additional({ status: 'success', message: 'OK', code: 200 })
+    await new ContentStats(photo).view(this.visitor(viewer), viewer)
+
+    return new PublicPhotoDetailResource(photo).for(viewer).additional({ status: 'success', message: 'OK', code: 200 })
   }
 
   /** The original, or a copy at a preset or custom size, only when the owner chose an open licence. */
   async download() {
+    const viewer = await this.viewer()
     const photo = await Photo.query().where({ visibility: 'public' }).findOrFail(String(this.params.photo))
 
-    abortIf(!(await photo.isListedFor(await this.viewer())), 'Photo not found!', 404)
+    abortIf(!(await photo.isListedFor(viewer)), 'Photo not found!', 404)
     abortIf(!photo.allowsDownload(), 'The photographer keeps all rights to this photo, so it cannot be downloaded.', 403)
+
+    await new ContentStats(photo).download(this.visitor(viewer), viewer)
 
     return photo.download(await this.validateQuery(downloadSize(Object.keys(Photo.DOWNLOAD_SIZES))))
   }
@@ -87,6 +94,8 @@ export default class ExploreController extends BaseController {
   async space() {
     const viewer = await this.viewer()
     const space = await Space.browse(String(this.params.space), viewer)
+
+    await new ContentStats(space).view(this.visitor(viewer), viewer)
 
     return new PublicSpaceResource(space).for(viewer).additional({ status: 'success', message: 'OK', code: 200 })
   }

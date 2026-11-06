@@ -1,6 +1,7 @@
 import type {
   AdminOverview,
   AdminUser,
+  AdminUserDetail,
   AdminUserQuery,
   ApiResponse,
   AppLimits,
@@ -13,6 +14,8 @@ import type {
   ID,
   ModeratedKind,
   ModerationItem,
+  ModerationItemDetail,
+  ModerationSort,
   BookQuery,
   PhotoQuery,
   PageQuery,
@@ -89,7 +92,7 @@ export function createEndpoints(alova: PhotosAlova) {
       sendVerification: () => alova.Post<ApiResponse<User>>('/account/email/verification'),
       updatePassword: (data: { currentPassword: string; password: string; password_confirmation: string }) =>
         alova.Put<ApiResponse<User>>('/account/password', data),
-      updatePrivacy: (data: { defaultVisibility?: Visibility; showOwnerName?: boolean; defaultLicense?: PhotoLicense }) =>
+      updatePrivacy: (data: { defaultVisibility?: Visibility; showOwnerName?: boolean; showCounts?: boolean; defaultLicense?: PhotoLicense }) =>
         alova.Put<ApiResponse<User>>('/account/privacy', data),
       /** Make every book private. */
       lockBooks: () => alova.Post<ApiResponse<{ updated: number }>>('/account/privacy/lock-books'),
@@ -203,11 +206,15 @@ export function createEndpoints(alova: PhotosAlova) {
     admin: {
       overview: () => alova.Get<ApiResponse<AdminOverview>>('/admin/overview', { cacheFor: null }),
       users: (params: AdminUserQuery = {}) => alova.Get<PaginatedResponse<AdminUser>>('/admin/users', { params, cacheFor: null }),
-      user: (id: ID) => alova.Get<ApiResponse<AdminUser>>(`/admin/users/${id}`, { cacheFor: null }),
+      /** One account with views and downloads of its work per day over `days` (default 30). */
+      user: (id: ID, days?: number) => alova.Get<ApiResponse<AdminUserDetail>>(`/admin/users/${id}`, { params: { days }, cacheFor: null }),
       /** Change an account's role, or suspend it (`suspended: true`) and let it back in. */
       updateUser: (id: ID, data: { role?: UserRole; suspended?: boolean }) => alova.Put<ApiResponse<AdminUser>>(`/admin/users/${id}`, data),
-      moderation: (kind: ModeratedKind, params: PageQuery & { q?: string } = {}) =>
+      moderation: (kind: ModeratedKind, params: PageQuery & { q?: string; sort?: ModerationSort } = {}) =>
         alova.Get<PaginatedResponse<ModerationItem>>(`/admin/moderation/${kind}`, { params, cacheFor: null }),
+      /** One public photo, book or space with views and downloads per day over `days` (default 30). */
+      moderationItem: (kind: ModeratedKind, id: ID, days?: number) =>
+        alova.Get<ApiResponse<ModerationItemDetail>>(`/admin/moderation/${kind}/${id}`, { params: { days }, cacheFor: null }),
       /** Take a public photo, book or space off Explore. It becomes private for its owner. */
       unpublish: (kind: ModeratedKind, id: ID) => alova.Post<ApiResponse<ModerationItem>>(`/admin/moderation/${kind}/${id}/unpublish`),
       /** Every role, with the permissions there are to choose from. */

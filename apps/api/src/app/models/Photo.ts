@@ -74,6 +74,8 @@ export class Photo extends Model {
   declare visibility: PhotoVisibility
   declare publishedAt: Date | null
   declare license: PhotoLicense
+  declare viewCount: number
+  declare downloadCount: number
   declare createdAt: Date
   declare updatedAt: Date
 
@@ -105,6 +107,8 @@ export class Photo extends Model {
     mimeType: 'mime_type',
     takenAt: 'taken_at',
     publishedAt: 'published_at',
+    viewCount: 'view_count',
+    downloadCount: 'download_count',
   }
 
   protected override casts = {

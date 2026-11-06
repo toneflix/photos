@@ -19,6 +19,7 @@ import { Role } from './Role'
 export interface UserPreferences {
   defaultVisibility?: BookVisibility
   showOwnerName?: boolean
+  showCounts?: boolean
   defaultLicense?: PhotoLicense
 }
 
@@ -31,6 +32,8 @@ export class User extends BaseUser {
   declare avatarDisk: string | null
   declare defaultVisibility: BookVisibility
   declare showOwnerName: boolean
+  /** Whether visitors see view and download counts on this user's public photos, books and spaces. */
+  declare showCounts: boolean
   declare defaultLicense: PhotoLicense
   /** The slug of the user's role. */
   declare role: string
@@ -48,10 +51,12 @@ export class User extends BaseUser {
     showOwnerName: 'show_owner_name',
     defaultLicense: 'default_license',
     suspendedAt: 'suspended_at',
+    showCounts: 'show_counts',
   }
 
   protected override casts = {
     showOwnerName: 'boolean',
+    showCounts: 'boolean',
   } as never
 
   protected override hidden = ['password']

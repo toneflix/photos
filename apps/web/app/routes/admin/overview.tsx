@@ -1,6 +1,8 @@
 import { Link } from "react-router";
 import { AdminHeader } from "~/components/admin/AdminHeader";
 import { Avatar } from "~/components/Avatar";
+import { StatTiles, StatsChart } from "~/components/admin/StatsChart";
+import { TopList } from "~/components/admin/ContentParts";
 import { requireAdmin } from "~/lib/admin.server";
 import type { Route } from "./+types/overview";
 
@@ -10,7 +12,11 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 	const { api, user } = await requireAdmin(request, context, "dashboard.view");
 	const { data } = await api.admin.overview();
 
-	return { overview: data, canManageUsers: user.permissions.some((permission) => permission === "users.view" || permission === "users.manage") };
+	return {
+		overview: data,
+		canManageUsers: user.permissions.some((permission) => permission === "users.view" || permission === "users.manage"),
+		canModerate: user.permissions.includes("content.moderate"),
+	};
 }
 
 const number = new Intl.NumberFormat("en");
@@ -23,8 +29,10 @@ function bytes(value: number) {
 }
 
 export default function AdminOverview({ loaderData }: Route.ComponentProps) {
-	const { overview, canManageUsers } = loaderData;
+	const { overview, canManageUsers, canModerate } = loaderData;
 	const stats = [
+		{ label: "Views", value: number.format(overview.engagement.views), note: `${number.format(overview.daily.reduce((sum, day) => sum + day.views, 0))} in the last 30 days` },
+		{ label: "Downloads", value: number.format(overview.engagement.downloads), note: `${number.format(overview.daily.reduce((sum, day) => sum + day.downloads, 0))} in the last 30 days` },
 		{ label: "Accounts", value: number.format(overview.users.total), note: `${number.format(overview.users.new)} new in ${overview.newUserDays} days` },
 		{ label: "Photos", value: number.format(overview.photos.total), note: `${number.format(overview.photos.public)} on Explore` },
 		{ label: "Books", value: number.format(overview.books.total), note: `${number.format(overview.books.public)} public` },
@@ -37,15 +45,12 @@ export default function AdminOverview({ loaderData }: Route.ComponentProps) {
 		<>
 			<AdminHeader title="Overview" description="How Toneflix Photos is doing at a glance." />
 			<div className="space-y-8 px-4 py-8 sm:px-8">
-				<dl className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-					{stats.map((stat) => (
-						<div key={stat.label} className="panel p-5">
-							<dt className="text-sm font-medium text-ink-500">{stat.label}</dt>
-							<dd className="mt-1 font-display text-3xl font-bold tracking-tight text-ink-900">{stat.value}</dd>
-							<dd className="mt-1 text-sm text-ink-500">{stat.note}</dd>
-						</div>
-					))}
-				</dl>
+				<StatTiles items={stats} />
+
+				<div className="grid gap-6 xl:grid-cols-[1fr_24rem]">
+					<StatsChart days={overview.daily} title="Views and downloads, last 30 days" />
+					<TopList title="Most viewed photos" items={overview.topPhotos} kind="photos" linked={canModerate} />
+				</div>
 
 				<section className="panel">
 					<div className="flex items-center justify-between gap-4 border-b-[1.5px] border-surface-200 px-5 py-4">
@@ -61,7 +66,15 @@ export default function AdminOverview({ loaderData }: Route.ComponentProps) {
 							<li key={account.id} className="flex items-center gap-3 px-5 py-3">
 								<Avatar user={account} />
 								<div className="min-w-0 flex-1">
-									<p className="truncate text-sm font-semibold text-ink-900">{account.name}</p>
+									<p className="truncate text-sm font-semibold text-ink-900">
+										{canManageUsers ? (
+											<Link prefetch="intent" to={`/admin/users/${account.id}`} className="hover:text-brand-700 hover:underline">
+												{account.name}
+											</Link>
+										) : (
+											account.name
+										)}
+									</p>
 									<p className="truncate text-sm text-ink-500">{account.email}</p>
 								</div>
 								<span className="hidden text-sm text-ink-500 sm:block">

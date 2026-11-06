@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
+import { ContentCounts } from "~/components/ContentCounts";
 import { data, Form, Link, redirect, useLocation, useNavigation } from "react-router";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { formError, getServerApi, PhotosApiError } from "~/lib/api.server";
@@ -126,11 +127,14 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 				keyboard="global"
 				fullscreenPrompt={fullscreen}
 				topLeft={
-					<Link prefetch="intent" to={back.to} className="rounded-full bg-white/10 p-2 hover:bg-white/20" aria-label={back.label} title={back.label}>
-						<svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-							<path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
-						</svg>
-					</Link>
+					<div className="flex items-center gap-4">
+						<Link prefetch="intent" to={back.to} className="rounded-full bg-white/10 p-2 hover:bg-white/20" aria-label={back.label} title={back.label}>
+							<svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+								<path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+							</svg>
+						</Link>
+						<ContentCounts stats={book.stats} light className="max-sm:hidden" />
+					</div>
 				}
 				topRight={
 					<>
