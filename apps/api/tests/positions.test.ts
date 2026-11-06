@@ -83,4 +83,21 @@ describe('Photo positions', () => {
 
     expect(changed.body.data.coverPosition).toBeNull()
   })
+
+  it('centres the cover photo again when the position is null', async () => {
+    await api('put', `/books/${bookId}`, { coverPhotoId: photoId, coverPosition: { x: 10, y: 30, zoom: 2 } })
+
+    const centred = await api('put', `/books/${bookId}`, { title: 'Cropped book', coverPosition: null })
+
+    expect(centred.status).toBe(200)
+    expect(centred.body.data.coverPosition).toBeNull()
+  })
+
+  it('rejects a position that is not an object', async () => {
+    const cover = await api('put', `/books/${bookId}`, { coverPosition: 5 })
+    const page = await api('put', `/books/${bookId}/pages`, { pages: [{ layout: 'single', photoIds: [photoId], photoPositions: [{ x: 'left' }] }] })
+
+    expect(cover.status).toBe(422)
+    expect(page.status).toBe(422)
+  })
 })
