@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
+import { ActivityIndicator, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { Ionicons } from '@expo/vector-icons'
@@ -9,6 +9,7 @@ import { useRequest } from 'alova/client'
 import { licenseFor, type BookPermission, type BookWithPages } from '@photos/types'
 import { Flipbook } from '@toneflix/flipbook-native'
 import { AuthFrame } from '@/components/AuthFrame'
+import { ContentCounts } from '@/components/ContentCounts'
 import { CodeForm } from '@/components/access/CodeForm'
 import { Sheet } from '@/components/access/Sheet'
 import { BOOK_FONTS } from '@/components/book/look'
@@ -23,6 +24,9 @@ import { useSession } from '@/lib/session'
 import { MAX_PHOTO_BYTES } from '@/lib/uploads'
 import { uploadFile } from '@/lib/upload-file'
 import { colors, fonts, radius } from '@/theme'
+
+/** Narrower readers leave the top bar to the book's title. */
+const COUNTS_MIN_WIDTH = 840
 
 /**
  * A book as a flipbook that opens sideways, with what the visitor may do with it in its top bar.
@@ -90,6 +94,7 @@ function LoadBook({ id, code, startPage, shareError }: { id: string; code: strin
 
 function Book({ book, code, startPage, reload }: { book: BookWithPages; code: string | null; startPage?: number; reload: () => void }) {
   const insets = useSafeAreaInsets()
+  const { width } = useWindowDimensions()
   const [panel, setPanel] = useState<'add' | 'claim' | 'download' | null>(null)
   const can = (permission: BookPermission) => book.permissions.includes(permission)
   const downloadable = can('transfer') || book.pages.some((page) => page.photos.some((photo) => licenseFor(photo.license).downloadable))
@@ -103,9 +108,12 @@ function Book({ book, code, startPage, reload }: { book: BookWithPages; code: st
         startPage={startPage}
         fonts={BOOK_FONTS}
         topLeft={
-          <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} hitSlop={8} style={styles.round}>
-            <Ionicons name="chevron-back" size={20} color={colors.white} />
-          </Pressable>
+          <View style={styles.topLeft}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} hitSlop={8} style={styles.round}>
+              <Ionicons name="chevron-back" size={20} color={colors.white} />
+            </Pressable>
+            {width >= COUNTS_MIN_WIDTH && <ContentCounts stats={book.stats} light />}
+          </View>
         }
         topRight={
           <>
@@ -263,6 +271,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: colors.canvas },
   flex: { flex: 1 },
   row: { flexDirection: 'row', gap: 8 },
+  topLeft: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   round: { padding: 10, borderRadius: radius.full, backgroundColor: 'rgba(255,255,255,0.1)' },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.full, backgroundColor: 'rgba(255,255,255,0.1)' },
   chipPressed: { backgroundColor: 'rgba(255,255,255,0.2)' },

@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRequest } from 'alova/client'
 import type { Profile } from '@photos/types'
 import { Avatar } from '@/components/Avatar'
+import { ContentCounts } from '@/components/ContentCounts'
 import { PublicBooks, PublicPhotos, PublicSpaces } from '@/components/explore/ExploreLists'
 import { Segmented } from '@/components/Segmented'
 import { Button, Callout, Text } from '@/components/ui'
@@ -44,14 +45,7 @@ export default function MakerPage() {
       <Text variant="muted">
         {`${plural(maker.photoCount, 'photo')} · ${plural(maker.bookCount, 'book')} · ${plural(maker.spaceCount, 'space')} · Joined ${joined.format(new Date(maker.joinedAt))}`}
       </Text>
-      {maker.stats && (
-        <View style={styles.stats}>
-          <Ionicons name="eye-outline" size={16} color={colors.ink500} />
-          <Text variant="muted">{plural(maker.stats.views, 'view')}</Text>
-          <Ionicons name="download-outline" size={16} color={colors.ink500} style={styles.statGap} />
-          <Text variant="muted">{plural(maker.stats.downloads, 'download')}</Text>
-        </View>
-      )}
+      <ContentCounts stats={maker.stats} style={styles.stats} />
       <View style={styles.actions}>
         {maker.isListed && (
           <Button title="Share" variant="secondary" onPress={() => Share.share({ message: webUrl(`/makers/${maker.id}`) }).catch(() => undefined)} />
@@ -95,8 +89,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   back: { paddingHorizontal: 12, paddingVertical: 8, alignSelf: 'flex-start' },
   header: { gap: 10, paddingTop: 4 },
-  stats: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  statGap: { marginLeft: 10 },
+  stats: { justifyContent: 'center' },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   tabs: { marginTop: 14, marginBottom: 6 },
 })

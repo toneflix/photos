@@ -19,10 +19,11 @@ export default function Sharing() {
   const [visibility, setVisibility] = useState(user.defaultVisibility)
   const [license, setLicense] = useState<PhotoLicense>(user.defaultLicense ?? 'all-rights-reserved')
   const [showName, setShowName] = useState(user.showOwnerName)
+  const [showCounts, setShowCounts] = useState(user.showCounts)
 
   const save = () =>
     privacy.run(async () => {
-      const { data } = await api.account.updatePrivacy({ defaultVisibility: visibility, defaultLicense: license, showOwnerName: showName }).send()
+      const { data } = await api.account.updatePrivacy({ defaultVisibility: visibility, defaultLicense: license, showOwnerName: showName, showCounts }).send()
 
       await session.setUser(data)
 
@@ -61,10 +62,17 @@ export default function Sharing() {
       <Section>
         <View style={styles.toggle}>
           <View style={styles.flex}>
-            <Text style={styles.label}>Show my name on books I share</Text>
-            <Text variant="small">When off, people opening your books don't see who made them.</Text>
+            <Text style={styles.label}>Show my name on work I share</Text>
+            <Text variant="small">When off, people don't see who made your public photos and books, and only you can open your profile.</Text>
           </View>
           <Switch value={showName} onValueChange={setShowName} trackColor={{ true: colors.brand600, false: colors.surface300 }} />
+        </View>
+        <View style={styles.toggle}>
+          <View style={styles.flex}>
+            <Text style={styles.label}>Show view and download counts on my public work</Text>
+            <Text variant="small">When off, only you see how often your photos, books and spaces are viewed and downloaded.</Text>
+          </View>
+          <Switch value={showCounts} onValueChange={setShowCounts} trackColor={{ true: colors.brand700, false: colors.surface300 }} />
         </View>
       </Section>
 
