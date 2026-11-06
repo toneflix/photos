@@ -31,6 +31,10 @@ npx ark seed PlanSeeder
 
 Put an account on a plan without payment with `npx ark users:plan you@example.com premium` (`free` ends any paid time). Admins can do the same from a user's page in the dashboard.
 
+### Managing accounts
+
+`npx ark users:list` pages through accounts (`--search` to filter by name, email or username, `--perPage` to size the pages) and opens the one you pick: see its details, edit its name, username, email or password, verify its email, change its role or plan, suspend or delete it. Pass an id, email or username (`npx ark users:list you@example.com`) to open that account straight away.
+
 ### Payments
 
 Plans are paid through Flutterwave's hosted checkout (`app/services/payments`). Set `FLUTTERWAVE_SECRET_KEY` to take payments locally; Flutterwave test keys work. Webhooks reach `POST /api/payments/flutterwave/webhook` and are checked against `FLUTTERWAVE_WEBHOOK_HASH`. Payment regions price plans in a country's own currency, at a fixed rate or the live rate from @toneflix/money plus a markup.
