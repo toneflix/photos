@@ -67,7 +67,7 @@ export function PhotoWall({
                 <Image source={{ uri: photo.thumbnailUrl ?? photo.url }} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} recyclingKey={photo.id} />
                 <LinearGradient colors={['transparent', 'rgba(0,0,0,0.55)']} style={styles.shade} />
                 <View style={styles.owner}>
-                  <Owner owner={photo.owner} light />
+                  <Owner owner={photo.owner} light plain />
                 </View>
               </Pressable>
             ))}

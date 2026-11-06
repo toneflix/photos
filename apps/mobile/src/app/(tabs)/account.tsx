@@ -56,6 +56,19 @@ export default function Account() {
         </View>
       </Pressable>
 
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push({ pathname: '/makers/[id]', params: { id: user.id } })}
+        style={({ pressed }) => [styles.list, styles.row, pressed && styles.pressed]}
+      >
+        <Ionicons name="person-circle-outline" size={20} color={colors.ink700} />
+        <View style={styles.flex}>
+          <Text style={styles.label}>Your profile</Text>
+          <Text variant="small">The photos, books and spaces you show everyone</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={16} color={colors.ink500} />
+      </Pressable>
+
       <Pressable accessibilityRole="button" onPress={() => router.push('/stats')} style={({ pressed }) => [styles.list, styles.row, pressed && styles.pressed]}>
         <Ionicons name="stats-chart-outline" size={20} color={colors.ink700} />
         <View style={styles.flex}>
