@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRequest } from 'alova/client'
 import { LICENSES, licenseFor, type Photo, type PhotoLicense } from '@photos/types'
+import { DownloadSheet } from '@/components/DownloadSheet'
 import { Button, Callout, Field, Input, Select, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { confirm } from '@/lib/confirm'
@@ -25,6 +26,7 @@ export default function PhotoDetail() {
   const insets = useSafeAreaInsets()
   const spaces = useSpaces()
   const [caption, setCaption] = useState('')
+  const [downloading, setDownloading] = useState(false)
   const loaded = useRequest(() => api.photos.get(id), { force: true })
   const update = useRequest((changes: PhotoChanges) => api.photos.update(id, changes), { immediate: false }).onSuccess(({ data }) =>
     photoLists.replace(data.data),
@@ -87,6 +89,8 @@ export default function PhotoDetail() {
           </Text>
         </View>
 
+        <Button title="Download" variant="secondary" onPress={() => setDownloading(true)} />
+
         {problem.message ? <Callout>{problem.message}</Callout> : null}
 
         <View style={styles.panel}>
@@ -146,6 +150,7 @@ export default function PhotoDetail() {
 
         <Button title={remove.loading ? 'Deleting…' : 'Delete photo'} variant="danger" loading={remove.loading} onPress={destroy} style={styles.delete} />
       </View>
+      {downloading && <DownloadSheet photo={photo} owned onClose={() => setDownloading(false)} />}
     </ScrollView>
   )
 }

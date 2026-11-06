@@ -10,7 +10,3 @@ export function apiUrl(path: string) {
   return `${process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000/api'}${path}`
 }
 
-/** The API's download link for an openly licensed public photo. */
-export function photoDownloadUrl(id: string) {
-  return apiUrl(`/explore/photos/${encodeURIComponent(id)}/download`)
-}

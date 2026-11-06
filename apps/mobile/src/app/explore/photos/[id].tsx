@@ -11,7 +11,7 @@ import { COVERS } from '@/components/BookCover'
 import { Owner } from '@/components/explore/Owner'
 import { Button, Callout, Text } from '@/components/ui'
 import { api } from '@/lib/api'
-import { savePhoto } from '@/lib/download'
+import { DownloadSheet } from '@/components/DownloadSheet'
 import { FormProblem } from '@/lib/forms'
 import { colors, fonts, radius } from '@/theme'
 
@@ -94,18 +94,7 @@ function LicensePanel({ photo }: { photo: PublicPhotoDetail }) {
   const license = licenseFor(photo.license)
   const credit = creditLine(photo, license)
   const [copied, setCopied] = useState(false)
-  const [saving, setSaving] = useState<'idle' | 'busy' | 'saved' | Error>('idle')
-
-  const save = async () => {
-    setSaving('busy')
-
-    try {
-      await savePhoto(photo.id)
-      setSaving('saved')
-    } catch (problem) {
-      setSaving(problem instanceof Error ? problem : new Error("We couldn't save the photo."))
-    }
-  }
+  const [downloading, setDownloading] = useState(false)
 
   const copy = async () => {
     await Clipboard.setStringAsync(credit)
@@ -133,13 +122,8 @@ function LicensePanel({ photo }: { photo: PublicPhotoDetail }) {
       <Link href="/licenses">
         <Text variant="link">About licences</Text>
       </Link>
-      {license.downloadable && (
-        <>
-          {saving instanceof Error ? <Callout>{saving.message}</Callout> : null}
-          {saving === 'saved' ? <Callout tone="notice">Saved to your photos.</Callout> : null}
-          <Button title={saving === 'busy' ? 'Saving…' : 'Save to your photos'} loading={saving === 'busy'} onPress={save} />
-        </>
-      )}
+      {license.downloadable && <Button title="Download" onPress={() => setDownloading(true)} />}
+      {downloading && <DownloadSheet photo={photo} owned={false} onClose={() => setDownloading(false)} />}
     </View>
   )
 }
