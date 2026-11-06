@@ -60,6 +60,8 @@ export interface AdminUserDetail extends AdminUser {
   publicPhotoCount: number
   publicBookCount: number
   showCounts: boolean
+  /** The plan the account is on now, and when its paid time runs out. */
+  plan: { slug: string; name: string; endsAt: string | null }
   totals: { views: number; downloads: number }
   daily: StatsDay[]
   topPhotos: ModerationItem[]

@@ -37,6 +37,8 @@ export interface PlanBilling {
   discount: number
   price: number
   saved: number
+  /** The price in the payer's currency (`Plan.chargeCurrency`), which is what checkout charges. */
+  charge: number
 }
 
 /** A plan as the pricing page shows it, with the features it lists. */
@@ -50,6 +52,8 @@ export interface Plan {
   interval: 'day' | 'week' | 'month' | 'year'
   intervalCount: number
   billing: PlanBilling[]
+  /** The currency the visitor pays in: their payment region's, else the plan's. */
+  chargeCurrency: string
   isDefault: boolean
   features: PlanFeature[]
 }
@@ -65,4 +69,88 @@ export interface AccountPlan {
     books: number
     spaces: number
   }
+}
+
+export type PlanInterval = Plan['interval']
+
+/** A feature in the catalogue admins build plans from. */
+export interface FeatureDefinition {
+  key: FeatureKey
+  title: string
+  description: string
+  type: 'toggle' | 'limit'
+  unit?: string
+  fallback: FeatureValue
+  setting?: string
+}
+
+/** A plan's feature as admins edit it. Off features use the free value; unlisted ones stay off the pricing copy. */
+export interface AdminPlanFeature extends PlanFeature {
+  active: boolean
+  listed: boolean
+}
+
+/** A plan as admins see it, with every feature and who is on it now. */
+export interface AdminPlan extends Omit<Plan, 'features' | 'chargeCurrency' | 'billing'> {
+  billingOptions: Array<{ cycles: number; discount: number }>
+  billing: Array<Omit<PlanBilling, 'charge'>>
+  active: boolean
+  isHidden: boolean
+  sort: number
+  features: AdminPlanFeature[]
+  subscriberCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+/** What admins send to make or change a plan. Features left out keep what the plan has. */
+export interface PlanInput {
+  name?: string
+  slug?: string | null
+  description?: string | null
+  price?: number
+  currency?: string
+  interval?: PlanInterval
+  intervalCount?: number
+  billingOptions?: Array<{ cycles: number; discount: number }>
+  isDefault?: boolean
+  active?: boolean
+  isHidden?: boolean
+  sort?: number
+  features?: Partial<Record<FeatureKey, Partial<Pick<AdminPlanFeature, 'value' | 'active' | 'listed'>>>>
+}
+
+/** A group of countries that pays in its own currency, at a fixed rate or the live rate plus a markup. */
+export interface PaymentRegion {
+  id: string
+  name: string
+  countries: string[]
+  currency: string
+  exchangeRate: number | null
+  rateMarkup: number
+  active: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export type PaymentRegionInput = Partial<Pick<PaymentRegion, 'name' | 'countries' | 'currency' | 'exchangeRate' | 'rateMarkup' | 'active'>>
+
+export type PaymentStatus = 'pending' | 'complete' | 'rejected'
+
+/** One payment for time on a plan. `amount` is in the plan currency; `chargeAmount` is what was charged. */
+export interface Payment {
+  id: string
+  reference: string
+  title: string
+  planSlug: string
+  cycles: number
+  status: PaymentStatus
+  amount: number
+  currency: string
+  chargeAmount: number
+  chargeCurrency: string
+  paidAt: string | null
+  createdAt: string
+  /** Only when a payment starts: the page the payer finishes it on. */
+  checkoutUrl?: string
 }
