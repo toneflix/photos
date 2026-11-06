@@ -46,7 +46,6 @@ export default function Email() {
           )}
         </View>
         {!user.emailVerified ? <Button title={verify.busy ? 'Sending…' : 'Send the link again'} variant="secondary" loading={verify.busy} onPress={resend} /> : null}
-        {verify.message ? <Callout tone="notice">{verify.message}</Callout> : null}
         {verify.problem.message ? <Callout>{verify.problem.message}</Callout> : null}
       </Section>
 
@@ -58,7 +57,6 @@ export default function Email() {
           <Input value={password} onChangeText={setPassword} secureTextEntry autoComplete="current-password" textContentType="password" />
         </Field>
         {change.problem.summary ? <Callout>{change.problem.summary}</Callout> : null}
-        {change.message ? <Callout tone="notice">{change.message}</Callout> : null}
         <Button title={change.busy ? 'Changing…' : 'Change email'} loading={change.busy} disabled={!email.trim() || !password} onPress={save} />
       </Section>
     </SettingsPage>

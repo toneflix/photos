@@ -14,6 +14,7 @@ import { SpacePicker } from "~/components/spaces/SpacePicker";
 import { ClothPicker, CoverDesignPicker } from "~/components/book/CoverPickers";
 import { jsonPosition, PhotoPositionControls, storedPosition } from "~/components/book/PhotoPositionControls";
 import { Button, Field, Input, Textarea, buttonClass, Spinner } from "~/components/ui";
+import { copyText } from "~/lib/toast";
 import type { Route } from "./+types/book-edit";
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -766,7 +767,6 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 	const [coverPosition, setCoverPosition] = useState<PhotoPosition | null>(book.coverPosition);
 	const [spaceId, setSpaceId] = useState(book.spaceId ?? "");
 	const [branding, setBranding] = useState<BookBrandingInput>(book.customBranding ?? { kicker: null, brand: null, imprint: null });
-	const [copied, setCopied] = useState(false);
 	const saving = fetcher.state !== "idle";
 	const uniquePhotos = useMemo(() => [...new Map(bookPhotos.map((p) => [p.id, p])).values()], [bookPhotos]);
 	const coverPhoto = uniquePhotos.find((p) => p.id === coverPhotoId) ?? uniquePhotos[0] ?? null;
@@ -903,15 +903,8 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 							{visibility !== "private" && (
 								<div className="mt-3 flex gap-2">
 									<Input readOnly value={shareUrl} className="text-xs" onFocus={(e) => e.target.select()} />
-									<Button
-										variant="secondary"
-										onClick={async () => {
-											await navigator.clipboard?.writeText(shareUrl).catch(() => {});
-											setCopied(true);
-											setTimeout(() => setCopied(false), 1500);
-										}}
-									>
-										{copied ? "Copied" : "Copy"}
+									<Button variant="secondary" onClick={() => copyText(shareUrl, "Link copied.")}>
+										Copy
 									</Button>
 								</div>
 							)}

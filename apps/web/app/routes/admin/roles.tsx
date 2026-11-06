@@ -3,6 +3,7 @@ import { Link, data, redirect, useFetcher } from "react-router";
 import type { Permission, PermissionDefinition, Role } from "@photos/types";
 import { AdminHeader } from "~/components/admin/AdminHeader";
 import { Icon } from "~/components/admin/Icon";
+import { useToastMessage } from "~/lib/toast";
 import { Alert, Button, buttonClass } from "~/components/ui";
 import { formError } from "~/lib/api.server";
 import { requireAdmin } from "~/lib/admin.server";
@@ -115,6 +116,9 @@ function RoleEditor({ role, permissions }: { role: Role | null; permissions: Per
 	const locked = !!role?.system;
 	const busy = fetcher.state !== "idle";
 	const result = fetcher.state === "idle" && !changed ? fetcher.data : undefined;
+
+	useToastMessage(fetcher.data);
+
 	const change = (next: Partial<typeof form>) => {
 		setChanged(true);
 		setForm((current) => ({ ...current, ...next }));
@@ -207,11 +211,6 @@ function RoleEditor({ role, permissions }: { role: Role | null; permissions: Per
 				</fieldset>
 			</div>
 			<div className="sticky bottom-0 flex items-center justify-end gap-3 border-t-[1.5px] border-surface-200 bg-canvas/95 px-4 py-4 backdrop-blur sm:px-8">
-				{result?.message && (
-					<span role="status" className="text-sm text-emerald-700">
-						{result.message}
-					</span>
-				)}
 				{role && !locked && (
 					<Button
 						variant="danger"

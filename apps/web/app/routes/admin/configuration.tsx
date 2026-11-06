@@ -4,6 +4,7 @@ import type { SettingGroup } from "@photos/types";
 import { AdminHeader } from "~/components/admin/AdminHeader";
 import { Icon } from "~/components/admin/Icon";
 import { SettingControl } from "~/components/admin/SettingControl";
+import { useToastMessage } from "~/lib/toast";
 import { Alert, Button } from "~/components/ui";
 import { formError } from "~/lib/api.server";
 import { requireAdmin } from "~/lib/admin.server";
@@ -95,6 +96,8 @@ function GroupForm({ group: loaded }: { group: SettingGroup }) {
 	const busy = fetcher.state !== "idle";
 	const result = fetcher.state === "idle" && !changed ? fetcher.data : undefined;
 
+	useToastMessage(fetcher.data);
+
 	return (
 		<fetcher.Form
 			method="post"
@@ -131,11 +134,6 @@ function GroupForm({ group: loaded }: { group: SettingGroup }) {
 				</div>
 			</div>
 			<div className="sticky bottom-0 flex items-center justify-end gap-3 border-t-[1.5px] border-surface-200 bg-canvas/95 px-4 py-4 backdrop-blur sm:px-8">
-				{result?.message && (
-					<span role="status" className="text-sm text-emerald-700">
-						{result.message}
-					</span>
-				)}
 				<Button type="submit" variant="brand" disabled={busy} className="min-w-24">
 					{busy ? "Saving…" : "Save"}
 				</Button>

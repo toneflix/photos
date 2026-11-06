@@ -2,7 +2,8 @@ import { Form, useNavigation } from "react-router";
 import type { Session } from "@photos/types";
 import { requireSignIn } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
-import { Alert, Button, Notice } from "~/components/ui";
+import { useToastMessage } from "~/lib/toast";
+import { Alert, Button } from "~/components/ui";
 import { PageHeader, Section, resultFor, type SettingsResult } from "~/components/settings/Section";
 import type { Route } from "./+types/devices";
 
@@ -35,6 +36,8 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function DevicesPage({ loaderData, actionData }: Route.ComponentProps) {
+	useToastMessage(actionData);
+
 	const navigation = useNavigation();
 	const busy = (intent: string) => navigation.state !== "idle" && navigation.formData?.get("intent") === intent;
 
@@ -59,7 +62,6 @@ function Devices({
 
 	return (
 		<Section>
-			{result?.message && <div className="mb-4"><Notice>{result.message}</Notice></div>}
 			{result?.error && <div className="mb-4"><Alert>{result.error}</Alert></div>}
 			<ul className="divide-y divide-surface-200">
 				{sessions.map((session) => (

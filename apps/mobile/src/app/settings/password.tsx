@@ -34,7 +34,6 @@ export default function Password() {
           <Input value={again} onChangeText={setAgain} secureTextEntry autoComplete="new-password" textContentType="newPassword" />
         </Field>
         {change.problem.summary ? <Callout>{change.problem.summary}</Callout> : null}
-        {change.message ? <Callout tone="notice">{change.message}</Callout> : null}
         <Button title={change.busy ? 'Saving…' : 'Change password'} loading={change.busy} disabled={!current || password.length < 8 || !again} onPress={save} />
       </Section>
     </SettingsPage>

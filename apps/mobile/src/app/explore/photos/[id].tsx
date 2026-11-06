@@ -3,7 +3,6 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View, useWindowDi
 import { Link, router, useLocalSearchParams } from 'expo-router'
 import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons'
-import * as Clipboard from 'expo-clipboard'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRequest } from 'alova/client'
 import { creditLine, licenseFor, type PublicPhotoDetail } from '@photos/types'
@@ -14,6 +13,7 @@ import { Button, Callout, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { DownloadSheet } from '@/components/DownloadSheet'
 import { FormProblem } from '@/lib/forms'
+import { toast } from '@/lib/toast'
 import { colors, fonts, radius } from '@/theme'
 
 const formatDate = (value: string) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
@@ -95,14 +95,7 @@ export default function ExplorePhoto() {
 function LicensePanel({ photo }: { photo: PublicPhotoDetail }) {
   const license = licenseFor(photo.license)
   const credit = creditLine(photo, license)
-  const [copied, setCopied] = useState(false)
   const [downloading, setDownloading] = useState(false)
-
-  const copy = async () => {
-    await Clipboard.setStringAsync(credit)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
 
   return (
     <View style={styles.panel}>
@@ -116,8 +109,8 @@ function LicensePanel({ photo }: { photo: PublicPhotoDetail }) {
         <View style={styles.credit}>
           <Text variant="label">Credit it like this</Text>
           <Text selectable>{credit}</Text>
-          <Text variant="link" accessibilityRole="button" onPress={copy}>
-            {copied ? 'Copied' : 'Copy credit'}
+          <Text variant="link" accessibilityRole="button" onPress={() => toast.copy(credit, 'Credit copied.')}>
+            Copy credit
           </Text>
         </View>
       )}

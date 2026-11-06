@@ -10,6 +10,7 @@ import { PublicPhotoGrid } from "~/components/explore/PublicPhotoGrid";
 import { buttonClass } from "~/components/ui";
 import { PreviewImage } from "~/lib/preview-image";
 import { creditLine, guardImage, licenseFor } from "~/lib/licenses";
+import { copyText } from "~/lib/toast";
 import type { Route } from "./+types/photo";
 
 export function meta({ loaderData, matches }: Route.MetaArgs) {
@@ -138,13 +139,6 @@ export default function ExplorePhoto({ loaderData }: Route.ComponentProps) {
 function LicensePanel({ photo }: { photo: PublicPhotoDetail }) {
 	const license = licenseFor(photo.license);
 	const credit = creditLine(photo, license);
-	const [copied, setCopied] = useState(false);
-
-	const copy = async () => {
-		await navigator.clipboard?.writeText(credit).catch(() => undefined);
-		setCopied(true);
-		setTimeout(() => setCopied(false), 2000);
-	};
 
 	return (
 		<div className="panel rounded-xl p-4">
@@ -158,8 +152,8 @@ function LicensePanel({ photo }: { photo: PublicPhotoDetail }) {
 				<div className="mt-3 rounded-lg bg-surface-100 p-3">
 					<p className="text-xs font-semibold text-ink-700">Credit it like this</p>
 					<p className="mt-1 text-sm text-ink-900">{credit}</p>
-					<button type="button" onClick={copy} className="mt-2 text-sm font-medium text-brand-700 hover:underline">
-						{copied ? "Copied" : "Copy credit"}
+					<button type="button" onClick={() => copyText(credit, "Credit copied.")} className="mt-2 text-sm font-medium text-brand-700 hover:underline">
+						Copy credit
 					</button>
 				</div>
 			)}

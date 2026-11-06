@@ -1,7 +1,8 @@
 import { Form, useNavigation } from "react-router";
 import { requireSignIn } from "~/lib/session.server";
 import { settingsAction } from "~/lib/settings.server";
-import { Button, Field, Input, Notice } from "~/components/ui";
+import { useToastMessage } from "~/lib/toast";
+import { Button, Field, Input } from "~/components/ui";
 import { PageHeader, Section } from "~/components/settings/Section";
 import type { Route } from "./+types/password";
 
@@ -29,6 +30,8 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function Password({ actionData }: Route.ComponentProps) {
+	useToastMessage(actionData);
+
 	const busy = useNavigation().state !== "idle";
 
 	return (
@@ -48,7 +51,6 @@ export default function Password({ actionData }: Route.ComponentProps) {
 					<Button type="submit" disabled={busy}>
 						{busy ? "Saving…" : "Change password"}
 					</Button>
-					{actionData?.message && <Notice>{actionData.message}</Notice>}
 				</Form>
 			</Section>
 		</>

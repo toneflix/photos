@@ -1,19 +1,20 @@
 import { useState } from 'react'
 import { FormProblem } from './forms'
+import { toast } from './toast'
 
-/** Runs one change at a time, keeping what it said when done or what went wrong. */
+/** Runs one change at a time. What it says when done shows as a toast; what went wrong stays for the form. */
 export function useAction() {
   const [busy, setBusy] = useState(false)
   const [problem, setProblem] = useState(() => FormProblem.from(null))
-  const [message, setMessage] = useState<string | null>(null)
 
   const run = async (task: () => Promise<string | null | void>) => {
     setBusy(true)
     setProblem(FormProblem.from(null))
-    setMessage(null)
 
     try {
-      setMessage((await task()) ?? null)
+      const message = await task()
+
+      if (message) toast.show(message)
 
       return true
     } catch (error) {
@@ -25,5 +26,5 @@ export function useAction() {
     }
   }
 
-  return { busy, problem, message, run }
+  return { busy, problem, run }
 }
