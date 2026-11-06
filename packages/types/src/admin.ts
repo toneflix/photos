@@ -9,6 +9,9 @@ export interface AppLimits {
   registrationOpen: boolean
 }
 
+/** Used when the API can't be reached; the API still enforces its own limits. */
+export const DEFAULT_LIMITS: AppLimits = { maxPhotoMb: 25, maxAvatarMb: 10, maxBookPages: 500, registrationOpen: true }
+
 /** An account as admins see it. */
 export interface AdminUser {
   id: ID

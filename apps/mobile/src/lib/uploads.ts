@@ -1,10 +1,9 @@
 import { useSyncExternalStore } from 'react'
 import type { ImagePickerAsset } from 'expo-image-picker'
 import { api } from './api'
+import { appLimits, megabytes } from './limits'
 import { photoLists } from './lists'
 import { uploadFile } from './upload-file'
-
-export const MAX_PHOTO_BYTES = 25 * 1024 * 1024
 
 export interface UploadItem {
   key: string
@@ -41,6 +40,7 @@ export class UploadQueue {
     if (!assets.length || this.busy) return
 
     const stamp = Date.now()
+    const { maxPhotoMb } = await appLimits.refresh()
 
     this.publish({ items: assets.map((asset, i) => ({ key: `${stamp}-${i}`, uri: asset.uri, status: 'waiting' })), done: 0, failed: [] })
 
@@ -49,8 +49,8 @@ export class UploadQueue {
 
       this.setStatus(i, 'uploading')
 
-      if (asset.fileSize && asset.fileSize > MAX_PHOTO_BYTES) {
-        this.fail(i, `${name} is larger than 25 MB`)
+      if (asset.fileSize && asset.fileSize > megabytes(maxPhotoMb)) {
+        this.fail(i, `${name} is larger than ${maxPhotoMb} MB`)
         continue
       }
 
