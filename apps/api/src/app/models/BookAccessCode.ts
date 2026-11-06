@@ -79,14 +79,13 @@ export class BookAccessCode extends Model {
 
     while (await BookAccessCode.query().where({ code }).first()) code = BookAccessCode.generate()
 
-    return BookAccessCode.query().create({
-      bookId: book.id,
+    return book.codes().create({
       code,
       label: input.label?.trim() || null,
       permissions: BookAccessCode.permissionList(input.permissions),
       uses: 0,
       expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
-    } as never)
+    })
   }
 
   /** The unexpired code matching what someone typed, optionally only for one book. */

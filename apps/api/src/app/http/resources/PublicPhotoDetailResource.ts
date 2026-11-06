@@ -19,7 +19,7 @@ export class PublicPhotoDetailResource extends PublicPhotoResource {
 
     return {
       ...(await super.data()),
-      stats: ContentStats.shown(photo, photo.getAttribute('user' as never) as User | null, this.viewer),
+      stats: ContentStats.shown(photo, photo.getAttribute('user'), this.viewer),
       books: books.map(({ book, page }) => ({ id: book.id, title: book.title, theme: book.theme, page })),
     }
   }

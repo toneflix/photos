@@ -17,7 +17,7 @@ export class PublicSpaceResource extends SpaceResource {
 
   async data() {
     const space = this.resource as Space
-    const owner = space.getAttribute('user' as never) as User | null
+    const owner = space.getAttribute('user')
 
     return {
       ...(await super.data()),

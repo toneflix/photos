@@ -11,7 +11,6 @@ import { UserTwoFactor } from './UserTwoFactor'
 import { UserFactory } from 'src/database/factories/UserFactory'
 import { AccountMail } from '@app/notifications/AccountMail'
 import { ImageFile } from '@app/support/ImageFile'
-import { BookPage } from './BookPage'
 import { randomUUID } from 'node:crypto'
 import type { PermissionName } from '@app/policies/Permission'
 import { Role } from './Role'
@@ -169,7 +168,7 @@ export class User extends BaseUser {
 
   /** Revoke every access token but `keepToken`. Returns how many were revoked. */
   async signOutOtherSessions(keepToken?: string | null): Promise<number> {
-    const sessions = (await PersonalAccessToken.query().where({ userId: this.id }).get()).all().filter((session) => session.token !== keepToken)
+    const sessions = (await this.personalAccessTokens().getResults()).all().filter((session) => session.token !== keepToken)
 
     for (const session of sessions) await session.delete()
 
@@ -208,15 +207,15 @@ export class User extends BaseUser {
 
   /** Delete the account with every book, photo and file it owns. */
   async remove(): Promise<void> {
-    const photos = (await Photo.query().where({ userId: this.id }).get()).all()
-    const books = (await Book.query().where({ userId: this.id }).get()).all()
+    const photos = (await this.photos().getResults()).all()
+    const books = (await this.books().getResults()).all()
 
     await User.transaction(async () => {
-      for (const book of books) await BookPage.query().where({ bookId: book.id }).delete()
+      for (const book of books) await (await book.pages().getQuery()).delete()
 
-      await Book.query().where({ userId: this.id }).delete()
-      await Photo.query().where({ userId: this.id }).delete()
-      await PersonalAccessToken.query().where({ userId: this.id }).delete()
+      await (await this.books().getQuery()).delete()
+      await (await this.photos().getQuery()).delete()
+      await (await this.personalAccessTokens().getQuery()).delete()
       await PasswordReset.query().where({ email: this.email }).delete()
       await this.delete()
     })

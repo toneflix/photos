@@ -30,7 +30,7 @@ export default class BookController extends BaseController {
       space: ['nullable', UUID],
     })
 
-    const books = await Book.library(this.user, filters).paginate(perPage(this.query, { perPage: 30, maxPerPage: 100 }))
+    const books = await this.user.books().scope('library', filters).paginate(perPage(this.query, { perPage: 30, maxPerPage: 100 }))
 
     return new BookCollection(books).additional({ status: 'success', message: 'OK', code: 200 })
   }

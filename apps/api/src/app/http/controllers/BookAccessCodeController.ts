@@ -15,8 +15,8 @@ const PERMISSION = `in:${BookAccessCode.PERMISSIONS.join(',')}`
  */
 export default class BookAccessCodeController extends BaseController {
   async index() {
-    const book = await this.user.books().findOrFail(String(this.params.book))
-    const codes = await BookAccessCode.query().where({ bookId: book.id }).latest('createdAt').get()
+    const book = await this.user.books().with({ codes: (query) => query.latest('createdAt') }).findOrFail(String(this.params.book))
+    const codes = book.getAttribute('codes')
 
     return new BookAccessCodeCollection(codes.all()).additional({ status: 'success', message: 'OK', code: 200 })
   }
@@ -106,6 +106,6 @@ export default class BookAccessCodeController extends BaseController {
   private async ownedCode(): Promise<BookAccessCode> {
     const book = await this.user.books().findOrFail(String(this.params.book))
 
-    return BookAccessCode.query().where({ bookId: book.id }).findOrFail(String(this.params.code))
+    return book.codes().findOrFail(String(this.params.code))
   }
 }

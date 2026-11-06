@@ -81,6 +81,9 @@ export class Photo extends Model {
 
   static readonly VISIBILITIES = ['private', 'public']
   static readonly ORIENTATIONS = ['landscape', 'portrait', 'square']
+
+  /** How width compares to height for each orientation. */
+  static readonly SHAPES: Record<string, '>' | '<' | '='> = { landscape: '>', portrait: '<', square: '=' }
   static readonly LICENSES = ['all-rights-reserved', 'cc-by', 'cc-by-nc', 'cc0']
 
   /** Preset download sizes, by their longest side in pixels. */
@@ -220,9 +223,10 @@ export class Photo extends Model {
    * Public photos for Explore, or for one space's page when `filters.space` is its id.
    * Words match captions and the names of owners who show their name.
    */
-  static published(filters: PhotoFilters = {}) {
-    const query = Photo.query().where({ visibility: 'public' })
+  scopePublished(query: QueryBuilder<Photo>, filters: PhotoFilters = {}): QueryBuilder<Photo> {
     const text = filters.q?.trim()
+
+    query.scope('public')
 
     if (text) {
       query.where((match: QueryBuilder<Photo>) =>
@@ -233,30 +237,38 @@ export class Photo extends Model {
     }
 
     if (filters.space) query.where({ spaceId: filters.space })
-    else Space.listedOnly(query)
+    else query.scope('listed')
 
-    return Photo.narrow(query, filters, 'publishedAt')
+    return query.scope('narrowed', filters, 'publishedAt')
   }
 
-  /** One person's photos. Words match captions. */
-  static library(owner: User, filters: PhotoFilters = {}) {
-    const query = Photo.query().where({ userId: owner.id })
+  /** Library photos, used on an owner's `photos()`. Words match captions. */
+  scopeLibrary(query: QueryBuilder<Photo>, filters: PhotoFilters = {}): QueryBuilder<Photo> {
     const text = filters.q?.trim()
 
     if (text) query.where(matches('caption', text))
     if (filters.visibility) query.where({ visibility: filters.visibility as PhotoVisibility })
     if (filters.space) query.where({ spaceId: filters.space })
 
-    return Photo.narrow(query, filters, 'createdAt')
+    return query.scope('narrowed', filters, 'createdAt')
   }
 
   /** Filter by shape and order newest or oldest first. Photos without a known size match no shape. */
-  private static narrow(query: QueryBuilder<Photo>, filters: PhotoFilters, by: 'publishedAt' | 'createdAt') {
-    if (filters.orientation === 'landscape') query.whereColumn('width', '>', 'height')
-    if (filters.orientation === 'portrait') query.whereColumn('width', '<', 'height')
-    if (filters.orientation === 'square') query.whereColumn('width', '=', 'height')
+  scopeNarrowed(query: QueryBuilder<Photo>, filters: PhotoFilters, by: 'publishedAt' | 'createdAt'): QueryBuilder<Photo> {
+    const shape = Photo.SHAPES[filters.orientation ?? '']
+
+    if (shape) query.whereColumn('width', shape, 'height')
 
     return filters.sort === 'oldest' ? query.oldest(by) : query.latest(by)
+  }
+
+  scopePublic(query: QueryBuilder<Photo>): QueryBuilder<Photo> {
+    return query.where({ visibility: 'public' })
+  }
+
+  /** Leave out photos that sit in private spaces. */
+  scopeListed(query: QueryBuilder<Photo>): QueryBuilder<Photo> {
+    return query.whereDoesntHave('space', (space: QueryBuilder<Space>) => space.where({ visibility: 'private' }))
   }
 
   /** Show or hide the photo on Explore. Publishing again moves it back to the top. */
@@ -281,7 +293,9 @@ export class Photo extends Model {
 
     if (!firstPage.size) return []
 
-    const books = await Space.listedOnly(Book.query().whereIn('id', [...firstPage.keys()] as never))
+    const books = await Book.query()
+      .whereIn('id', [...firstPage.keys()] as never)
+      .scope('listed')
       .latest('publishedAt')
       .get()
 
@@ -358,7 +372,7 @@ export class Photo extends Model {
 
   /** Delete the photo and its file, taking it out of every book first. */
   async remove(): Promise<void> {
-    await Book.query().where({ userId: this.userId, coverPhotoId: this.id }).update({ coverPhotoId: null })
+    await (await this.coverOf().where({ userId: this.userId }).getQuery()).updateFrom({ coverPhotoId: null })
 
     const pages = await BookPage.query()
       .whereHas('book', (query) => query.where({ userId: this.userId }))
@@ -390,5 +404,10 @@ export class Photo extends Model {
 
   space() {
     return this.belongsTo(Space, 'spaceId')
+  }
+
+  /** Books that use this photo as their cover. */
+  coverOf() {
+    return this.hasMany(Book, 'coverPhotoId')
   }
 }

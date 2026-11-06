@@ -97,9 +97,10 @@ export class Space extends Model {
   }
 
   /** Public spaces for Explore. Words match names, descriptions and shown owner names. */
-  static published(filters: SpaceFilters = {}) {
-    const query = Space.query().where({ visibility: 'public' })
+  scopePublished(query: QueryBuilder<Space>, filters: SpaceFilters = {}): QueryBuilder<Space> {
     const text = filters.q?.trim()
+
+    query.where({ visibility: 'public' })
 
     if (text) {
       query.where((match: QueryBuilder<Space>) =>
@@ -122,11 +123,6 @@ export class Space extends Model {
     return space!
   }
 
-  /** Keep photos and books that sit in private spaces off public lists. */
-  static listedOnly<T extends Photo | Book>(query: QueryBuilder<T>): QueryBuilder<T> {
-    return query.whereDoesntHave('space', (space: QueryBuilder<Space>) => space.where({ visibility: 'private' }))
-  }
-
   /** Owners always see their spaces; everyone sees public ones. */
   isVisibleTo(viewer: User | null): boolean {
     return this.visibility === 'public' || this.isOwnedBy(viewer)
@@ -146,15 +142,11 @@ export class Space extends Model {
 
   /** Photos in the space; only the public ones unless `everything`. */
   contentPhotos(everything = false) {
-    const query = Photo.query().where({ spaceId: this.id })
-
-    return everything ? query : query.where({ visibility: 'public' })
+    return everything ? this.photos() : this.photos().scope('public')
   }
 
   /** Books in the space; only the public ones with pages unless `everything`. */
   contentBooks(everything = false) {
-    const query = Book.query().where({ spaceId: this.id })
-
-    return everything ? query : query.where({ visibility: 'public' }).has('pages')
+    return everything ? this.books() : this.books().scope('public')
   }
 }

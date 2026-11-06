@@ -1,6 +1,5 @@
 import { BaseController } from './BaseController'
 import { GenericResource } from 'resora'
-import { PersonalAccessToken } from '@app/models/PersonalAccessToken'
 import { SessionCollection } from '@app/http/resources/SessionCollection'
 import { SessionResource } from '@app/http/resources/SessionResource'
 
@@ -9,7 +8,7 @@ import { SessionResource } from '@app/http/resources/SessionResource'
  */
 export default class SessionController extends BaseController {
   async index() {
-    const sessions = await PersonalAccessToken.query().where({ userId: this.user.id }).latest('lastUsedAt').get()
+    const sessions = await this.user.personalAccessTokens().latest('lastUsedAt').getResults()
 
     return new SessionCollection(sessions.all())
       .current(this.currentToken)
@@ -17,7 +16,7 @@ export default class SessionController extends BaseController {
   }
 
   async destroy() {
-    const session = await PersonalAccessToken.query().where({ userId: this.user.id }).findOrFail(String(this.params.session))
+    const session = await this.user.personalAccessTokens().findOrFail(String(this.params.session))
 
     await session.delete()
 

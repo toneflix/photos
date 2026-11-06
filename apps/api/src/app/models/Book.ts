@@ -100,13 +100,18 @@ export class Book extends Model {
     return this.belongsTo(Photo, 'coverPhotoId')
   }
 
+  codes() {
+    return this.hasMany(BookAccessCode, 'bookId')
+  }
+
   /**
    * Public books with at least one page, for Explore, or for one space's page when `filters.space` is its id.
    * Words match titles, descriptions and shown owner names.
    */
-  static published(filters: BookFilters = {}) {
-    const query = Book.query().where({ visibility: 'public' }).has('pages')
+  scopePublished(query: QueryBuilder<Book>, filters: BookFilters = {}): QueryBuilder<Book> {
     const text = filters.q?.trim()
+
+    query.scope('public')
 
     if (text) {
       query.where((match: QueryBuilder<Book>) =>
@@ -118,28 +123,37 @@ export class Book extends Model {
     }
 
     if (filters.space) query.where({ spaceId: filters.space })
-    else Space.listedOnly(query)
+    else query.scope('listed')
 
-    return Book.narrow(query, filters, 'publishedAt')
+    return query.scope('narrowed', filters, 'publishedAt')
   }
 
-  /** One person's books. Words match titles and descriptions. */
-  static library(owner: User, filters: BookFilters = {}) {
-    const query = Book.query().where({ userId: owner.id })
+  /** Library books, used on an owner's `books()`. Words match titles and descriptions. */
+  scopeLibrary(query: QueryBuilder<Book>, filters: BookFilters = {}): QueryBuilder<Book> {
     const text = filters.q?.trim()
 
     if (text) query.where((match: QueryBuilder<Book>) => match.where(matches('title', text)).orWhere(matches('description', text)))
     if (filters.visibility) query.where({ visibility: filters.visibility as BookVisibility })
     if (filters.space) query.where({ spaceId: filters.space })
 
-    return Book.narrow(query, filters, 'updatedAt')
+    return query.scope('narrowed', filters, 'updatedAt')
   }
 
   /** Filter by cover theme and order newest or oldest first. */
-  private static narrow(query: QueryBuilder<Book>, filters: BookFilters, by: 'publishedAt' | 'updatedAt') {
+  scopeNarrowed(query: QueryBuilder<Book>, filters: BookFilters, by: 'publishedAt' | 'updatedAt'): QueryBuilder<Book> {
     if (filters.theme) query.where({ theme: filters.theme })
 
     return filters.sort === 'oldest' ? query.oldest(by) : query.latest(by)
+  }
+
+  /** Public books with at least one page. */
+  scopePublic(query: QueryBuilder<Book>): QueryBuilder<Book> {
+    return query.where({ visibility: 'public' }).has('pages')
+  }
+
+  /** Leave out books that sit in private spaces. */
+  scopeListed(query: QueryBuilder<Book>): QueryBuilder<Book> {
+    return query.whereDoesntHave('space', (space: QueryBuilder<Space>) => space.where({ visibility: 'private' }))
   }
 
   /** Change who can open the book. Making it public puts it at the top of Explore. */
@@ -156,7 +170,7 @@ export class Book extends Model {
 
   /** Pages in reading order. */
   async orderedPages(): Promise<BookPage[]> {
-    return (await BookPage.query().where({ bookId: this.id }).oldest('position').get()).all()
+    return (await this.pages().oldest('position').getResults()).all()
   }
 
   /** Every photo in the book in reading order, then the cover photo if no page shows it. */
@@ -172,14 +186,14 @@ export class Book extends Model {
   /** Delete the book and its pages. Photos stay in the library. */
   async remove(): Promise<void> {
     await Book.transaction(async () => {
-      await BookPage.query().where({ bookId: this.id }).delete()
+      await (await this.pages().getQuery()).delete()
       await this.delete()
     })
   }
 
   /** The chosen cover, or else the first photo in the book. */
   async coverPhoto(): Promise<Photo | null> {
-    if (this.coverPhotoId) return Photo.query().find(this.coverPhotoId)
+    if (this.coverPhotoId) return this.cover().first()
 
     const first = await this.pages().oldest('position').first()
     const photoId = first?.photoIds?.[0]
@@ -189,14 +203,13 @@ export class Book extends Model {
 
   /** Put a photo on a new page at the end of the book. */
   async appendPhoto(photo: Photo, caption?: string | null): Promise<BookPage> {
-    const last = await BookPage.query().where({ bookId: this.id }).latest('position').first()
-    const page = await BookPage.query().create({
-      bookId: this.id,
+    const last = await this.pages().latest('position').first()
+    const page = await this.pages().create({
       position: (last?.position ?? 0) + 1,
       layout: 'single',
       caption: caption?.trim() || null,
       photoIds: [photo.id],
-    } as never)
+    })
 
     await this.update({ updatedAt: new Date() })
 
@@ -217,7 +230,7 @@ export class Book extends Model {
     await Book.transaction(async () => {
       for (const page of pages) await page.update(BookPage.place(page.placements().flatMap((placed) => (copies.has(placed.id) ? [{ ...placed, id: copies.get(placed.id)! }] : []))))
 
-      await BookAccessCode.query().where({ bookId: this.id }).delete()
+      await (await this.codes().getQuery()).delete()
       await this.update({ userId: owner.id, spaceId: null, coverPhotoId: this.coverPhotoId ? (copies.get(this.coverPhotoId) ?? null) : null })
     })
   }
@@ -252,7 +265,6 @@ export class Book extends Model {
         .slice(0, PAGE_LAYOUTS[layout].slots)
 
       return {
-        bookId: this.id,
         position: index + 1,
         layout,
         frame: page.frame && Book.FRAMES.includes(page.frame) ? page.frame : null,
@@ -262,9 +274,9 @@ export class Book extends Model {
     })
 
     await Book.transaction(async () => {
-      await BookPage.query().where({ bookId: this.id }).delete()
+      await (await this.pages().getQuery()).delete()
 
-      for (const page of pages) await BookPage.query().create(page as never)
+      for (const page of pages) await this.pages().create(page)
 
       await this.update({ updatedAt: new Date() })
     })

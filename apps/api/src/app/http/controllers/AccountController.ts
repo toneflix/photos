@@ -99,7 +99,7 @@ export default class AccountController extends BaseController {
 
   /** Make every book private at once. */
   async lockBooks() {
-    const books = (await Book.query().where({ userId: this.user.id }).whereIn('visibility', ['shared', 'public'] as never).get()).all()
+    const books = (await this.user.books().whereIn('visibility', ['shared', 'public']).getResults()).all()
 
     for (const book of books) await book.update({ visibility: 'private', publishedAt: null })
 

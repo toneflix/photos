@@ -1,7 +1,5 @@
 import { AdminUserResource } from './AdminUserResource'
-import { Book } from '@app/models/Book'
 import type { Moderated } from '@app/services/Moderation'
-import { Photo } from '@app/models/Photo'
 import { ContentStats } from '@app/services/ContentStats'
 import { ModerationItemResource } from './ModerationItemResource'
 import type { User } from '@app/models/User'
@@ -19,13 +17,13 @@ export class AdminUserDetailResource extends AdminUserResource {
   async data() {
     const user = this.resource as User
     const top = async (items: Moderated[]) => Promise.all(items.map((item) => new ModerationItemResource(item).data()))
-    const photos = await Photo.query().where({ userId: user.id, visibility: 'public' }).with('user').latest('viewCount').take(5).get()
-    const books = await Book.query().where({ userId: user.id, visibility: 'public' }).with('user').latest('viewCount').take(5).get()
+    const photos = await user.photos().scope('public').with('user').latest('viewCount').take(5).getResults()
+    const books = await user.books().where({ visibility: 'public' }).with('user').latest('viewCount').take(5).getResults()
 
     return {
       ...(await super.data()),
       spaceCount: await user.spaces().count(),
-      publicPhotoCount: await user.photos().where({ visibility: 'public' }).count(),
+      publicPhotoCount: await user.photos().scope('public').count(),
       publicBookCount: await user.books().where({ visibility: 'public' }).count(),
       showCounts: user.showCounts,
       totals: await ContentStats.totals({ ownerId: user.id }),
