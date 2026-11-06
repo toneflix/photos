@@ -51,6 +51,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkOn: { backgroundColor: colors.brand700, borderColor: colors.brand700 },
+  checkOn: { backgroundColor: colors.brand600, borderColor: colors.brand600 },
   checkText: { color: colors.white, fontSize: 12, fontFamily: fonts.semibold },
 })
