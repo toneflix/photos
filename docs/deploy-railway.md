@@ -21,23 +21,23 @@ Each deploy builds the image, runs `ark migrate --no-interaction` as the pre-dep
    railway config apply
    ```
 
-5. **Secrets**: the file keeps these variables with `preserve()`, so set their values on the `api` service in the dashboard (or `railway variables --set`) and they survive later applies:
+5. **Secrets**: the file keeps these variables with `preserve()` and gives them no value, so set them on the `api` service in the dashboard (or `railway variables --set`) before the first deploy. Later applies keep them:
 
    | Variable | Value |
    | --- | --- |
    | `APP_KEY` | A new key: `pnpm --filter @photos/api exec ark key:generate` locally, then copy the value |
-   | `MAIL_*` | A real SMTP server (`MAIL_TRANSPORT=smtp`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_SECURE`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`) |
+   | `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS` | The SMTP server |
    | `CORS_ALLOWED_ORIGINS` | Origins allowed to call the API from a browser, if any |
    | `PHOTOS_DISK`, `AWS_*` | Leave empty to keep photos on the volume. Set `PHOTOS_DISK=s3` and the bucket settings to use S3, Cloudflare R2 or a Railway Bucket instead. |
 
-   The rest (`DATABASE_URL`, `APP_URL`, `FRONTEND_URL`, `PORT`, `TRUST_PROXY`, cache and queue) is in the file. `TRUST_PROXY=2` counts Railway's proxy and the web app's Worker, which forwards the visitor's IP. After the first deploy, sign in through the web app and check that Settings → Devices shows your own IP, not a Cloudflare one.
+   `DATABASE_URL` comes from the database. The rest (`APP_NAME`, `APP_URL`, `FRONTEND_URL`, `PORT`, `TRUST_PROXY`, `CACHE_STORE`, `QUEUE_CONNECTION`, `MAIL_TRANSPORT`, `MAIL_PORT`, `MAIL_SECURE`) have defaults in the file that apply only while the service has no value, so a value set on Railway wins. `PORT` must stay `8080` unless the domain's port in the file changes with it. `TRUST_PROXY=2` counts Railway's proxy and the web app's Worker, which forwards the visitor's IP. After the first deploy, sign in through the web app and check that Settings → Devices shows your own IP, not a Cloudflare one.
 
 6. **Domain**: the file adds `api.photos.toneflix.net`. Add the CNAME record Railway shows for it when you move the API over.
 7. **Web and mobile**: set the GitHub variable `API_URL` to `https://api.photos.toneflix.net/api` so the web and Android builds call it.
 
 ## Changing the setup
 
-Edit `.railway/railway.ts`, then `railway config plan` and `railway config apply`. Anything removed from the file (a variable, the volume, the database) is deleted by the next apply, which asks before destructive changes. Settings changed only in the dashboard are reverted by the next apply unless the file uses `preserve()` for them.
+Edit `.railway/railway.ts`, then `railway config plan` and `railway config apply`. Anything removed from the file (a variable, the volume, the database) is deleted by the next apply, which asks before destructive changes. Variables the file gives a default or `preserve()` keep the value set on Railway. Other settings changed only in the dashboard are reverted by the next apply.
 
 To run more than one replica, move photos to a bucket (a volume pins the service to one replica), add a `redis()` database and set `CACHE_STORE=redis` with its `REDIS_*` settings, so rate limits and cache are shared.
 

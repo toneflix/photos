@@ -1,5 +1,8 @@
 import { defineRailway, github, postgres, preserve, project, service, volume } from 'railway/iac'
 
+/** Sets a variable only when Railway does not already hold a value for it. */
+const fallback = (value: string) => ({ value, preserveExisting: true })
+
 export default defineRailway(() => {
   const db = postgres('postgres')
   const storage = volume('api-storage')
@@ -31,20 +34,20 @@ export default defineRailway(() => {
     },
     domains: [{ domain: 'api.photos.toneflix.net', port: 8080 }],
     env: {
-      PORT: '8080',
-      APP_NAME: 'Toneflix Photos',
-      APP_URL: 'https://api.photos.toneflix.net',
-      FRONTEND_URL: 'https://photos.toneflix.net',
+      PORT: fallback('8080'),
+      APP_NAME: fallback('Toneflix Photos'),
+      APP_URL: fallback('https://api.photos.toneflix.net'),
+      FRONTEND_URL: fallback('https://photos.toneflix.net'),
       DATABASE_URL: db.env.DATABASE_URL,
-      TRUST_PROXY: '2',
-      CACHE_STORE: 'memory',
-      QUEUE_CONNECTION: 'sync',
+      TRUST_PROXY: fallback('2'),
+      CACHE_STORE: fallback('memory'),
+      QUEUE_CONNECTION: fallback('sync'),
       APP_KEY: preserve(),
       CORS_ALLOWED_ORIGINS: preserve(),
-      MAIL_TRANSPORT: preserve(),
+      MAIL_TRANSPORT: fallback('smtp'),
       MAIL_HOST: preserve(),
-      MAIL_PORT: preserve(),
-      MAIL_SECURE: preserve(),
+      MAIL_PORT: fallback('587'),
+      MAIL_SECURE: fallback('false'),
       MAIL_USERNAME: preserve(),
       MAIL_PASSWORD: preserve(),
       MAIL_FROM_ADDRESS: preserve(),
