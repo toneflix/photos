@@ -9,6 +9,7 @@ import { useRequest } from 'alova/client'
 import { creditLine, licenseFor, type PublicPhotoDetail } from '@photos/types'
 import { COVERS } from '@/components/BookCover'
 import { Owner } from '@/components/explore/Owner'
+import { ContentCounts } from '@/components/ContentCounts'
 import { Button, Callout, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { savePhoto } from '@/lib/download'
@@ -65,6 +66,7 @@ export default function ExplorePhoto() {
         <Text variant="muted">
           {photo.takenAt ? `Taken ${formatDate(photo.takenAt)} · ` : ''}Shared {formatDate(photo.publishedAt ?? photo.createdAt)}
         </Text>
+        <ContentCounts stats={photo.stats} />
 
         <LicensePanel photo={photo} />
 

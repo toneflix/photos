@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRequest } from 'alova/client'
 import type { PublicSpace } from '@photos/types'
 import { PublicBooks, PublicPhotos } from '@/components/explore/ExploreLists'
+import { ContentCounts } from '@/components/ContentCounts'
 import { Owner } from '@/components/explore/Owner'
 import { Segmented } from '@/components/Segmented'
 import { PrivateBadge, spaceCounts } from '@/components/spaces/SpaceCard'
@@ -54,6 +55,7 @@ export default function SpacePage() {
         <Owner owner={space.owner} />
         <Text variant="muted">{spaceCounts(space)}</Text>
       </View>
+      <ContentCounts stats={space.stats} />
       <View style={styles.actions}>
         {space.visibility === 'public' && (
           <Button title="Share" variant="secondary" onPress={() => Share.share({ message: webUrl(`/spaces/${space.slug}`) }).catch(() => undefined)} />
