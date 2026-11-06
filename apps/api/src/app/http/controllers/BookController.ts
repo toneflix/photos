@@ -9,6 +9,7 @@ import { Photo } from '@app/models/Photo'
 import { SORTS } from '@app/support/search'
 import { UUID, photoFile } from '@app/support/rules'
 import { Settings } from '@app/support/Settings'
+import { ContentStats } from '@app/services/ContentStats'
 
 const VISIBILITY = `in:${Book.VISIBILITIES.join(',')}`
 const THEME = `in:${Book.THEMES.join(',')}`
@@ -73,6 +74,8 @@ export default class BookController extends BaseController {
   /** Open a book with every page. Works signed out for shared and public books, and for private ones with an access code. */
   async show() {
     const access = (await this.access()).authorize('view')
+
+    await new ContentStats(access.book).view(this.visitor(access.viewer), access.viewer)
 
     return new BookDetailResource(access.book).for(access).additional({ status: 'success', message: 'OK', code: 200 })
   }
@@ -177,6 +180,8 @@ export default class BookController extends BaseController {
 
     abortIf(!archive.total, 'This book has no photos yet.', 404)
     abortIf(archive.isEmpty, 'The photographer keeps all rights to the photos in this book, so they cannot be downloaded.', 403)
+
+    await new ContentStats(access.book).download(this.visitor(access.viewer), access.viewer)
 
     return archive.response()
   }

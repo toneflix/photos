@@ -1,3 +1,4 @@
+import { ContentStats } from '@app/services/ContentStats'
 import { OwnerResource } from './OwnerResource'
 import type { Space } from '@app/models/Space'
 import { SpaceResource } from './SpaceResource'
@@ -16,10 +17,12 @@ export class PublicSpaceResource extends SpaceResource {
 
   async data() {
     const space = this.resource as Space
+    const owner = space.getAttribute('user' as never) as User | null
 
     return {
       ...(await super.data()),
-      owner: await new OwnerResource((space.getAttribute('user' as never) as User | null) ?? {}).data(),
+      owner: await new OwnerResource(owner ?? {}).data(),
+      stats: ContentStats.shown(space, owner, this.viewer),
       canEdit: space.isOwnedBy(this.viewer),
     }
   }

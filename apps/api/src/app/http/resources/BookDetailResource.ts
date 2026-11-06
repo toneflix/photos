@@ -1,6 +1,7 @@
 import type { Book } from '@app/models/Book'
 import type { BookAccess } from '@app/policies/BookAccess'
 import { BookResource } from './BookResource'
+import { ContentStats } from '@app/services/ContentStats'
 import { Photo } from '@app/models/Photo'
 import { PhotoResource } from './PhotoResource'
 
@@ -40,6 +41,7 @@ export class BookDetailResource extends BookResource {
       canEdit: !!this.access?.can('edit'),
       isOwner: !!this.access?.isOwner,
       permissions: this.access?.permissions() ?? ['view'],
+      stats: ContentStats.shown(book, owner, this.access?.viewer ?? null),
       owner: { id: book.userId, name: owner && (owner.showOwnerName || this.access?.isOwner) ? owner.name : '' },
     }
   }
