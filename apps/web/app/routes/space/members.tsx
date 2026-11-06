@@ -9,7 +9,7 @@ import type { Route } from "./+types/members";
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
 	const { api } = await requireSignIn(request, context);
-	const { data: space } = await api.explore.space(params.slug).catch(() => {
+	const { data: space } = await api.explore.space(params.space).catch(() => {
 		throw data("Space not found", { status: 404 });
 	});
 
@@ -22,7 +22,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 
 export async function action({ request, params, context }: Route.ActionArgs) {
 	const { api } = await requireSignIn(request, context);
-	const { data: space } = await api.explore.space(params.slug);
+	const { data: space } = await api.explore.space(params.space);
 	const form = await request.formData();
 	const intent = form.get("intent");
 	const member = String(form.get("memberId") ?? "");

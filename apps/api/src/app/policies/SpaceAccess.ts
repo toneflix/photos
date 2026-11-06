@@ -21,17 +21,16 @@ export class SpaceAccess {
     return new SpaceAccess(space, viewer, membership)
   }
 
-  /** The space with `id` and the viewer's access to it. */
-  static async find(id: string, viewer: User | null): Promise<SpaceAccess> {
-    const space = await Space.query().findOrFail(id)
+  /** The space `handle` names, by id or web address, and the viewer's access to it. */
+  static async find(handle: string, viewer: User | null): Promise<SpaceAccess> {
+    const space = await Space.scope('handle', handle).firstOrFail()
 
     return SpaceAccess.resolve(space, viewer)
   }
 
-  /** The space at `slug`, with its owner loaded, when the viewer may open it; a 404 otherwise. */
-  static async browse(slug: string, viewer: User | null): Promise<SpaceAccess> {
-    const space = await Space.query()
-      .where({ slug })
+  /** The space `handle` names, by id or web address, with its owner loaded, when the viewer may open it; a 404 otherwise. */
+  static async browse(handle: string, viewer: User | null): Promise<SpaceAccess> {
+    const space = await Space.scope('handle', handle)
       .with('user')
       .first()
 

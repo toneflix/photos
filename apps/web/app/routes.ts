@@ -62,7 +62,7 @@ export default [
 		route("explore/photos/:id", "routes/explore/photo.tsx"),
 
 		// A space's page: Explore kept to one space.
-		route("spaces/:slug", "routes/space/layout.tsx", [
+		route("spaces/:space", "routes/space/layout.tsx", [
 			index("routes/explore/photos.tsx", { id: "space-photos" }),
 			route("books", "routes/explore/books.tsx", { id: "space-books" }),
 			route("members", "routes/space/members.tsx"),
