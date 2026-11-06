@@ -1,7 +1,10 @@
-import { PAGE_LAYOUTS, type BookPageInput, type BookWithPages, type FrameStyle, type PageLayout, type Photo } from '@photos/types'
+import { PAGE_LAYOUTS, PhotoCrop, type BookPageInput, type BookWithPages, type FrameStyle, type PageLayout, type Photo, type PhotoPosition } from '@photos/types'
 
-/** A photo on a page, with its own frame once one is picked. Null or missing follows the page's. */
-export type DraftPhoto = Photo & { frame?: FrameStyle | null }
+/**
+ * A photo on a page, with its own frame once one is picked (null or missing follows the page's) and its
+ * position once moved (null or missing is centred).
+ */
+export type DraftPhoto = Photo & { frame?: FrameStyle | null; position?: PhotoPosition | null }
 
 export interface DraftPage {
   key: string
@@ -48,6 +51,7 @@ export class BookDraft {
       caption: page.caption || null,
       photoIds: page.photos.map((photo) => photo.id),
       photoFrames: page.photos.map((photo) => photo.frame ?? null),
+      photoPositions: page.photos.map((photo) => photo.position ?? null),
     }))
   }
 
@@ -112,6 +116,15 @@ export class BookDraft {
     const page = this.pages[index]
 
     return page ? this.update(index, { photos: page.photos.map((photo, i) => (i === slot ? { ...photo, frame } : photo)) }) : this
+  }
+
+  /** Choose which part of the photo in a slot shows. Null centres it. */
+  photoPosition(index: number, slot: number, position: PhotoPosition | null) {
+    const page = this.pages[index]
+    const crop = PhotoCrop.of(position)
+    const stored = crop.isCentred ? null : crop.toJSON()
+
+    return page ? this.update(index, { photos: page.photos.map((photo, i) => (i === slot ? { ...photo, position: stored } : photo)) }) : this
   }
 
   /** Make every page follow the book's frame. */
