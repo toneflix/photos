@@ -25,7 +25,7 @@ Each deploy builds the image, runs `ark migrate --no-interaction` as the pre-dep
 
    | Variable | Value |
    | --- | --- |
-   | `APP_KEY` | A new key: `pnpm --filter @photos/api exec ark key:generate` locally, then copy the value |
+   | `APP_KEY` | A new key: `pnpm ark key:generate` locally, then copy the value |
    | `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS` | The SMTP server |
    | `CORS_ALLOWED_ORIGINS` | Origins allowed to call the API from a browser, if any |
    | `PHOTOS_DISK`, `AWS_*` | Leave empty to keep photos on the volume. Set `PHOTOS_DISK=s3` and the bucket settings to use S3, Cloudflare R2 or a Railway Bucket instead. |
