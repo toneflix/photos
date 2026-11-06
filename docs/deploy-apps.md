@@ -82,7 +82,7 @@ One-time setup:
 | `EAS_OWNER` | android, optional | Expo account or organisation that owns the project |
 | `ANDROID_BUILDER` | android, optional | Default builder on push: `eas` or `runner` |
 | `WAIT_FOR_EAS` | android, optional | `true` to wait for EAS APK builds on push and attach them to the run |
-| `APK_ARCHITECTURES` | android, optional | CPU architectures for runner-built APKs (default `arm64-v8a`, which covers current phones; add `x86_64` for emulators) |
+| `APK_ARCHITECTURES` | android, optional | CPU architectures for runner-built APKs (default `arm64-v8a,armeabi-v7a`, which covers 64-bit and 32-bit ARM phones; add `x86_64` for emulators) |
 | `PLAY_STORE_ON_DEPLOY` | play-store, optional | `true` to submit to Google Play on every push to `deploy` |
 | `PLAY_STORE_TRACK` | play-store, optional | Track used on push (default `internal`) |
 | `PLAY_STORE_RELEASE_STATUS` | play-store, optional | Release status used on push (default `completed`) |

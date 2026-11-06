@@ -90,7 +90,7 @@ jobs:
           eas-owner: ${{ vars.EAS_OWNER }}
           api-url: ${{ vars.API_URL }}
           web-url: ${{ vars.WEB_URL }}
-          android-architectures: ${{ vars.APK_ARCHITECTURES || 'arm64-v8a' }}
+          android-architectures: ${{ vars.APK_ARCHITECTURES || 'arm64-v8a,armeabi-v7a' }}
 
       - name: Build APK
         id: build

@@ -64,7 +64,9 @@ runs:
           ~/.gradle/wrapper
           ~/.cache/ccache
         key: android-build-${{ runner.os }}-${{ inputs.android-architectures }}-${{ hashFiles('pnpm-lock.yaml', 'apps/mobile/app.json') }}
-        restore-keys: android-build-${{ runner.os }}-${{ inputs.android-architectures }}-
+        restore-keys: |
+          android-build-${{ runner.os }}-${{ inputs.android-architectures }}-
+          android-build-${{ runner.os }}-
 
     - if: inputs.builder == 'runner'
       name: Tune runner builds
