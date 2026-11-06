@@ -65,11 +65,28 @@ describe('Book branding', () => {
     expect(imprint.body.data.branding).toEqual({ kicker: 'A wedding album', brand: 'Ada Studio', imprint: 'Ada Studio Books', colophon: null })
   })
 
-  it('keeps branding to the owner', async () => {
+  it('keeps branding to the person who made the book', async () => {
     const code = (await api('post', `/books/${paidBook}/access-codes`, { permissions: ['edit'] }, 'paid')).body.data.code
     const res = await api('put', `/books/${paidBook}`, { brand: 'Someone else' }, undefined, code)
 
     expect(res.status).toBe(403)
+  })
+
+  it('keeps the maker branding when a client claims the book', async () => {
+    const book = (await api('post', '/books', { title: 'Handed over', brand: 'Ada Studio', imprint: 'Ada Studio Books' }, 'paid')).body.data.id
+    const transfer = (await api('post', `/books/${book}/access-codes`, { permissions: ['transfer'] }, 'paid')).body.data.code
+
+    expect((await api('post', '/access-codes/claim', { code: transfer }, 'free')).status).toBe(200)
+
+    const claimed = await api('get', `/books/${book}`, undefined, 'free')
+    const rebrand = await api('put', `/books/${book}`, { brand: 'Client brand' }, 'free')
+    const restyle = await api('put', `/books/${book}`, { title: 'Our copy', theme: 'sage' }, 'free')
+
+    expect(claimed.body.data.isOwner).toBe(true)
+    expect(claimed.body.data.branding).toMatchObject({ brand: 'Ada Studio', imprint: 'Ada Studio Books', colophon: null })
+    expect(claimed.body.data.customBranding).toBeUndefined()
+    expect(rebrand.status).toBe(403)
+    expect(restyle.status).toBe(200)
   })
 
   it('goes back to Toneflix branding when the plan ends, keeping the saved text', async () => {

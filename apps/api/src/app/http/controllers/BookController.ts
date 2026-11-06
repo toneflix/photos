@@ -69,6 +69,7 @@ export default class BookController extends BaseController {
     const visibility = data.visibility || this.user.defaultVisibility || 'private'
     const book = await Book.query().create({
       userId: this.user.id,
+      creatorId: this.user.id,
       spaceId: space?.id ?? null,
       title: String(data.title).trim(),
       description: data.description || null,
@@ -121,12 +122,11 @@ export default class BookController extends BaseController {
     const branded = 'kicker' in data || 'brand' in data || 'imprint' in data
 
     abortIf((!!data.visibility || 'spaceId' in data) && !access.isOwner, 'Only the owner can change who can open this book or its space.', 403)
-    abortIf(branded && !access.isOwner, 'Only the owner can change the branding of this book.', 403)
+    abortIf(branded && !book.isMadeBy(access.viewer), 'Only the person who made this book can change its branding.', 403)
 
-    const limits = await Limits.for(await book.user().first())
+    await (await Limits.for(await book.user().first())).ensureCoverDesign(data.coverDesign, book.coverDesign)
 
-    await limits.ensureCoverDesign(data.coverDesign, book.coverDesign)
-    await limits.ensureBranding(data, book)
+    if (branded) await (await Limits.for(access.viewer)).ensureBranding(data, book)
 
     if (data.title) book.title = String(data.title).trim()
     if ('description' in data) book.description = data.description || null

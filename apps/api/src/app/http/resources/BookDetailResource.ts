@@ -44,10 +44,10 @@ export class BookDetailResource extends BookResource {
       permissions: this.access?.permissions() ?? ['view'],
       stats: ContentStats.shown(book, owner, this.access?.viewer ?? null),
       owner: { id: book.userId, name: owner && (owner.showOwnerName || this.access?.isOwner) ? owner.name : '' },
-      ...(this.access?.isOwner
+      ...(book.isMadeBy(this.access?.viewer ?? null)
         ? {
             customBranding: { kicker: book.kicker, brand: book.brand, imprint: book.imprint },
-            brandingAllowed: await (await Limits.for(owner)).brandingAllowed(),
+            brandingAllowed: await (await Limits.for(this.access!.viewer)).brandingAllowed(),
           }
         : {}),
     }

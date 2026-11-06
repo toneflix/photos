@@ -163,7 +163,7 @@ export class Limits {
     abortIf(original, `Full-size downloads are not included in your plan. Pick a size up to ${largest}px.`, 403)
   }
 
-  /** The cover line, brand and back cover a book prints. Saved text shows only while the owner's plan includes it. */
+  /** The cover line, brand and back cover a book prints. Saved text shows only while the plan of the book's maker includes it. */
   async branding(book: Book): Promise<BookBranding> {
     const customImprint = (await this.allows('custom_imprint')) && !!book.imprint
 
@@ -175,7 +175,7 @@ export class Limits {
     }
   }
 
-  /** Which branding fields the plan lets the owner set. */
+  /** Which branding fields the plan lets its account set on the books it makes. */
   async brandingAllowed(): Promise<Record<BrandingField, boolean>> {
     const customImprint = await this.allows('custom_imprint')
 

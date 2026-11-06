@@ -784,7 +784,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 		fetcher.submit(
 			{
 				intent: "update",
-				changes: { title, description: description || null, theme, coverDesign, coverText, coverPhotoId, coverPosition: jsonPosition(coverPosition), ...(book.isOwner ? { visibility, spaceId: spaceId || null, ...brandingChanges(book, branding) } : {}) },
+				changes: { title, description: description || null, theme, coverDesign, coverText, coverPhotoId, coverPosition: jsonPosition(coverPosition), ...(book.isOwner ? { visibility, spaceId: spaceId || null } : {}), ...brandingChanges(book, branding) },
 			},
 			{ method: "post", encType: "application/json" },
 		);
@@ -868,7 +868,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 							<p className="text-sm text-ink-500">Add photos to your pages to choose a cover photo.</p>
 						)}
 					</fieldset>
-					{book.isOwner && <BrandingFields allowed={book.brandingAllowed} value={branding} onChange={setBranding} />}
+					{book.customBranding && <BrandingFields allowed={book.brandingAllowed} value={branding} onChange={setBranding} />}
 					{book.isOwner && spaces.length > 0 && (
 						<Field label="Space">
 							<SpacePicker spaces={spaces} value={spaceId} onChange={(e) => setSpaceId(e.target.value)} />

@@ -191,7 +191,7 @@ export interface Book {
   paper: PaperColor
   /** How photos are set on pages that don't choose their own frame. */
   frame: FrameStyle
-  /** What the book prints on its covers, after the owner's plan. */
+  /** What the book prints on its covers, after the plan of the person who made it. It stays when a client claims the book. */
   branding: BookBranding
   pageCount: number
   /** When the book last became public. */
@@ -288,9 +288,9 @@ export interface BookWithPages extends Book {
   /** Everything the visitor may do with the book. */
   permissions: BookPermission[]
   owner: Pick<User, 'id' | 'name'>
-  /** The owner's saved branding text, shown only to the owner. */
+  /** The saved branding text, shown only to the person who made the book. */
   customBranding?: BookBrandingInput
-  /** Which branding fields the owner's plan lets them set. */
+  /** Which branding fields the maker's plan lets them set. */
   brandingAllowed?: Record<keyof BookBrandingInput, boolean>
 }
 
@@ -302,7 +302,7 @@ export interface BookBranding {
   colophon: string | null
 }
 
-/** Branding text an owner sets. Each field needs a plan that includes it; null prints the Toneflix default. */
+/** Branding text the book's maker sets. Each field needs a plan that includes it; null prints the Toneflix default. */
 export interface BookBrandingInput {
   kicker: string | null
   brand: string | null

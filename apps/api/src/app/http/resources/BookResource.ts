@@ -7,7 +7,7 @@ export class BookResource extends Resource {
   async data() {
     const book = this.resource as Book
     const cover = await book.coverPhoto()
-    const owner = book.getAttribute('user') ?? (await book.user().first())
+    const maker = await book.brandedBy()
 
     return {
       id: book.id,
@@ -25,7 +25,7 @@ export class BookResource extends Resource {
       coverText: book.coverText,
       paper: book.paper,
       frame: book.frame,
-      branding: await (await Limits.for(owner)).branding(book),
+      branding: await (await Limits.for(maker)).branding(book),
       pageCount: await book.pages().count(),
       createdAt: book.createdAt,
       updatedAt: book.updatedAt,
