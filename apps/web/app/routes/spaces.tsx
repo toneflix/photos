@@ -77,6 +77,9 @@ export default function Spaces({ loaderData, actionData }: Route.ComponentProps)
 								<Link prefetch="intent" to={`/books?space=${space.id}`} className="rounded-full bg-surface-100 px-3 py-1.5 text-ink-700 hover:bg-surface-200">
 									Books
 								</Link>
+								<Link prefetch="intent" to={`/stats/spaces/${space.id}`} className="rounded-full bg-surface-100 px-3 py-1.5 text-ink-700 hover:bg-surface-200">
+									Stats
+								</Link>
 								<Link to={`?edit=${space.id}`} preventScrollReset className="rounded-full bg-surface-100 px-3 py-1.5 text-ink-700 hover:bg-surface-200">
 									Edit
 								</Link>

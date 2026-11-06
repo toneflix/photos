@@ -1,8 +1,8 @@
 import { Link } from "react-router";
 import { AdminHeader } from "~/components/admin/AdminHeader";
 import { Avatar } from "~/components/Avatar";
-import { StatTiles, StatsChart } from "~/components/admin/StatsChart";
-import { TopList } from "~/components/admin/ContentParts";
+import { StatTiles, StatsChart } from "~/components/stats/StatsChart";
+import { TopList } from "~/components/stats/TopList";
 import { requireAdmin } from "~/lib/admin.server";
 import type { Route } from "./+types/overview";
 
@@ -49,7 +49,7 @@ export default function AdminOverview({ loaderData }: Route.ComponentProps) {
 
 				<div className="grid gap-6 xl:grid-cols-[1fr_24rem]">
 					<StatsChart days={overview.daily} title="Views and downloads, last 30 days" />
-					<TopList title="Most viewed photos" items={overview.topPhotos} kind="photos" linked={canModerate} />
+					<TopList title="Most viewed photos" items={overview.topPhotos} href={canModerate ? (item) => `/admin/photos/${item.id}` : undefined} />
 				</div>
 
 				<section className="panel">
