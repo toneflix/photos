@@ -15,8 +15,8 @@ const PERMISSION = `in:${BookAccessCode.PERMISSIONS.join(',')}`
  */
 export default class BookAccessCodeController extends BaseController {
   async index() {
-    const book = await this.user.books().findOrFail(String(this.params.book))
-    const codes = await book.codes().latest('createdAt').getResults()
+    const book = await this.user.books().with({ codes: (query) => query.latest('createdAt') }).findOrFail(String(this.params.book))
+    const codes = book.getAttribute('codes')
 
     return new BookAccessCodeCollection(codes.all()).additional({ status: 'success', message: 'OK', code: 200 })
   }

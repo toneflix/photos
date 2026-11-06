@@ -19,7 +19,7 @@ export class PublicSpaceResource extends SpaceResource {
 
     return {
       ...(await super.data()),
-      owner: await new OwnerResource((space.getAttribute('user' as never) as User | null) ?? {}).data(),
+      owner: await new OwnerResource(space.getAttribute('user') ?? {}).data(),
       canEdit: space.isOwnedBy(this.viewer),
     }
   }
