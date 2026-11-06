@@ -68,7 +68,6 @@ export default function Profile() {
           </View>
         </View>
         {photo.problem.message ? <Callout>{photo.problem.fields.avatar ?? photo.problem.message}</Callout> : null}
-        {photo.message ? <Callout tone="notice">{photo.message}</Callout> : null}
       </Section>
 
       <Section title="Name and username">
@@ -91,7 +90,6 @@ export default function Profile() {
           />
         </Field>
         {profile.problem.summary ? <Callout>{profile.problem.summary}</Callout> : null}
-        {profile.message ? <Callout tone="notice">{profile.message}</Callout> : null}
         <Button title={profile.busy ? 'Saving…' : 'Save'} loading={profile.busy} disabled={!name.trim() || !username.trim()} onPress={save} />
       </Section>
     </SettingsPage>

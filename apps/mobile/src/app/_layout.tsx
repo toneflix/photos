@@ -11,6 +11,7 @@ import { PlusJakartaSans_700Bold } from '@expo-google-fonts/plus-jakarta-sans/70
 import { PlusJakartaSans_800ExtraBold } from '@expo-google-fonts/plus-jakarta-sans/800ExtraBold'
 import { Fraunces_500Medium } from '@expo-google-fonts/fraunces/500Medium'
 import { Fraunces_400Regular_Italic } from '@expo-google-fonts/fraunces/400Regular_Italic'
+import { ToastHost } from '@/components/ui'
 import { api } from '@/lib/api'
 import { session, useSession } from '@/lib/session'
 import { colors } from '@/theme'
@@ -74,6 +75,7 @@ export default function RootLayout() {
         <Stack.Screen name="reset-password" />
         <Stack.Screen name="verify-email" />
       </Stack>
+      <ToastHost />
     </>
   )
 }

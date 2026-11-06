@@ -77,12 +77,10 @@ export default function Sharing() {
       </Section>
 
       {privacy.problem.message ? <Callout>{privacy.problem.message}</Callout> : null}
-      {privacy.message ? <Callout tone="notice">{privacy.message}</Callout> : null}
       <Button title={privacy.busy ? 'Saving…' : 'Save'} size="lg" loading={privacy.busy} onPress={save} />
 
       <Section title="Stop sharing everything" description="Makes every book private at once. Shared links stop working.">
         {lock.problem.message ? <Callout>{lock.problem.message}</Callout> : null}
-        {lock.message ? <Callout tone="notice">{lock.message}</Callout> : null}
         <Button title="Make all books private" variant="secondary" loading={lock.busy} onPress={lockAll} />
       </Section>
     </SettingsPage>

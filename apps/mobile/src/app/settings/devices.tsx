@@ -40,7 +40,6 @@ export default function Devices() {
   return (
     <SettingsPage title="Devices" description="Where you're signed in. Sign out of any device you don't recognise, then change your password.">
       <Section>
-        {action.message ? <Callout tone="notice">{action.message}</Callout> : null}
         {action.problem.message ? <Callout>{action.problem.message}</Callout> : null}
         {sessions.error ? <Callout>{FormProblem.from(sessions.error).message}</Callout> : null}
         {sessions.loading && !list.length ? <ActivityIndicator color={colors.ink500} /> : null}

@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import * as Clipboard from 'expo-clipboard'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRequest } from 'alova/client'
 import { BOOK_PERMISSIONS, type BookAccessCode, type BookPermission, type BookWithPages } from '@photos/types'
@@ -10,6 +9,7 @@ import { Button, Callout, CheckOption, Field, Input, Select, Text } from '@/comp
 import { api } from '@/lib/api'
 import { confirm } from '@/lib/confirm'
 import { FormProblem } from '@/lib/forms'
+import { toast } from '@/lib/toast'
 import { colors, fonts, radius } from '@/theme'
 
 const EXPIRY = [
@@ -111,7 +111,6 @@ function CodeCard({ bookId, code, onChange, onRevoked }: { bookId: string; code:
   const [label, setLabel] = useState(code.label ?? '')
   const [permissions, setPermissions] = useState<BookPermission[]>(code.permissions.filter((permission) => permission !== 'view'))
   const [busy, setBusy] = useState(false)
-  const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const run = async (task: () => Promise<void>) => {
@@ -144,20 +143,14 @@ function CodeCard({ bookId, code, onChange, onRevoked }: { bookId: string; code:
     })
   }
 
-  const copy = async () => {
-    await Clipboard.setStringAsync(code.code)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
-  }
-
   return (
     <View style={[styles.card, code.expired && styles.expired]}>
       <View style={styles.codeRow}>
         <Text selectable style={styles.code}>
           {code.code}
         </Text>
-        <Text variant="link" accessibilityRole="button" onPress={copy}>
-          {copied ? 'Copied' : 'Copy'}
+        <Text variant="link" accessibilityRole="button" onPress={() => toast.copy(code.code, 'Code copied.')}>
+          Copy
         </Text>
       </View>
       <Text variant="muted">

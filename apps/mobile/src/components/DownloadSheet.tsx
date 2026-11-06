@@ -5,6 +5,7 @@ import { Sheet } from '@/components/access/Sheet'
 import { Button, Callout, CheckOption, Field, Input, Text } from '@/components/ui'
 import { ApiDownload } from '@/lib/download'
 import type { DownloadSize } from '@/lib/download-request'
+import { toast } from '@/lib/toast'
 import { colors, fonts, radius } from '@/theme'
 
 const LABELS: Record<PhotoDownloadPreset, string> = {
@@ -28,7 +29,7 @@ export function DownloadSheet({ photo, owned, onClose }: { photo: Pick<Photo, 'i
   const [width, setWidth] = useState(original?.width || 1920)
   const [height, setHeight] = useState(original?.height || 1280)
   const [keepShape, setKeepShape] = useState(true)
-  const [state, setState] = useState<'idle' | 'busy' | 'saved' | Error>('idle')
+  const [state, setState] = useState<'idle' | 'busy' | Error>('idle')
   const shapeLocked = keepShape && !!ratio
   const customHeight = shapeLocked ? Math.max(1, Math.round(width * ratio)) : height
 
@@ -39,7 +40,9 @@ export function DownloadSheet({ photo, owned, onClose }: { photo: Pick<Photo, 'i
 
     try {
       await ApiDownload.photo(photo.id, size, owned).saveToPhotos()
-      setState('saved')
+
+      onClose()
+      toast.show('Saved to your photos.')
     } catch (problem) {
       setState(problem instanceof Error ? problem : new Error("We couldn't save the photo."))
     }
@@ -71,7 +74,6 @@ export function DownloadSheet({ photo, owned, onClose }: { photo: Pick<Photo, 'i
       )}
 
       {state instanceof Error ? <Callout>{state.message}</Callout> : null}
-      {state === 'saved' ? <Callout tone="notice">Saved to your photos.</Callout> : null}
       <Button title={state === 'busy' ? 'Saving…' : 'Save to your photos'} size="lg" loading={state === 'busy'} onPress={save} />
     </Sheet>
   )

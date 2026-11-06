@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { ActivityIndicator, Linking, Share, StyleSheet, View } from 'react-native'
 import { router } from 'expo-router'
-import * as Clipboard from 'expo-clipboard'
 import { useRequest } from 'alova/client'
 import type { TwoFactorSetup, TwoFactorStatus } from '@photos/types'
 import { QrCode } from '@/components/settings/QrCode'
@@ -9,6 +8,7 @@ import { SettingsPage, Section } from '@/components/settings/SettingsPage'
 import { Button, Callout, Field, Input, OtpInput, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { FormProblem } from '@/lib/forms'
+import { toast } from '@/lib/toast'
 import { useAction } from '@/lib/use-action'
 import { colors, fonts, radius } from '@/theme'
 
@@ -17,8 +17,7 @@ const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' })
 export default function TwoStep() {
   const status = useRequest(() => api.account.twoFactor())
   const [setup, setSetup] = useState<TwoFactorSetup | null>(null)
-  const [codes, setCodes] = useState<{ list: string[]; message: string } | null>(null)
-  const [offMessage, setOffMessage] = useState<string | null>(null)
+  const [codes, setCodes] = useState<string[] | null>(null)
   const current: TwoFactorStatus | undefined = status.data?.data
 
   const show = (next: TwoFactorStatus) => status.update({ data: { ...status.data, data: next } })
@@ -29,17 +28,18 @@ export default function TwoStep() {
         {!current ? (
           status.error ? <Callout>{FormProblem.from(status.error).message}</Callout> : <ActivityIndicator color={colors.ink500} />
         ) : codes ? (
-          <RecoveryCodes codes={codes.list} message={codes.message} onDone={() => setCodes(null)} />
+          <RecoveryCodes codes={codes} onDone={() => setCodes(null)} />
         ) : current.enabled ? (
           <On
             status={current}
             onCodes={(next, list) => {
               show(next)
-              setCodes({ list, message: 'Your old recovery codes no longer work.' })
+              setCodes(list)
+              toast.show('Your old recovery codes no longer work.')
             }}
             onOff={(next) => {
               show(next)
-              setOffMessage('Two-step sign-in is off.')
+              toast.show('Two-step sign-in is off.')
             }}
           />
         ) : setup ? (
@@ -48,18 +48,19 @@ export default function TwoStep() {
             onEnabled={(next, list) => {
               setSetup(null)
               show(next)
-              setCodes({ list, message: 'Two-step sign-in is on.' })
+              setCodes(list)
+              toast.show('Two-step sign-in is on.')
             }}
           />
         ) : (
-          <Off message={offMessage} onStarted={setSetup} />
+          <Off onStarted={setSetup} />
         )}
       </Section>
     </SettingsPage>
   )
 }
 
-function Off({ message, onStarted }: { message: string | null; onStarted: (setup: TwoFactorSetup) => void }) {
+function Off({ onStarted }: { onStarted: (setup: TwoFactorSetup) => void }) {
   const start = useAction()
 
   const begin = () =>
@@ -71,7 +72,6 @@ function Off({ message, onStarted }: { message: string | null; onStarted: (setup
 
   return (
     <>
-      {message ? <Callout tone="notice">{message}</Callout> : null}
       <View style={styles.state}>
         <View style={[styles.dot, styles.dotOff]} />
         <Text variant="muted">Off. Anyone with your password can sign in.</Text>
@@ -85,7 +85,6 @@ function Off({ message, onStarted }: { message: string | null; onStarted: (setup
 function SetupSteps({ setup, onEnabled }: { setup: TwoFactorSetup; onEnabled: (status: TwoFactorStatus, codes: string[]) => void }) {
   const enable = useAction()
   const [code, setCode] = useState('')
-  const [copied, setCopied] = useState(false)
   const key = setup.secret.match(/.{1,4}/g)?.join(' ') ?? setup.secret
 
   const confirm = (value = code) =>
@@ -95,11 +94,6 @@ function SetupSteps({ setup, onEnabled }: { setup: TwoFactorSetup; onEnabled: (s
 
       onEnabled(next, recoveryCodes)
     })
-
-  const copyKey = async () => {
-    await Clipboard.setStringAsync(setup.secret)
-    setCopied(true)
-  }
 
   return (
     <>
@@ -113,8 +107,8 @@ function SetupSteps({ setup, onEnabled }: { setup: TwoFactorSetup; onEnabled: (s
         <Text selectable style={styles.key}>
           {key}
         </Text>
-        <Text variant="link" accessibilityRole="button" onPress={copyKey}>
-          {copied ? 'Copied' : 'Copy'}
+        <Text variant="link" accessibilityRole="button" onPress={() => toast.copy(setup.secret, 'Key copied.')}>
+          Copy
         </Text>
       </View>
       <Text style={styles.step}>2. Type the 6-digit code the app shows.</Text>
@@ -176,18 +170,11 @@ function On({
   )
 }
 
-function RecoveryCodes({ codes, message, onDone }: { codes: string[]; message: string; onDone: () => void }) {
-  const [copied, setCopied] = useState(false)
+function RecoveryCodes({ codes, onDone }: { codes: string[]; onDone: () => void }) {
   const text = codes.join('\n')
-
-  const copy = async () => {
-    await Clipboard.setStringAsync(text)
-    setCopied(true)
-  }
 
   return (
     <>
-      <Callout tone="notice">{message}</Callout>
       <Text>Save these recovery codes somewhere safe. Each one signs you in once if you lose your phone. You won't see them again.</Text>
       <View style={styles.codes}>
         {codes.map((code) => (
@@ -197,7 +184,7 @@ function RecoveryCodes({ codes, message, onDone }: { codes: string[]; message: s
         ))}
       </View>
       <View style={styles.row}>
-        <Button title={copied ? 'Copied' : 'Copy'} variant="secondary" onPress={copy} />
+        <Button title="Copy" variant="secondary" onPress={() => toast.copy(text, 'Recovery codes copied.')} />
         <Button title="Share" variant="secondary" onPress={() => Share.share({ message: `Toneflix Photos recovery codes\n\n${text}\n` }).catch(() => undefined)} />
         <Button title="I've saved them" variant="dark" onPress={onDone} />
       </View>
