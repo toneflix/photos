@@ -10,6 +10,7 @@ import { PhotoUploader } from "~/components/PhotoUploader";
 import { AuthFrame } from "~/components/AuthFrame";
 import { Alert, Button, Field, Input, buttonClass } from "~/components/ui";
 import { FlipbookModel, type BookWithPages } from "@photos/types";
+import { licenseFor } from "~/lib/licenses";
 import type { Route } from "./+types/book-view";
 
 export function meta({ loaderData, matches }: Route.MetaArgs) {
@@ -115,6 +116,7 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 
 	const back = book.isOwner ? { to: "/books", label: "Back to your books" } : { to: "/explore/books", label: "Back to Explore" };
 	const can = (permission: string) => book.permissions.includes(permission as never);
+	const downloadable = can("transfer") || book.pages.some((page) => page.photos.some((photo) => licenseFor(photo.license).downloadable));
 
 	return (
 		<div className="relative h-dvh">
@@ -146,6 +148,11 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 							<button type="button" onClick={() => setPanel("claim")} className={chip}>
 								Make it yours
 							</button>
+						)}
+						{downloadable && (
+							<a href={`/books/${book.id}/download`} download className={`${chip} max-sm:hidden`} title={can("transfer") ? "Every original photo, as a zip" : "Openly licensed photos, as a zip"}>
+								Download
+							</a>
 						)}
 						{book.canEdit && (
 							<Link prefetch="intent" to={`/books/${book.id}/edit`} className={chip}>

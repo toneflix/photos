@@ -4,6 +4,7 @@ import type { Photo, Space } from "@photos/types";
 import { requireSignIn } from "~/lib/session.server";
 import { spaceFiltered } from "~/lib/space-filter.server";
 import { handlePhotoIntent } from "~/lib/photo-actions.server";
+import { DownloadDialog } from "~/components/DownloadDialog";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
 import { Button, Input, Select, Textarea, buttonClass } from "~/components/ui";
@@ -270,6 +271,7 @@ function PhotoDialog({ photo: initial, spaces, onClose }: { photo: Photo; spaces
 	const isPublic = pending ? pending === "public" : photo.visibility === "public";
 	const deleting = fetcher.state !== "idle" && fetcher.formData?.get("intent") === "delete";
 	const saving = fetcher.state !== "idle" && fetcher.formData?.get("intent") === "caption";
+	const [downloading, setDownloading] = useState(false);
 
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -366,6 +368,9 @@ function PhotoDialog({ photo: initial, spaces, onClose }: { photo: Photo; spaces
 							{saving ? "Saving…" : "Save caption"}
 						</Button>
 					</fetcher.Form>
+					<Button variant="secondary" onClick={() => setDownloading(true)} className="w-full">
+						Download
+					</Button>
 					<fetcher.Form
 						method="post"
 						className="mt-auto"
@@ -380,6 +385,7 @@ function PhotoDialog({ photo: initial, spaces, onClose }: { photo: Photo; spaces
 						</Button>
 					</fetcher.Form>
 				</div>
+				{downloading && <DownloadDialog photo={photo} href={`/photos/${photo.id}/download`} onClose={() => setDownloading(false)} />}
 			</div>
 		</div>
 	);

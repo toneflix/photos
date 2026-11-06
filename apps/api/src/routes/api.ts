@@ -60,6 +60,7 @@ Router.get('/explore/spaces/:space', [ExploreController, 'space'], [limiter(120,
 Router.apiResource('/spaces', SpaceController, { middlewares: auth })
 
 // Photo library
+Router.get('/photos/:photo/download', [PhotoController, 'download'], [auth, limiter(30, 60)])
 Router.apiResource('/photos', PhotoController, {
   middlewares: { index: auth, show: auth, create: [auth, limiter(60, 60)], update: auth, destroy: auth },
 })
@@ -70,6 +71,7 @@ Router.apiResource('/books', BookController, {
 })
 Router.put('/books/:book/pages', [BookController, 'savePages'])
 Router.post('/books/:book/photos', [BookController, 'addPhoto'], [limiter(60, 60)])
+Router.get('/books/:book/download', [BookController, 'download'], [limiter(10, 60)])
 
 // Access codes that unlock a book
 Router.get('/books/:book/access-codes', [BookAccessCodeController, 'index'], [auth])

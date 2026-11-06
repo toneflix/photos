@@ -2,6 +2,7 @@ import { abortIf, perPage } from '@arkstack/common'
 import { BaseController } from './BaseController'
 import { Book } from '@app/models/Book'
 import { BookAccess } from '@app/policies/BookAccess'
+import { BookArchive } from '@app/services/BookArchive'
 import { BookCollection } from '@app/http/resources/BookCollection'
 import { BookDetailResource } from '@app/http/resources/BookDetailResource'
 import { Photo } from '@app/models/Photo'
@@ -166,6 +167,17 @@ export default class BookController extends BaseController {
       .additional({ status: 'success', message: 'Photo added', code: 201 })
       .response()
       .setStatusCode(201)
+  }
+
+  /** The book's original photos as a zip, limited to the ones this visitor may download. */
+  async download() {
+    const access = (await this.access()).authorize('view')
+    const archive = await BookArchive.for(access)
+
+    abortIf(!archive.total, 'This book has no photos yet.', 404)
+    abortIf(archive.isEmpty, 'The photographer keeps all rights to the photos in this book, so they cannot be downloaded.', 403)
+
+    return archive.response()
   }
 
   /** The book in the route and what this visitor may do with it, from their sign-in and any access code they sent. */

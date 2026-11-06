@@ -7,6 +7,7 @@ import { PublicPhotoDetailResource } from '@app/http/resources/PublicPhotoDetail
 import { PublicSpaceCollection } from '@app/http/resources/PublicSpaceCollection'
 import { PublicSpaceResource } from '@app/http/resources/PublicSpaceResource'
 import { SORTS } from '@app/support/search'
+import { downloadSize } from '@app/support/rules'
 import { Space } from '@app/models/Space'
 import { abortIf, perPage } from '@arkstack/common'
 
@@ -43,14 +44,14 @@ export default class ExploreController extends BaseController {
     return new PublicPhotoDetailResource(photo).additional({ status: 'success', message: 'OK', code: 200 })
   }
 
-  /** The original file, only when the owner chose an open licence. */
+  /** The original, or a copy at a preset or custom size, only when the owner chose an open licence. */
   async download() {
     const photo = await Photo.query().where({ visibility: 'public' }).findOrFail(String(this.params.photo))
 
     abortIf(!(await photo.isListedFor(await this.viewer())), 'Photo not found!', 404)
     abortIf(!photo.allowsDownload(), 'The photographer keeps all rights to this photo, so it cannot be downloaded.', 403)
 
-    return photo.download()
+    return photo.download(await this.validateQuery(downloadSize(Object.keys(Photo.DOWNLOAD_SIZES))))
   }
 
   async books() {

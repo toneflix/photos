@@ -3,6 +3,7 @@ import { data, Link } from "react-router";
 import type { PublicPhotoDetail } from "@photos/types";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { getServerApi, PhotosApiError } from "~/lib/api.server";
+import { DownloadDialog } from "~/components/DownloadDialog";
 import { Owner } from "~/components/explore/Owner";
 import { PublicPhotoGrid } from "~/components/explore/PublicPhotoGrid";
 import { buttonClass } from "~/components/ui";
@@ -48,6 +49,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 export default function ExplorePhoto({ loaderData }: Route.ComponentProps) {
 	const { photo, more } = loaderData;
 	const license = licenseFor(photo.license);
+	const [downloading, setDownloading] = useState(false);
 
 	return (
 		<main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
@@ -65,9 +67,9 @@ export default function ExplorePhoto({ loaderData }: Route.ComponentProps) {
 						{photo.space ? `Back to ${photo.space.name}` : "Back to Explore"}
 					</Link>
 					{license.downloadable && (
-						<a href={`/explore/photos/${photo.id}/download`} download className={buttonClass("primary")}>
+						<button type="button" onClick={() => setDownloading(true)} className={buttonClass("primary")}>
 							<IconDownload /> Download
-						</a>
+						</button>
 					)}
 				</div>
 			</div>
@@ -125,6 +127,7 @@ export default function ExplorePhoto({ loaderData }: Route.ComponentProps) {
 					<PublicPhotoGrid photos={more} />
 				</section>
 			)}
+			{downloading && <DownloadDialog photo={photo} href={`/explore/photos/${photo.id}/download`} onClose={() => setDownloading(false)} />}
 		</main>
 	);
 }

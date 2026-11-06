@@ -2,6 +2,8 @@ import { beforeAll, describe, expect, it } from 'vitest'
 
 import { app } from '../src/core/bootstrap'
 import request from 'parasito'
+import { randomBytes } from 'node:crypto'
+import sharp from 'sharp'
 
 const pixel = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
@@ -33,8 +35,30 @@ describe('Uploads', () => {
 
     expect(res.status).toBe(201)
     expect(res.body.data).toMatchObject({ mimeType: 'image/png', width: 1, height: 1 })
-    expect(res.body.data.url).toMatch(/\.png$/)
   })
+
+  it('shows a WebP copy of each photo', async () => {
+    const res = await send('/photos', [['photo', new Blob([pixel], { type: 'image/png' }), 'pixel.png']])
+    const path = new URL(res.body.data.url, 'http://localhost').pathname
+    const shown = await request(app).get(path)
+
+    expect(path).toMatch(/\.display\.webp$/)
+    expect(shown.headers.get('content-type')).toBe('image/webp')
+  })
+
+  it('compresses originals over the size cap before storing them', async () => {
+    const noise = await sharp(randomBytes(1600 * 1600 * 3), { raw: { width: 1600, height: 1600, channels: 3 } })
+      .png()
+      .toBuffer()
+
+    const res = await send('/photos', [['photo', new Blob([noise], { type: 'image/png' }), 'noise.png']])
+
+    expect(noise.length).toBeGreaterThan(5 * 1024 * 1024)
+    expect(res.status).toBe(201)
+    expect(res.body.data.mimeType).toBe('image/png')
+    expect(res.body.data.size).toBeLessThanOrEqual(5 * 1024 * 1024)
+    expect(res.body.data.width).toBe(res.body.data.height)
+  }, 60_000)
 
   it('refuses files that only claim to be photos', async () => {
     const page = new Blob(['<html><script>alert(1)</script></html>'], { type: 'image/png' })
