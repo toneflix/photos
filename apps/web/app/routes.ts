@@ -35,7 +35,11 @@ export default [
 		layout("routes/admin/layout.tsx", [
 			index("routes/admin/overview.tsx"),
 			route("users", "routes/admin/users.tsx"),
-			route("moderation/:kind?", "routes/admin/moderation.tsx"),
+			route("users/:id", "routes/admin/user.tsx"),
+			...(["photos", "books", "spaces"] as const).flatMap((kind) => [
+				route(kind, "routes/admin/content.tsx", { id: `admin-${kind}` }),
+				route(`${kind}/:id`, "routes/admin/content-item.tsx", { id: `admin-${kind}-item` }),
+			]),
 			route("roles/:role?", "routes/admin/roles.tsx"),
 			route("configuration/:group?", "routes/admin/configuration.tsx"),
 		]),
