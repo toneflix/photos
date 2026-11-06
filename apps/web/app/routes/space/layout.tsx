@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { data, Link, NavLink, Outlet, type MetaDescriptor } from "react-router";
+import { data, Link, NavLink, Outlet, type MetaDescriptor, type ShouldRevalidateFunctionArgs } from "react-router";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { getServerApi } from "~/lib/api.server";
+import { revalidateOnSubmit } from "~/lib/revalidate";
 import { Owner } from "~/components/explore/Owner";
 import { SpaceCover } from "~/components/spaces/SpaceCover";
 import { VisibilityBadge, spaceCounts } from "~/components/spaces/SpaceCard";
@@ -31,6 +32,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 	});
 
 	return { space };
+}
+
+export function shouldRevalidate(args: ShouldRevalidateFunctionArgs) {
+	return args.currentParams.slug !== args.nextParams.slug || revalidateOnSubmit(args);
 }
 
 const tab = ({ isActive }: { isActive: boolean }) =>

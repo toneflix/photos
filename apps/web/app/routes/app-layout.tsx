@@ -1,12 +1,15 @@
 import { Link, Outlet, useLocation } from "react-router";
 import { requireUser } from "~/lib/session.server";
 import { AppHeader } from "~/components/AppHeader";
+import { revalidateOnSubmit } from "~/lib/revalidate";
 import type { Route } from "./+types/app-layout";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const { user } = await requireUser(request, context);
 	return { user };
 }
+
+export const shouldRevalidate = revalidateOnSubmit;
 
 export default function AppLayout({ loaderData }: Route.ComponentProps) {
 	const { user } = loaderData;
