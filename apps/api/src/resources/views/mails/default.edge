@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <title>{{ subject }}</title>
+</head>
+
+<body style="margin:0;padding:0;background:#eef3f8;font-family:Inter,'Segoe UI',Helvetica,Arial,sans-serif;color:#111c33">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef3f8">
+    <tr>
+      <td align="center" style="padding:32px 16px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px">
+          <tr>
+            <td style="padding:0 4px 16px">
+              <a href="{{ frontend_url }}" style="text-decoration:none;color:#111c33">
+                <img src="{{ frontend_url }}/brand/toneflix-mark.png" width="32" height="32" alt="" style="vertical-align:middle;border:0" />
+                <span style="vertical-align:middle;font-size:18px;font-weight:700;padding-left:8px">{{ app_name }}</span>
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td style="height:4px;background:#00afff;font-size:0;line-height:0">&nbsp;</td>
+          </tr>
+          <tr>
+            <td style="background:#ffffff;border:1px solid #d9e2ec;border-top:0;padding:32px 28px;font-size:15px;line-height:1.6">
+              <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;font-weight:700;color:#111c33">{{ subject }}</h1>
+              {{{ message }}}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 4px;font-size:12px;line-height:1.5;color:#5b6b82">
+              &copy; {{ year }} {{ app_name }} &middot; <a href="{{ frontend_url }}" style="color:#5b6b82">{{ frontend_url }}</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+
+</html>
