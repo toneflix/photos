@@ -7,8 +7,7 @@ export default defineRailway(() => {
   const api = service('api', {
     source: github('toneflix/photos', { branch: 'main' }),
     build: {
-      builder: 'DOCKERFILE',
-      dockerfilePath: 'apps/api/Dockerfile',
+      builder: 'RAILPACK',
       watchPatterns: [
         '/apps/api/**',
         '/packages/**',
@@ -17,10 +16,11 @@ export default defineRailway(() => {
         '/pnpm-workspace.yaml',
         '/.npmrc',
         '/tsconfig.base.json',
+        '/railpack.json',
       ],
     },
     deploy: {
-      preDeployCommand: ['pnpm exec ark migrate --no-interaction'],
+      preDeployCommand: ['pnpm --filter @photos/api exec ark migrate --no-interaction'],
       healthcheckPath: '/api',
       healthcheckTimeout: 120,
       restartPolicyType: 'ON_FAILURE',

@@ -10,6 +10,7 @@
     "test:watch": "vitest",
     "dev": "ark dev",
     "build": "ark build",
+    "start": "node dist/server.js",
     "postinstall": "prepare",
     "typecheck": "tsc --noEmit"
   },

@@ -5,7 +5,7 @@ The API (`apps/api`) can run on [Railway](https://railway.com) instead of the SS
 The Railway project is described with [Railway Infrastructure as Code](https://docs.railway.com/infrastructure-as-code):
 
 - `.railway/railway.ts`: the project. A PostgreSQL database, a volume for uploads, and the `api` service built from this repository's `main` branch, with its domain and variables.
-- `apps/api/Dockerfile`: the API image. It installs the API's workspace dependencies, runs `ark build` and starts `node dist/server.js`. Dev dependencies stay in the image because `ark migrate` runs from source.
+- `railpack.json`: how [Railpack](https://railpack.com) builds the image. It uses Node 24, installs the workspace with pnpm, builds only the API (`pnpm --filter @photos/api build`) and starts it with `pnpm --filter @photos/api start`. Dev dependencies stay in the image because `ark migrate` runs from source.
 
 Each deploy builds the image, runs `ark migrate --no-interaction` as the pre-deploy command, starts the API and waits for `GET /api` to answer before switching traffic. A failed build, migration or health check leaves the previous deploy running. Only changes to the API, the shared packages or the workspace manifests trigger a build.
 
@@ -52,9 +52,10 @@ When the API runs on Railway, the **Deploy API** workflow is not needed. Leave i
 
 ## Building the image locally
 
-From the repository root:
+With the [Railpack CLI](https://railpack.com/installation) and Docker, from the repository root:
 
 ```sh
-docker build -f apps/api/Dockerfile -t toneflix-photos-api .
+railpack info .        # show the detected packages, steps and start command
+railpack build . --name toneflix-photos-api
 docker run --rm -p 3000:3000 --env-file apps/api/.env -e APP_HOST=0.0.0.0 toneflix-photos-api
 ```
