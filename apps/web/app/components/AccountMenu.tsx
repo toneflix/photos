@@ -20,6 +20,9 @@ export function AccountMenu({ user }: { user: User }) {
 				<Link prefetch="intent" to="/unlock" className={item}>
 					Open a book with a code
 				</Link>
+				<Link prefetch="intent" to="/stats" className={item}>
+					Your stats
+				</Link>
 				<Link prefetch="intent" to="/settings" className={item}>
 					Settings
 				</Link>

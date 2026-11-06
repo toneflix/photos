@@ -17,6 +17,8 @@ export default [
 		route("spaces", "routes/spaces.tsx"),
 		route("books/:id/access", "routes/book-access.tsx"),
 		route("checkout/complete", "routes/checkout-complete.tsx"),
+		route("stats", "routes/stats/overview.tsx"),
+		route("stats/:kind/:id", "routes/stats/item.tsx"),
 		route("settings", "routes/settings/layout.tsx", [
 			index("routes/settings/index.tsx"),
 			route("profile", "routes/settings/profile.tsx"),

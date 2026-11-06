@@ -12,6 +12,7 @@ import PlanController from 'src/app/http/controllers/PlanController'
 import PaymentController from 'src/app/http/controllers/PaymentController'
 import AdminPlanController from 'src/app/http/controllers/admin/PlanController'
 import PaymentRegionController from 'src/app/http/controllers/admin/PaymentRegionController'
+import StatsController from 'src/app/http/controllers/StatsController'
 import ModerationController from 'src/app/http/controllers/admin/ModerationController'
 import OverviewController from 'src/app/http/controllers/admin/OverviewController'
 import SettingsController from 'src/app/http/controllers/admin/SettingsController'
@@ -59,6 +60,10 @@ Router.put('/account/privacy', [AccountController, 'updatePrivacy'], [auth])
 Router.post('/account/privacy/lock-books', [AccountController, 'lockBooks'], [auth])
 Router.get('/account/export', [AccountController, 'export'], [auth, limiter(3, 60)])
 Router.delete('/account', [AccountController, 'destroy'], [auth, limiter(5, 60)])
+
+// Views and downloads of the signed-in maker's own work
+Router.get('/account/stats', [StatsController, 'overview'], [auth])
+Router.get('/account/stats/:kind/:item', [StatsController, 'show'], [auth])
 
 // Signed-in devices
 Router.get('/account/sessions', [SessionController, 'index'], [auth])

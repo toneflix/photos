@@ -12,6 +12,7 @@ export class BookResource extends Resource {
     return {
       id: book.id,
       userId: book.userId,
+      creatorId: book.creatorId,
       spaceId: book.spaceId,
       title: book.title,
       description: book.description,

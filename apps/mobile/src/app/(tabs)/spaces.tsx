@@ -42,6 +42,7 @@ export default function Spaces() {
             <Chip label="Photos" onPress={() => router.navigate({ pathname: '/photos', params: { space: space.id } })} />
             <Chip label="Books" onPress={() => router.navigate({ pathname: '/', params: { space: space.id } })} />
             <Chip label="Edit" onPress={() => router.push({ pathname: '/space-form', params: { id: space.id } })} />
+            <Chip label="Stats" onPress={() => router.push({ pathname: '/stats/[kind]/[id]', params: { kind: 'spaces', id: space.id } })} />
           </View>
         </SpaceCard>
       )}

@@ -5,6 +5,7 @@ export * from './layouts'
 export * from './licenses'
 export * from './models'
 export * from './plans'
+export * from './stats'
 export {
   COVER_DESIGNS,
   COVER_THEMES,

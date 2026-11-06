@@ -2,8 +2,8 @@ import { useNavigation } from "react-router";
 import { AccountControls, PlanControl } from "~/components/admin/AccountControls";
 import { AdminHeader } from "~/components/admin/AdminHeader";
 import { Avatar } from "~/components/Avatar";
-import { TopList } from "~/components/admin/ContentParts";
-import { RANGES, RangePicker, StatTiles, StatsChart } from "~/components/admin/StatsChart";
+import { TopList } from "~/components/stats/TopList";
+import { RANGES, RangePicker, StatTiles, StatsChart } from "~/components/stats/StatsChart";
 import { Alert } from "~/components/ui";
 import { requireAdmin, updateAccount } from "~/lib/admin.server";
 import type { Route } from "./+types/user";
@@ -88,8 +88,8 @@ export default function AdminUserPage({ loaderData, actionData }: Route.Componen
 				</div>
 
 				<div className="grid gap-6 lg:grid-cols-2">
-					<TopList title="Most viewed photos" items={account.topPhotos} kind="photos" linked={canModerate} />
-					<TopList title="Most viewed books" items={account.topBooks} kind="books" linked={canModerate} />
+					<TopList title="Most viewed photos" items={account.topPhotos} href={canModerate ? (item) => `/admin/photos/${item.id}` : undefined} />
+					<TopList title="Most viewed books" items={account.topBooks} href={canModerate ? (item) => `/admin/books/${item.id}` : undefined} />
 				</div>
 			</div>
 		</>

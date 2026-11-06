@@ -16,6 +16,8 @@ import type {
   BookWithPages,
   ID,
   FeatureDefinition,
+  MakerItemStats,
+  MakerStats,
   ModeratedKind,
   ModerationItem,
   ModerationItemDetail,
@@ -100,6 +102,11 @@ export function createEndpoints(alova: PhotosAlova) {
     account: {
       plan: () => alova.Get<ApiResponse<AccountPlan>>('/account/plan', { cacheFor: null }),
       payments: (params: PageQuery = {}) => alova.Get<PaginatedResponse<Payment>>('/account/payments', { params, cacheFor: null }),
+      /** Views and downloads of everything the account owns, charted over `days`. */
+      stats: (days?: number) => alova.Get<ApiResponse<MakerStats>>('/account/stats', { params: { days }, cacheFor: null }),
+      /** One of the account's own photos, books or spaces with its daily views and downloads. */
+      itemStats: (kind: ModeratedKind, id: ID, days?: number) =>
+        alova.Get<ApiResponse<MakerItemStats>>(`/account/stats/${kind}/${id}`, { params: { days }, cacheFor: null }),
       updateProfile: (data: { name: string }) => alova.Put<ApiResponse<User>>('/account/profile', data),
       /** `file` is a File/Blob on web, or an RN `{ uri, name, type }` object. */
       updateAvatar: (file: Blob | { uri: string; name: string; type: string }) => {

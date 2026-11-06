@@ -174,6 +174,8 @@ export type BookTheme = CoverTheme
 export interface Book {
   id: ID
   userId: ID
+  /** Who made the book. Its stats and branding stay theirs after a client claims it. */
+  creatorId: ID | null
   /** The space the book sits in, if any. */
   spaceId: ID | null
   title: string

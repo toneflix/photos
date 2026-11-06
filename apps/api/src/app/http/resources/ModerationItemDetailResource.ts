@@ -4,12 +4,15 @@ import type { Moderated } from '@app/services/Moderation'
 import { ModerationItemResource } from './ModerationItemResource'
 import { Photo } from '@app/models/Photo'
 
-/** A public item for its admin page: the list fields, a few details, and views and downloads per day. */
+/** An item for its stats page: the list fields, a few details, and views and downloads per day. */
 export class ModerationItemDetailResource extends ModerationItemResource {
   private days = 30
+  private charted = true
 
-  over(days: number) {
+  /** Chart the last `days` days, or leave the chart out (null) when `charted` is false. */
+  over(days: number, charted = true) {
     this.days = days
+    this.charted = charted
 
     return this
   }
@@ -21,7 +24,7 @@ export class ModerationItemDetailResource extends ModerationItemResource {
     return {
       ...summary,
       details: await this.details(item),
-      daily: await ContentStats.daily({ kind: summary.kind as never, subjectId: item.id }, this.days),
+      daily: this.charted ? await ContentStats.daily({ kind: summary.kind as never, subjectId: item.id }, this.days) : null,
       createdAt: item.createdAt,
     }
   }
