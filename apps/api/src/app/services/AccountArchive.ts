@@ -1,54 +1,25 @@
-import { Zip, ZipPassThrough, strToU8 } from 'fflate'
+import type { Zip } from 'fflate'
 import { Book } from '@app/models/Book'
 import { Photo } from '@app/models/Photo'
 import { Space } from '@app/models/Space'
 import { Storage } from '@arkstack/filesystem'
 import type { User } from '@app/models/User'
+import { ZipArchive } from './ZipArchive'
 
 /**
  * Everything a user has stored, as a zip streamed straight to the response:
  * `account.json`, `books.json`, `photos.json` and every original photo file.
  */
-export class AccountArchive {
-  constructor(private readonly user: User) {}
+export class AccountArchive extends ZipArchive {
+  constructor(private readonly user: User) {
+    super()
+  }
 
   filename(): string {
     return `toneflix-photos-${new Date().toISOString().slice(0, 10)}.zip`
   }
 
-  response(): Response {
-    return new Response(this.stream(), {
-      headers: {
-        'Content-Type': 'application/zip',
-        'Content-Disposition': `attachment; filename="${this.filename()}"`,
-        'Cache-Control': 'no-store',
-      },
-    })
-  }
-
-  stream(): ReadableStream<Uint8Array> {
-    return new ReadableStream({
-      start: async (controller) => {
-        const zip = new Zip((error, chunk, final) => {
-          if (error) return controller.error(error)
-
-          controller.enqueue(chunk)
-
-          if (final) controller.close()
-        })
-
-        try {
-          await this.write(zip)
-          zip.end()
-        } catch (error) {
-          zip.terminate()
-          controller.error(error)
-        }
-      },
-    })
-  }
-
-  private async write(zip: Zip) {
+  protected async write(zip: Zip) {
     const photos = (await Photo.query().where({ userId: this.user.id }).oldest('createdAt').get()).all()
     const books = (await Book.query().where({ userId: this.user.id }).oldest('createdAt').get()).all()
     const spaces = (await Space.query().where({ userId: this.user.id }).oldest('createdAt').get()).all()
@@ -132,19 +103,7 @@ export class AccountArchive {
         .getBytes(photo.path)
         .catch(() => null)
 
-      if (!bytes) continue
-
-      const entry = new ZipPassThrough(files.get(photo.id)!)
-
-      zip.add(entry)
-      entry.push(bytes, true)
+      if (bytes) this.addFile(zip, files.get(photo.id)!, bytes)
     }
-  }
-
-  private addJson(zip: Zip, name: string, value: unknown) {
-    const entry = new ZipPassThrough(name)
-
-    zip.add(entry)
-    entry.push(strToU8(JSON.stringify(value, null, 2)), true)
   }
 }
