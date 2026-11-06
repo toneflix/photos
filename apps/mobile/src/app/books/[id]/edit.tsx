@@ -11,6 +11,7 @@ import { BookLookProvider, PAGE_RATIO, PageView } from '@toneflix/flipbook-nativ
 import { BookSettings, type BookChanges } from '@/components/book/BookSettings'
 import { FramePicker } from '@/components/book/FramePicker'
 import { LayoutIcon } from '@/components/book/LayoutIcon'
+import { PhotoPositionControls } from '@/components/book/PhotoPositionControls'
 import { BOOK_FONTS } from '@/components/book/look'
 import { Button, Callout, Input, Text } from '@/components/ui'
 import { api } from '@/lib/api'
@@ -79,6 +80,7 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
   const [draft, setDraft] = useState(() => BookDraft.from(loaded))
   const [selected, setSelected] = useState(0)
   const [slot, setSlot] = useState<number | null>(0)
+  const [positioning, setPositioning] = useState(false)
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string>()
@@ -249,13 +251,22 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
           </Pressable>
         </View>
 
-        <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 32 }]} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 32 }]} keyboardShouldPersistTaps="handled" scrollEnabled={!positioning}>
           {current ? (
             <>
               <View style={styles.stage}>
                 <PageArrow icon="chevron-back" label="Previous page" disabled={selected === 0} onPress={() => select(selected - 1)} />
                 <View style={styles.sheet}>
-                  <PageView page={FlipbookModel.page(current)} width={pageWidth} number={selected + 1} onSlotPress={setSlot} activeSlot={slot} accent={colors.brand500} />
+                  <PageView
+                    page={FlipbookModel.page(current)}
+                    width={pageWidth}
+                    number={selected + 1}
+                    onSlotPress={setSlot}
+                    activeSlot={slot}
+                    onPhotoPosition={(at, position) => change(draft.photoPosition(selected, at, position))}
+                    onPositionGesture={setPositioning}
+                    accent={colors.brand500}
+                  />
                 </View>
                 <PageArrow icon="chevron-forward" label="Next page" disabled={selected >= draft.length - 1} onPress={() => select(selected + 1)} />
               </View>
@@ -306,13 +317,16 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
           />
 
           {current && slot !== null && current.photos[slot] && (
-            <View style={styles.notice}>
-              <Text variant="muted" style={styles.flex}>
-                Photo {slot + 1} is selected. Tap another below to replace it.
-              </Text>
-              <Text style={styles.remove} accessibilityRole="button" onPress={() => change(draft.removePhoto(selected, slot))}>
-                Remove
-              </Text>
+            <View style={styles.selection}>
+              <View style={styles.notice}>
+                <Text variant="muted" style={styles.flex}>
+                  Photo {slot + 1} is selected. Tap another below to replace it.
+                </Text>
+                <Text style={styles.remove} accessibilityRole="button" onPress={() => change(draft.removePhoto(selected, slot))}>
+                  Remove
+                </Text>
+              </View>
+              <PhotoPositionControls position={current.photos[slot].position} onChange={(position) => change(draft.photoPosition(selected, slot, position))} />
             </View>
           )}
 
@@ -485,7 +499,8 @@ const styles = StyleSheet.create({
   thumbNumber: { fontSize: 12, color: colors.ink500 },
   thumbNumberOn: { fontFamily: fonts.semibold, color: colors.ink900 },
   addThumb: { marginLeft: 10, alignItems: 'center', justifyContent: 'center', borderStyle: 'dashed', borderColor: colors.surface300, backgroundColor: 'rgba(255,255,255,0.5)' },
-  notice: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, paddingVertical: 10, borderRadius: radius.lg, backgroundColor: colors.white },
+  selection: { gap: 10, paddingHorizontal: 12, paddingVertical: 10, borderRadius: radius.lg, backgroundColor: colors.white },
+  notice: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   remove: { fontFamily: fonts.semibold, color: colors.red700 },
   panel: { gap: 10, padding: 12, borderRadius: radius.lg, backgroundColor: colors.white },
   panelHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },

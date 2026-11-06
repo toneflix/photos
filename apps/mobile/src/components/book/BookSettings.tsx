@@ -3,15 +3,17 @@ import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleShee
 import { Image } from 'expo-image'
 import * as Clipboard from 'expo-clipboard'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import type { BookTheme, BookWithPages, CoverDesign, Photo, Space, Visibility } from '@photos/types'
+import { usePhotoGestures, useNaturalSize } from '@toneflix/flipbook-native'
+import type { BookTheme, BookWithPages, CoverDesign, Photo, PhotoPosition, Space, Visibility } from '@photos/types'
 import { BookCover } from '@/components/BookCover'
+import { PhotoPositionControls } from '@/components/book/PhotoPositionControls'
 import { ClothPicker, CoverDesignPicker, CoverTextSwitch } from '@/components/book/CoverPickers'
 import { Button, Callout, Field, Input, Select, Text } from '@/components/ui'
 import { webUrl } from '@/lib/links'
 import { spaceOptions } from '@/lib/spaces'
 import { colors, fonts, radius } from '@/theme'
 
-export type BookChanges = Partial<Pick<BookWithPages, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'spaceId' | 'coverDesign' | 'coverText'> & { theme: BookTheme }>
+export type BookChanges = Partial<Pick<BookWithPages, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'coverPosition' | 'spaceId' | 'coverDesign' | 'coverText'> & { theme: BookTheme }>
 
 const VISIBILITY: [Visibility, string][] = [
   ['private', 'Only me'],
@@ -46,10 +48,19 @@ export function BookSettings({
   const [coverText, setCoverText] = useState<boolean | null>(book.coverText ?? null)
   const [visibility, setVisibility] = useState<Visibility>(book.visibility)
   const [coverPhotoId, setCoverPhotoId] = useState<string | null>(book.coverPhotoId)
+  const [coverPosition, setCoverPosition] = useState<PhotoPosition | null>(book.coverPosition)
+  const [positioning, setPositioning] = useState(false)
   const [spaceId, setSpaceId] = useState(book.spaceId ?? '')
   const [copied, setCopied] = useState(false)
   const coverPhoto = photos.find((photo) => photo.id === coverPhotoId) ?? null
-  const cover = { title: title || 'Untitled', description, theme, coverDesign, coverText, coverPhoto }
+  const natural = useNaturalSize(coverPhoto && { src: coverPhoto.url, width: coverPhoto.width, height: coverPhoto.height })
+  const gestures = usePhotoGestures(coverPosition, COVER_SIZE, natural, coverPhoto ? setCoverPosition : undefined, setPositioning)
+  const cover = { title: title || 'Untitled', description, theme, coverDesign, coverText, coverPhoto, coverPosition: gestures.crop.isCentred ? null : gestures.crop.toJSON() }
+
+  const chooseCoverPhoto = (id: string | null) => {
+    if (id !== coverPhotoId) setCoverPosition(null)
+    setCoverPhotoId(id)
+  }
   const shareUrl = webUrl(`/books/${book.id}/view`)
 
   const save = () =>
@@ -60,6 +71,7 @@ export function BookSettings({
       coverDesign,
       coverText,
       coverPhotoId,
+      coverPosition,
       ...(book.isOwner ? { visibility, spaceId: spaceId || null } : {}),
     })
 
@@ -79,10 +91,11 @@ export function BookSettings({
           </Text>
         </View>
 
-        <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 24 }]} keyboardShouldPersistTaps="handled">
-          <View style={styles.cover}>
+        <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 24 }]} keyboardShouldPersistTaps="handled" scrollEnabled={!positioning}>
+          <View style={styles.cover} {...gestures.handlers}>
             <BookCover book={cover} />
           </View>
+          {coverPhoto && <PhotoPositionControls position={coverPosition} onChange={setCoverPosition} />}
 
           {error ? <Callout>{error}</Callout> : null}
           <Field label="Title">
@@ -105,11 +118,11 @@ export function BookSettings({
           <Field label="Cover photo">
             {photos.length ? (
               <View style={styles.photos}>
-                <Pressable onPress={() => setCoverPhotoId(null)} style={[styles.thumb, styles.none, coverPhotoId === null && styles.thumbOn]} accessibilityLabel="No cover photo">
+                <Pressable onPress={() => chooseCoverPhoto(null)} style={[styles.thumb, styles.none, coverPhotoId === null && styles.thumbOn]} accessibilityLabel="No cover photo">
                   <Text variant="muted">None</Text>
                 </Pressable>
                 {photos.map((photo) => (
-                  <Pressable key={photo.id} onPress={() => setCoverPhotoId(photo.id)} style={[styles.thumb, coverPhotoId === photo.id && styles.thumbOn]} accessibilityLabel={photo.caption ?? 'Photo'}>
+                  <Pressable key={photo.id} onPress={() => chooseCoverPhoto(photo.id)} style={[styles.thumb, coverPhotoId === photo.id && styles.thumbOn]} accessibilityLabel={photo.caption ?? 'Photo'}>
                     <Image source={{ uri: photo.thumbnailUrl ?? photo.url }} style={StyleSheet.absoluteFill} contentFit="cover" />
                   </Pressable>
                 ))}
@@ -158,11 +171,14 @@ export function BookSettings({
   )
 }
 
+/** The cover preview's size, which a drag on it is measured against. */
+const COVER_SIZE = { width: 150, height: 200 }
+
 const styles = StyleSheet.create({
   sheet: { flex: 1, backgroundColor: colors.white },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.surface200 },
   body: { padding: 20, gap: 18 },
-  cover: { alignSelf: 'center', width: 150, height: 200, borderTopRightRadius: 6, borderBottomRightRadius: 6, overflow: 'hidden' },
+  cover: { alignSelf: 'center', ...COVER_SIZE, borderTopRightRadius: 6, borderBottomRightRadius: 6, overflow: 'hidden' },
   photos: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   thumb: { width: 56, height: 56, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.surface100, borderWidth: 2, borderColor: 'transparent' },
   thumbOn: { borderColor: colors.brand500 },
