@@ -1,6 +1,8 @@
 import { Form, useSubmit } from "react-router";
-import type { AdminUser, Role } from "@photos/types";
+import type { AdminPlan, AdminUserDetail, AdminUser, Role } from "@photos/types";
+import { useState } from "react";
 import { Button, Select } from "~/components/ui";
+import { periodLabel } from "~/lib/plans";
 
 /** Change an account's role, or suspend it and let it back in. Posts to the page it is on. */
 export function AccountControls({ account, roles, isMe, busy }: { account: AdminUser; roles: Role[]; isMe: boolean; busy: boolean }) {
@@ -34,5 +36,46 @@ export function AccountControls({ account, roles, isMe, busy }: { account: Admin
 				</Button>
 			</Form>
 		</div>
+	);
+}
+
+/** Put an account on a plan without payment, for a number of periods. The default plan ends any paid time. */
+export function PlanControl({ account, plans, busy }: { account: AdminUserDetail; plans: AdminPlan[]; busy: boolean }) {
+	const [plan, setPlan] = useState(account.plan.slug);
+	const chosen = plans.find((entry) => entry.slug === plan);
+
+	return (
+		<Form method="post" preventScrollReset className="flex flex-wrap items-end gap-3">
+			<input type="hidden" name="intent" value="plan" />
+			<input type="hidden" name="id" value={account.id} />
+			<label className="block">
+				<span className="mb-1.5 block text-sm font-semibold text-ink-900">Plan</span>
+				<Select name="plan" value={plan} onChange={(event) => setPlan(event.target.value)} disabled={busy} className="w-auto !py-2 text-sm">
+					{plans
+						.filter((entry) => entry.active || entry.slug === account.plan.slug)
+						.map((entry) => (
+							<option key={entry.slug} value={entry.slug}>
+								{entry.name}
+								{entry.isHidden ? " (hidden)" : ""}
+							</option>
+						))}
+				</Select>
+			</label>
+			{chosen && !chosen.isDefault && (
+				<label className="block">
+					<span className="mb-1.5 block text-sm font-semibold text-ink-900">For</span>
+					<Select name="cycles" defaultValue="1" disabled={busy} className="w-auto !py-2 text-sm">
+						{[1, 3, 6, 12, 24].map((cycles) => (
+							<option key={cycles} value={cycles}>
+								{periodLabel(chosen, cycles)}
+							</option>
+						))}
+					</Select>
+				</label>
+			)}
+			<Button type="submit" variant="secondary" disabled={busy} className="!py-2">
+				{chosen?.isDefault ? "Move to this plan" : "Give this plan"}
+			</Button>
+		</Form>
 	);
 }

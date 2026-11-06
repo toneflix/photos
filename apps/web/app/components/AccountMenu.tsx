@@ -23,6 +23,9 @@ export function AccountMenu({ user }: { user: User }) {
 				<Link prefetch="intent" to="/settings" className={item}>
 					Settings
 				</Link>
+				<Link prefetch="intent" to="/settings/plan" className={item}>
+					Your plan
+				</Link>
 				{user.permissions.length > 0 && (
 					<Link prefetch="intent" to="/admin" className={item}>
 						Admin

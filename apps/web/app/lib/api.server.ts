@@ -22,7 +22,8 @@ export async function getServerApi(request: Request, env: Env, token?: string | 
 export type ServerApi = Awaited<ReturnType<typeof getServerApi>>;
 
 /**
- * The visitor's browser and IP, so the API can name their signed-in device.
+ * The visitor's browser, IP and country, so the API can name their signed-in device
+ * and price plans in their currency.
  * Without these every session would look like the Worker itself. Prefetches
  * are marked so a hovered link doesn't count as a view.
  */
@@ -33,6 +34,7 @@ export function visitorHeaders(request: Request): Record<string, string> {
 
 	if (userAgent) headers["User-Agent"] = userAgent;
 	if (ip) headers["X-Forwarded-For"] = ip;
+	if (request.headers.get("cf-ipcountry")) headers["X-Country"] = request.headers.get("cf-ipcountry")!;
 	if ((request.headers.get("sec-purpose") ?? request.headers.get("purpose"))?.includes("prefetch")) headers.Purpose = "prefetch";
 
 	return headers;

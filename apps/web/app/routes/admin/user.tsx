@@ -1,5 +1,5 @@
 import { useNavigation } from "react-router";
-import { AccountControls } from "~/components/admin/AccountControls";
+import { AccountControls, PlanControl } from "~/components/admin/AccountControls";
 import { AdminHeader } from "~/components/admin/AdminHeader";
 import { Avatar } from "~/components/Avatar";
 import { TopList } from "~/components/admin/ContentParts";
@@ -14,11 +14,13 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
 	const { api, user } = await requireAdmin(request, context, "users.view", "users.manage");
 	const days = RANGES.find((range) => range === Number(new URL(request.url).searchParams.get("days"))) ?? 30;
 	const canManage = user.permissions.includes("users.manage");
-	const [account, roles] = await Promise.all([api.admin.user(params.id, days), api.admin.roles()]);
+	const canManagePlans = user.permissions.includes("plans.manage");
+	const [account, roles, plans] = await Promise.all([api.admin.user(params.id, days), api.admin.roles(), canManagePlans ? api.admin.plans() : null]);
 
 	return {
 		account: account.data,
 		roles: roles.data,
+		plans: plans?.data ?? null,
 		days,
 		isMe: user.id === params.id,
 		canManage,
@@ -27,7 +29,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const { api } = await requireAdmin(request, context, "users.manage");
+	const { api } = await requireAdmin(request, context, "users.manage", "plans.manage");
 
 	return updateAccount(api, await request.formData());
 }
@@ -35,7 +37,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 const number = new Intl.NumberFormat("en");
 
 export default function AdminUserPage({ loaderData, actionData }: Route.ComponentProps) {
-	const { account, roles, days, isMe, canManage, canModerate } = loaderData;
+	const { account, roles, plans, days, isMe, canManage, canModerate } = loaderData;
 	const navigation = useNavigation();
 	const role = roles.find((entry) => entry.slug === account.role)?.name ?? account.role;
 
@@ -57,6 +59,17 @@ export default function AdminUserPage({ loaderData, actionData }: Route.Componen
 						{account.suspended ? "Suspended. " : ""}
 						{account.showCounts ? "Shows view and download counts on their public work." : "Keeps view and download counts to themselves."}
 					</p>
+				</div>
+
+				<div className="panel flex flex-wrap items-end justify-between gap-4 p-5">
+					<div>
+						<p className="text-xs font-semibold tracking-[0.14em] text-ink-500 uppercase">Plan</p>
+						<p className="mt-1 font-display text-xl font-bold text-ink-900">{account.plan.name}</p>
+						<p className="text-sm text-ink-500">
+							{account.plan.endsAt ? `Until ${new Date(account.plan.endsAt).toLocaleDateString(undefined, { dateStyle: "medium" })}` : "No paid time"}
+						</p>
+					</div>
+					{plans && <PlanControl key={account.plan.slug + account.plan.endsAt} account={account} plans={plans} busy={navigation.state !== "idle"} />}
 				</div>
 
 				<StatTiles
