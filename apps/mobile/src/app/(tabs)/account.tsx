@@ -58,7 +58,7 @@ export default function Account() {
 
       <Pressable
         accessibilityRole="button"
-        onPress={() => router.push({ pathname: '/makers/[id]', params: { id: user.id } })}
+        onPress={() => router.push({ pathname: '/makers/[id]', params: { id: user.username } })}
         style={({ pressed }) => [styles.list, styles.row, pressed && styles.pressed]}
       >
         <Ionicons name="person-circle-outline" size={20} color={colors.ink700} />

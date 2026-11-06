@@ -28,7 +28,7 @@ export function Owner({ owner, light = false, plain = false }: { owner: OwnerDat
 
   if (plain || !owner.id) return <View style={styles.row}>{content}</View>
 
-  const id = owner.id
+  const id = owner.username ?? owner.id
 
   return (
     <Pressable

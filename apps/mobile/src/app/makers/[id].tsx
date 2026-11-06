@@ -21,7 +21,7 @@ const number = new Intl.NumberFormat('en')
 const joined = new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' })
 const plural = (count: number, one: string) => `${number.format(count)} ${count === 1 ? one : `${one}s`}`
 
-/** A maker's profile: Explore kept to one maker's public photos, books and spaces. */
+/** A maker's profile, opened by id or username: Explore kept to one maker's public photos, books and spaces. */
 export default function MakerPage() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const insets = useSafeAreaInsets()
@@ -42,13 +42,14 @@ export default function MakerPage() {
       {!maker.isListed && <Callout tone="warning">Only you can see this page, because you keep your name off the work you share.</Callout>}
       <Avatar user={maker} size={80} />
       <Text variant="display">{maker.name}</Text>
+      <Text variant="muted">{`@${maker.username}`}</Text>
       <Text variant="muted">
         {`${plural(maker.photoCount, 'photo')} · ${plural(maker.bookCount, 'book')} · ${plural(maker.spaceCount, 'space')} · Joined ${joined.format(new Date(maker.joinedAt))}`}
       </Text>
       <ContentCounts stats={maker.stats} style={styles.stats} />
       <View style={styles.actions}>
         {maker.isListed && (
-          <Button title="Share" variant="secondary" onPress={() => Share.share({ message: webUrl(`/makers/${maker.id}`) }).catch(() => undefined)} />
+          <Button title="Share" variant="secondary" onPress={() => Share.share({ message: webUrl(`/makers/${maker.username}`) }).catch(() => undefined)} />
         )}
         {maker.isOwner && (
           <Button

@@ -9,6 +9,7 @@ import { megabytes, useLimits } from '@/lib/limits'
 import { session, useUser } from '@/lib/session'
 import { uploadFile } from '@/lib/upload-file'
 import { useAction } from '@/lib/use-action'
+import { webUrl } from '@/lib/links'
 
 export default function Profile() {
   const user = useUser()
@@ -16,6 +17,7 @@ export default function Profile() {
   const photo = useAction()
   const profile = useAction()
   const [name, setName] = useState(user.name)
+  const [username, setUsername] = useState(user.username)
 
   const pick = () =>
     photo.run(async () => {
@@ -45,7 +47,7 @@ export default function Profile() {
 
   const save = () =>
     profile.run(async () => {
-      const { data } = await api.account.updateProfile({ name: name.trim() }).send()
+      const { data } = await api.account.updateProfile({ name: name.trim(), username: username.trim() }).send()
 
       await session.setUser(data)
 
@@ -69,13 +71,28 @@ export default function Profile() {
         {photo.message ? <Callout tone="notice">{photo.message}</Callout> : null}
       </Section>
 
-      <Section title="Name">
+      <Section title="Name and username">
         <Field label="Your name" error={profile.problem.fields.name}>
           <Input value={name} onChangeText={setName} autoComplete="name" textContentType="name" maxLength={120} />
         </Field>
+        <Field
+          label="Username"
+          error={profile.problem.fields.username}
+          hint={`Your profile lives at ${webUrl(`/makers/${user.username}`)}. Use 3 to 30 lower case letters, numbers or underscores.`}
+        >
+          <Input
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="username"
+            textContentType="username"
+            maxLength={30}
+          />
+        </Field>
         {profile.problem.summary ? <Callout>{profile.problem.summary}</Callout> : null}
         {profile.message ? <Callout tone="notice">{profile.message}</Callout> : null}
-        <Button title={profile.busy ? 'Saving…' : 'Save'} loading={profile.busy} disabled={!name.trim()} onPress={save} />
+        <Button title={profile.busy ? 'Saving…' : 'Save'} loading={profile.busy} disabled={!name.trim() || !username.trim()} onPress={save} />
       </Section>
     </SettingsPage>
   )
