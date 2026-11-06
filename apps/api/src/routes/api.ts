@@ -71,6 +71,7 @@ Router.apiResource('/books', BookController, {
 })
 Router.put('/books/:book/pages', [BookController, 'savePages'])
 Router.post('/books/:book/photos', [BookController, 'addPhoto'], [limiter(60, 60)])
+Router.get('/books/:book/download', [BookController, 'download'], [limiter(10, 60)])
 
 // Access codes that unlock a book
 Router.get('/books/:book/access-codes', [BookAccessCodeController, 'index'], [auth])

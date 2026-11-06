@@ -1,5 +1,6 @@
 import { abortIf } from '@arkstack/common'
 import type { Book } from '@app/models/Book'
+import type { Photo } from '@app/models/Photo'
 import { BookAccessCode, type BookPermission } from '@app/models/BookAccessCode'
 import type { User } from '@app/models/User'
 
@@ -28,6 +29,11 @@ export class BookAccess {
     if (permission === 'view' && this.book.visibility !== 'private') return true
 
     return !!this.code?.allows(permission)
+  }
+
+  /** Whether this visitor may download a photo's original from the book: owners and transfer holders always, everyone else only under an open licence. */
+  mayDownload(photo: Photo): boolean {
+    return this.can('transfer') || photo.allowsDownload()
   }
 
   /** Every permission this visitor has, for clients to show the right controls. */

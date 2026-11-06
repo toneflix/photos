@@ -141,6 +141,16 @@ export class Book extends Model {
     return (await BookPage.query().where({ bookId: this.id }).oldest('position').get()).all()
   }
 
+  /** Every photo in the book in reading order, then the cover photo if no page shows it. */
+  async orderedPhotos(pages?: BookPage[]): Promise<Photo[]> {
+    pages ??= await this.orderedPages()
+
+    const ids = [...new Set([...pages.flatMap((page) => page.photoIds ?? []), ...(this.coverPhotoId ? [this.coverPhotoId] : [])])]
+    const photos = ids.length ? (await Photo.query().whereIn('id', ids as never).get()).all() : []
+
+    return photos.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id))
+  }
+
   /** Delete the book and its pages. Photos stay in the library. */
   async remove(): Promise<void> {
     await Book.transaction(async () => {
@@ -181,8 +191,7 @@ export class Book extends Model {
    */
   async transferTo(owner: User): Promise<void> {
     const pages = await this.orderedPages()
-    const ids = [...new Set([...pages.flatMap((page) => page.photoIds ?? []), ...(this.coverPhotoId ? [this.coverPhotoId] : [])])]
-    const photos = ids.length ? (await Photo.query().whereIn('id', ids as never).get()).all() : []
+    const photos = await this.orderedPhotos(pages)
     const copies = new Map<string, string>()
 
     for (const photo of photos) copies.set(photo.id, (await photo.copyTo(owner)).id)
