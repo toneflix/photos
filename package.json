@@ -14,5 +14,8 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
     "lint": "pnpm -r --if-present lint"
+  },
+  "devDependencies": {
+    "railway": "3.16.0"
   }
 }

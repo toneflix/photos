@@ -2,50 +2,53 @@
 
 The API (`apps/api`) can run on [Railway](https://railway.com) instead of the SSH server described in [deploy.md](./deploy.md). The web app stays on Cloudflare Workers ([deploy-apps.md](./deploy-apps.md)) and only needs `API_URL` pointed at the Railway address.
 
-Railway reads two files from the repository:
+The Railway project is described with [Railway Infrastructure as Code](https://docs.railway.com/infrastructure-as-code):
 
-- `apps/api/railway.json`: build and deploy settings for the API service.
-- `apps/api/Dockerfile`: the image. It installs the API's workspace dependencies, runs `ark build` and starts `node dist/server.js`. Dev dependencies stay in the image because `ark migrate` runs from source.
+- `.railway/railway.ts`: the project. A PostgreSQL database, a volume for uploads, and the `api` service built from this repository's `main` branch, with its domain and variables.
+- `apps/api/Dockerfile`: the API image. It installs the API's workspace dependencies, runs `ark build` and starts `node dist/server.js`. Dev dependencies stay in the image because `ark migrate` runs from source.
 
-Each deploy builds the image, runs `ark migrate --no-interaction` as the pre-deploy command, starts the API and waits for `GET /api` to answer before switching traffic. A failed build, migration or health check leaves the previous deploy running.
+Each deploy builds the image, runs `ark migrate --no-interaction` as the pre-deploy command, starts the API and waits for `GET /api` to answer before switching traffic. A failed build, migration or health check leaves the previous deploy running. Only changes to the API, the shared packages or the workspace manifests trigger a build.
 
 ## One-time setup
 
-1. **Project**: create a Railway project and add a **PostgreSQL** database to it.
-2. **API service**: add a service from the GitHub repository (`toneflix/photos`). In its settings:
-   - **Root directory**: leave empty (the repository root). The API depends on `packages/*`, so the build needs the whole workspace.
-   - **Config file path**: `/apps/api/railway.json`.
-   - **Branch**: the branch Railway deploys on push, e.g. `deploy` or `main`.
-3. **Storage**: pick one.
-   - **Bucket** (recommended): add a Railway Bucket (or use Cloudflare R2 / S3) and set `PHOTOS_DISK=s3` with the `AWS_*` variables below.
-   - **Volume**: attach a volume to the API service mounted at `/app/apps/api/storage`. Photos then live on the local disk and are served by the API under `/photos`. A volume pins the service to one replica.
-4. **Variables**: set these on the API service.
+1. **CLI**: install the [Railway CLI](https://docs.railway.com/cli) 5.42.1 or newer, then `railway login`.
+2. **Project**: create an empty project in the Railway dashboard (or `railway init`), connect the Railway GitHub app to `toneflix/photos`, and run `railway link` from the repository root.
+3. **Dependencies**: `pnpm install` at the root installs the `railway` package that `.railway/railway.ts` imports.
+4. **Apply**: preview, then create the database, volume and service:
+
+   ```sh
+   railway config plan
+   railway config apply
+   ```
+
+5. **Secrets**: the file keeps these variables with `preserve()`, so set their values on the `api` service in the dashboard (or `railway variables --set`) and they survive later applies:
 
    | Variable | Value |
    | --- | --- |
-   | `APP_URL` | Public API address, e.g. `https://api.photos.toneflix.net` |
-   | `FRONTEND_URL` | `https://photos.toneflix.net` |
    | `APP_KEY` | A new key: `pnpm --filter @photos/api exec ark key:generate` locally, then copy the value |
-   | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (the reference to the database service) |
-   | `TRUST_PROXY` | `2`: one hop for Railway's proxy and one for the web app's Worker, which forwards the visitor's IP. Without it every web visitor shares the Worker's IP and its rate limit. After the first deploy, sign in through the web app and check that Settings → Devices shows your own IP, not a Cloudflare one. |
-   | `MAIL_*` | A real SMTP server (`MAIL_TRANSPORT` other than `file`) |
+   | `MAIL_*` | A real SMTP server (`MAIL_TRANSPORT=smtp`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_SECURE`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`) |
    | `CORS_ALLOWED_ORIGINS` | Origins allowed to call the API from a browser, if any |
-   | `PHOTOS_DISK`, `AWS_*` | `s3` and the bucket settings, when using a bucket. For a Railway Bucket use its credentials: `AWS_BUCKET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION` and `AWS_ENDPOINT`. |
-   | `CACHE_STORE` | `redis` (add a Redis service and set `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` from it) when running more than one replica. `memory` is fine for one. |
+   | `PHOTOS_DISK`, `AWS_*` | Leave empty to keep photos on the volume. Set `PHOTOS_DISK=s3` and the bucket settings to use S3, Cloudflare R2 or a Railway Bucket instead. |
 
-   Do not set `PORT`, `APP_PORT` or `APP_HOST`: Railway provides `PORT` and the API listens on `0.0.0.0` by default.
+   The rest (`DATABASE_URL`, `APP_URL`, `FRONTEND_URL`, `PORT`, `TRUST_PROXY`, cache and queue) is in the file. `TRUST_PROXY=2` counts Railway's proxy and the web app's Worker, which forwards the visitor's IP. After the first deploy, sign in through the web app and check that Settings → Devices shows your own IP, not a Cloudflare one.
 
-5. **Domain**: under the service's **Networking**, add the custom domain `api.photos.toneflix.net` (or generate a Railway domain) and add the CNAME record Railway shows.
-6. **Web and mobile**: set the GitHub variable `API_URL` to the new address with `/api` on the end, e.g. `https://api.photos.toneflix.net/api`, so the web and Android builds call it.
+6. **Domain**: the file adds `api.photos.toneflix.net`. Add the CNAME record Railway shows for it when you move the API over.
+7. **Web and mobile**: set the GitHub variable `API_URL` to `https://api.photos.toneflix.net/api` so the web and Android builds call it.
+
+## Changing the setup
+
+Edit `.railway/railway.ts`, then `railway config plan` and `railway config apply`. Anything removed from the file (a variable, the volume, the database) is deleted by the next apply, which asks before destructive changes. Settings changed only in the dashboard are reverted by the next apply unless the file uses `preserve()` for them.
+
+To run more than one replica, move photos to a bucket (a volume pins the service to one replica), add a `redis()` database and set `CACHE_STORE=redis` with its `REDIS_*` settings, so rate limits and cache are shared.
 
 ## Day to day
 
-- **Deploy**: push to the branch the service tracks. Only changes to the API, the shared packages or the workspace manifests trigger a build (`watchPatterns` in `railway.json`).
+- **Deploy**: push to `main`.
 - **Roll back**: open an earlier deploy in the service's **Deployments** tab and choose **Redeploy**. A rollback does not undo migrations.
-- **Logs**: the service's **Deployments** tab, or `railway logs` with the [Railway CLI](https://docs.railway.com/cli).
+- **Logs**: the **Deployments** tab, or `railway logs`.
 - **One-off commands**: `railway ssh` into the running service, then run `pnpm exec ark <command>` (it starts in `/app/apps/api`).
 
-When the API runs on Railway, the **Deploy API** workflow is not needed. Leave its SSH secrets unset and don't push to `deploy` expecting it to update Railway, unless Railway also tracks `deploy`.
+When the API runs on Railway, the **Deploy API** workflow is not needed. Leave its SSH secrets unset.
 
 ## Building the image locally
 
