@@ -72,28 +72,30 @@ export default function MakerLayout({ loaderData }: Route.ComponentProps) {
 					</Link>
 				</p>
 			)}
-			<header className="flex flex-col gap-6 sm:flex-row sm:items-center">
-				<Avatar user={maker} size="lg" />
-				<div className="min-w-0">
-					<h1 className="font-display text-4xl font-bold tracking-tight text-ink-900 sm:text-5xl">{maker.name}</h1>
-					<p className="mt-1 font-medium text-ink-700">@{maker.username}</p>
-					<p className="mt-2 text-ink-500">
-						{plural(maker.photoCount, "photo")} · {plural(maker.bookCount, "book")} · {plural(maker.spaceCount, "space")} · Joined{" "}
-						{joined.format(new Date(maker.joinedAt))}
-					</p>
-					<ContentCounts stats={maker.stats} className="mt-2" />
-					<div className="mt-5 flex flex-wrap gap-2">
-						{maker.isListed && (
-							<button type="button" onClick={share} className={buttonClass("secondary")}>
-								{copied ? "Link copied" : "Copy link"}
-							</button>
-						)}
-						{maker.isOwner && (
-							<Link prefetch="intent" to="/settings/profile" className={buttonClass("ghost")}>
-								Edit profile
-							</Link>
-						)}
+			<header>
+				<div className="flex items-center gap-4 sm:gap-6">
+					<Avatar user={maker} size="lg" />
+					<div className="min-w-0">
+						<h1 className="truncate font-display text-3xl font-bold tracking-tight text-ink-900 sm:text-5xl">{maker.name}</h1>
+						<p className="mt-1 truncate font-medium text-ink-700">@{maker.username}</p>
 					</div>
+				</div>
+				<p className="mt-5 text-ink-500">
+					{plural(maker.photoCount, "photo")} · {plural(maker.bookCount, "book")} · {plural(maker.spaceCount, "space")} · Joined{" "}
+					{joined.format(new Date(maker.joinedAt))}
+				</p>
+				<ContentCounts stats={maker.stats} className="mt-2" />
+				<div className="mt-5 flex flex-wrap gap-2">
+					{maker.isListed && (
+						<button type="button" onClick={share} className={buttonClass("secondary")}>
+							{copied ? "Link copied" : "Copy link"}
+						</button>
+					)}
+					{maker.isOwner && (
+						<Link prefetch="intent" to="/settings/profile" className={buttonClass("ghost")}>
+							Edit profile
+						</Link>
+					)}
 				</div>
 			</header>
 			<nav className="mt-10 flex gap-6 border-b-[1.5px] border-surface-200">
