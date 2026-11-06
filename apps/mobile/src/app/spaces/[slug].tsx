@@ -18,7 +18,7 @@ import { colors, radius } from '@/theme'
 
 type Tab = 'photos' | 'books'
 
-/** A space's page: Explore kept to one space. Private spaces open only for their owner. */
+/** A space's page: Explore kept to one space. Private spaces open only for their owner and members. */
 export default function SpacePage() {
   const { slug } = useLocalSearchParams<{ slug: string }>()
   const insets = useSafeAreaInsets()
@@ -34,11 +34,14 @@ export default function SpacePage() {
     )
   }
 
+  const canAdd = !space.canEdit && space.permissions.includes('create')
+
   const header = (
     <View style={styles.header}>
       {space.canEdit && space.visibility === 'private' && (
-        <Callout tone="warning">Only you can see this page. It shows what visitors will see once you make the space public.</Callout>
+        <Callout tone="warning">Only you and the people you invite can see this page. Its public photos and books show to everyone once you make the space public.</Callout>
       )}
+      {!space.canEdit && space.visibility === 'private' && <Callout tone="warning">This space is private. You can see it because you're a member.</Callout>}
       {space.previews.length > 0 && <SpaceCover photos={space.previews} style={styles.cover} />}
       <View style={styles.titleRow}>
         <Text variant="display" style={styles.flex}>
@@ -60,6 +63,10 @@ export default function SpacePage() {
             <Button title="Add photos" onPress={() => router.navigate({ pathname: '/photos', params: { space: space.id } })} />
             <Button title="Edit space" variant="ghost" onPress={() => router.push({ pathname: '/space-form', params: { id: space.id } })} />
           </>
+        )}
+        {canAdd && <Button title="Add your photos" onPress={() => router.navigate({ pathname: '/photos', params: { space: space.id } })} />}
+        {space.permissions.includes('manage') && (
+          <Button title="Members" variant="secondary" onPress={() => router.push({ pathname: '/space-members', params: { slug: space.slug } })} />
         )}
       </View>
       <View style={styles.tabs}>

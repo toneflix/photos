@@ -1,13 +1,15 @@
 import { useRequest } from 'alova/client'
-import type { Space } from '@photos/types'
+import type { SharedSpace, Space } from '@photos/types'
 import type { Option } from '@/components/ui'
 import { api } from './api'
 
-/** Your spaces, for filters and pickers. */
+/** The spaces you can put work in, for filters and pickers: your own, then the shared ones that let you add. */
 export function useSpaces() {
-  const { data } = useRequest(() => api.spaces.list({ per_page: 100 }))
+  const { data: owned } = useRequest(() => api.spaces.list({ per_page: 100 }))
+  const { data: shared } = useRequest(() => api.spaces.shared({ per_page: 100 }))
+  const joined = ((shared?.data ?? []) as SharedSpace[]).filter((space) => space.permissions.includes('create'))
 
-  return (data?.data ?? []) as Space[]
+  return [...((owned?.data ?? []) as Space[]), ...joined]
 }
 
 /** Options for choosing a space, or none. */
