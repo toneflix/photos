@@ -1,8 +1,8 @@
 import { useEffect } from "react";
+import { formatMoney } from "@photos/types";
 import { Link, useRevalidator } from "react-router";
 import { buttonClass, Spinner } from "~/components/ui";
 import { formError } from "~/lib/api.server";
-import { money } from "~/lib/plans";
 import { requireSignIn } from "~/lib/session.server";
 import type { Route } from "./+types/checkout-complete";
 
@@ -45,8 +45,16 @@ export default function CheckoutComplete({ loaderData }: Route.ComponentProps) {
 		: payment.status === "complete"
 			? { title: "You're all set", body: `${payment.title} is yours. Thanks for supporting Toneflix Photos.`, tone: "good" }
 			: payment.status === "rejected"
-				? { title: "This payment didn't go through", body: "Nothing was added to your plan. If you were charged, Flutterwave returns it, or contact us with the reference below.", tone: "warn" }
-				: { title: "Confirming your payment", body: "This page updates as soon as Flutterwave confirms it. You can leave it; your plan updates either way.", tone: "wait" };
+				? {
+						title: "This payment didn't go through",
+						body: "Nothing was added to your plan. If you were charged, Flutterwave returns it, or contact us with the reference below.",
+						tone: "warn",
+					}
+				: {
+						title: "Confirming your payment",
+						body: "This page updates as soon as Flutterwave confirms it. You can leave it; your plan updates either way.",
+						tone: "wait",
+					};
 
 	return (
 		<main className="mx-auto max-w-xl px-4 py-16 sm:px-6">
@@ -60,7 +68,11 @@ export default function CheckoutComplete({ loaderData }: Route.ComponentProps) {
 						<Spinner className="h-6 w-6" />
 					) : (
 						<svg viewBox="0 0 20 20" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
-							{content.tone === "good" ? <path d="m4.5 10.5 3.5 3.5 7.5-8" strokeLinecap="round" strokeLinejoin="round" /> : <path d="M10 6v5M10 14h.01" strokeLinecap="round" />}
+							{content.tone === "good" ? (
+								<path d="m4.5 10.5 3.5 3.5 7.5-8" strokeLinecap="round" strokeLinejoin="round" />
+							) : (
+								<path d="M10 6v5M10 14h.01" strokeLinecap="round" />
+							)}
 						</svg>
 					)}
 				</div>
@@ -68,7 +80,7 @@ export default function CheckoutComplete({ loaderData }: Route.ComponentProps) {
 				<p className="mt-3 text-ink-500">{content.body}</p>
 				{payment && (
 					<p className="mt-5 text-sm text-ink-500">
-						{money(payment.chargeAmount, payment.chargeCurrency)} · Reference {payment.reference}
+						{formatMoney(payment.chargeAmount, payment.chargeCurrency)} · Reference {payment.reference}
 					</p>
 				)}
 				<div className="mt-8 flex flex-wrap justify-center gap-3">

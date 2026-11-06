@@ -1,8 +1,8 @@
 import { Form, useSubmit } from "react-router";
+import { periodLabel } from "@photos/types";
 import type { AdminPlan, AdminUserDetail, AdminUser, Role } from "@photos/types";
 import { useState } from "react";
 import { Button, Select } from "~/components/ui";
-import { periodLabel } from "~/lib/plans";
 
 /** Change an account's role, or suspend it and let it back in. Posts to the page it is on. */
 export function AccountControls({ account, roles, isMe, busy }: { account: AdminUser; roles: Role[]; isMe: boolean; busy: boolean }) {
@@ -25,7 +25,8 @@ export function AccountControls({ account, roles, isMe, busy }: { account: Admin
 				method="post"
 				preventScrollReset
 				onSubmit={(event) => {
-					if (!account.suspended && !confirm(`Suspend ${account.name}? They are signed out everywhere and can't sign in until you let them back in.`)) event.preventDefault();
+					if (!account.suspended && !confirm(`Suspend ${account.name}? They are signed out everywhere and can't sign in until you let them back in.`))
+						event.preventDefault();
 				}}
 			>
 				<input type="hidden" name="intent" value="suspend" />

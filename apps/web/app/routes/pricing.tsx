@@ -1,9 +1,9 @@
 import { useState } from "react";
+import { periodLabel } from "@photos/types";
 import { Form, Link, data, redirect, useNavigation } from "react-router";
 import { CycleSwitch, PlanCard } from "~/components/plans/PlanCard";
 import { Alert, buttonClass } from "~/components/ui";
 import { formError } from "~/lib/api.server";
-import { periodLabel } from "~/lib/plans";
 import { Session, optionalUser, requireSignIn } from "~/lib/session.server";
 import type { Route } from "./+types/pricing";
 
@@ -75,7 +75,9 @@ export default function Pricing({ loaderData, actionData }: Route.ComponentProps
 						<PlanCard key={plan.id} plan={plan} cycles={billing.cycles} current={isCurrent}>
 							{plan.price <= 0 ? (
 								signedIn ? (
-									<span className={buttonClass("secondary", "w-full !cursor-default")}>{isCurrent ? "You're on this plan" : "Included with every account"}</span>
+									<span className={buttonClass("secondary", "w-full !cursor-default")}>
+										{isCurrent ? "You're on this plan" : "Included with every account"}
+									</span>
 								) : (
 									<Link prefetch="intent" to="/signup" className={buttonClass("secondary", "w-full")}>
 										Start for free
@@ -98,10 +100,7 @@ export default function Pricing({ loaderData, actionData }: Route.ComponentProps
 			<p className="mt-10 text-center text-sm text-ink-500">
 				Payments are taken securely by Flutterwave. Plans don't renew on their own: when your time ends you're back on Free, and everything you made stays.
 				{current?.premium && current.endsAt && (
-					<>
-						{" "}
-						Time you add starts after your current plan ends on {new Date(current.endsAt).toLocaleDateString(undefined, { dateStyle: "medium" })}.
-					</>
+					<> Time you add starts after your current plan ends on {new Date(current.endsAt).toLocaleDateString(undefined, { dateStyle: "medium" })}.</>
 				)}
 			</p>
 		</main>

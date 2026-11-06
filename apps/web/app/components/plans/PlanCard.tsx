@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
+import { featureLine, formatMoney, periodLabel } from "@photos/types";
 import type { Plan } from "@photos/types";
-import { featureLine, money, periodLabel } from "~/lib/plans";
 
 /** One plan on the pricing page: its price for the chosen billing, what it includes, and an action. */
 export function PlanCard({ plan, cycles, current, children }: { plan: Plan; cycles: number; current: boolean; children: ReactNode }) {
@@ -16,13 +16,13 @@ export function PlanCard({ plan, cycles, current, children }: { plan: Plan; cycl
 			</div>
 			{plan.description && <p className="mt-1 text-ink-500">{plan.description}</p>}
 			<p className="mt-6 flex items-baseline gap-1.5">
-				<span className="font-display text-4xl font-bold tracking-tight text-ink-900">{free ? "Free" : money(perPeriod, plan.chargeCurrency)}</span>
+				<span className="font-display text-4xl font-bold tracking-tight text-ink-900">{free ? "Free" : formatMoney(perPeriod, plan.chargeCurrency)}</span>
 				{!free && <span className="text-ink-500">/ {periodLabel(plan)}</span>}
 			</p>
 			<p className="mt-1 min-h-5 text-sm text-ink-500">
 				{!free && billing.cycles > 1 && (
 					<>
-						{money(billing.charge, plan.chargeCurrency)} every {periodLabel(plan, billing.cycles)}
+						{formatMoney(billing.charge, plan.chargeCurrency)} every {periodLabel(plan, billing.cycles)}
 						{billing.discount > 0 && <span className="font-semibold text-emerald-700"> · save {billing.discount}%</span>}
 					</>
 				)}
@@ -34,8 +34,19 @@ export function PlanCard({ plan, cycles, current, children }: { plan: Plan; cycl
 
 					return (
 						<li key={feature.key} className={`flex gap-3 ${line.included ? "text-ink-900" : "text-ink-500 line-through decoration-ink-500/40"}`}>
-							<svg viewBox="0 0 20 20" className={`mt-0.5 h-4 w-4 shrink-0 ${line.included ? "text-brand-600" : "text-ink-500/60"}`} fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
-								{line.included ? <path d="m4.5 10.5 3.5 3.5 7.5-8" strokeLinecap="round" strokeLinejoin="round" /> : <path d="M6 6l8 8M14 6l-8 8" strokeLinecap="round" />}
+							<svg
+								viewBox="0 0 20 20"
+								className={`mt-0.5 h-4 w-4 shrink-0 ${line.included ? "text-brand-600" : "text-ink-500/60"}`}
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2.2"
+								aria-hidden
+							>
+								{line.included ? (
+									<path d="m4.5 10.5 3.5 3.5 7.5-8" strokeLinecap="round" strokeLinejoin="round" />
+								) : (
+									<path d="M6 6l8 8M14 6l-8 8" strokeLinecap="round" />
+								)}
 							</svg>
 							<span>
 								<span className="sr-only">{line.included ? "Included: " : "Not included: "}</span>
@@ -50,7 +61,15 @@ export function PlanCard({ plan, cycles, current, children }: { plan: Plan; cycl
 }
 
 /** Choose how many billing periods to pay for at once, e.g. monthly or yearly. */
-export function CycleSwitch({ options, value, onChange }: { options: Array<{ cycles: number; label: string; discount: number }>; value: number; onChange: (cycles: number) => void }) {
+export function CycleSwitch({
+	options,
+	value,
+	onChange,
+}: {
+	options: Array<{ cycles: number; label: string; discount: number }>;
+	value: number;
+	onChange: (cycles: number) => void;
+}) {
 	if (options.length < 2) return null;
 
 	return (

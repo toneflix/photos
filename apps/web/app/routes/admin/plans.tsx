@@ -1,4 +1,5 @@
 import { type InputHTMLAttributes, useState } from "react";
+import { formatMoney, limitLabel, periodLabel } from "@photos/types";
 import { Link, data, redirect, useFetcher } from "react-router";
 import type { AdminPlan, AdminPlanFeature, FeatureDefinition, FeatureKey, PlanInput, PlanInterval } from "@photos/types";
 import { AdminHeader } from "~/components/admin/AdminHeader";
@@ -6,7 +7,6 @@ import { Icon } from "~/components/admin/Icon";
 import { Alert, Button, buttonClass } from "~/components/ui";
 import { formError } from "~/lib/api.server";
 import { requireAdmin } from "~/lib/admin.server";
-import { limitLabel, money, periodLabel } from "~/lib/plans";
 import type { Route } from "./+types/plans";
 
 export const meta = () => [{ title: "Plans · Admin · Toneflix Photos" }];
@@ -101,7 +101,7 @@ export default function AdminPlans({ loaderData }: Route.ComponentProps) {
 												{plan.isHidden && <Badge>Hidden</Badge>}
 											</span>
 											<span className="block text-sm text-ink-500">
-												{plan.price > 0 ? `${money(plan.price, plan.currency)} / ${periodLabel(plan)}` : "Free"} · {plan.subscriberCount}{" "}
+												{plan.price > 0 ? `${formatMoney(plan.price, plan.currency)} / ${periodLabel(plan)}` : "Free"} · {plan.subscriberCount}{" "}
 												{plan.subscriberCount === 1 ? "account" : "accounts"} on it now
 											</span>
 										</span>
@@ -130,7 +130,10 @@ function startingForm(plan: AdminPlan | null, catalogue: FeatureDefinition[]): P
 		catalogue.map((feature) => {
 			const stored = plan?.features.find((entry) => entry.key === feature.key);
 
-			return [feature.key, stored ? { value: stored.value, active: stored.active, listed: stored.listed } : { value: feature.fallback, active: true, listed: true }];
+			return [
+				feature.key,
+				stored ? { value: stored.value, active: stored.active, listed: stored.listed } : { value: feature.fallback, active: true, listed: true },
+			];
 		}),
 	) as PlanForm["features"];
 
@@ -159,7 +162,9 @@ function toInput(form: PlanForm): PlanInput {
 		currency: form.currency,
 		interval: form.interval,
 		intervalCount: Number(form.intervalCount) || 1,
-		billingOptions: form.billingOptions.filter((option) => option.cycles).map((option) => ({ cycles: Number(option.cycles), discount: Number(option.discount) || 0 })),
+		billingOptions: form.billingOptions
+			.filter((option) => option.cycles)
+			.map((option) => ({ cycles: Number(option.cycles), discount: Number(option.discount) || 0 })),
 		isDefault: form.isDefault,
 		active: form.active,
 		isHidden: form.isHidden,
@@ -201,21 +206,60 @@ function PlanEditor({ plan, catalogue }: { plan: AdminPlan | null; catalogue: Fe
 				<div>
 					<h2 className="font-display text-2xl font-bold tracking-tight text-ink-900">{plan ? plan.name : "New plan"}</h2>
 					<p className="mt-1 text-ink-500">
-						{plan?.isDefault ? "The default plan. Every account without paid time is on it, so it stays free and on offer." : "Set a price and choose what this plan grants."}
+						{plan?.isDefault
+							? "The default plan. Every account without paid time is on it, so it stays free and on offer."
+							: "Set a price and choose what this plan grants."}
 					</p>
 				</div>
 				{result?.error && <Alert>{result.error}</Alert>}
 
 				<div className="grid gap-5 sm:grid-cols-2">
 					<TextField label="Name" error={errors.name} value={form.name} onChange={(name) => change({ name })} required maxLength={100} placeholder="Studio" />
-					<TextField label="Description" error={errors.description} value={form.description} onChange={(description) => change({ description })} maxLength={500} placeholder="Who this plan is for" />
-					<TextField label="Price" error={errors.price} value={form.price} onChange={(price) => change({ price })} required inputMode="decimal" type="number" min={0} step="0.01" placeholder="5000" />
-					<TextField label="Currency" error={errors.currency} value={form.currency} onChange={(currency) => change({ currency: currency.toUpperCase() })} maxLength={3} placeholder="NGN" />
+					<TextField
+						label="Description"
+						error={errors.description}
+						value={form.description}
+						onChange={(description) => change({ description })}
+						maxLength={500}
+						placeholder="Who this plan is for"
+					/>
+					<TextField
+						label="Price"
+						error={errors.price}
+						value={form.price}
+						onChange={(price) => change({ price })}
+						required
+						inputMode="decimal"
+						type="number"
+						min={0}
+						step="0.01"
+						placeholder="5000"
+					/>
+					<TextField
+						label="Currency"
+						error={errors.currency}
+						value={form.currency}
+						onChange={(currency) => change({ currency: currency.toUpperCase() })}
+						maxLength={3}
+						placeholder="NGN"
+					/>
 					<div className="grid grid-cols-2 gap-3">
-						<TextField label="Every" error={errors.intervalCount} value={form.intervalCount} onChange={(intervalCount) => change({ intervalCount })} type="number" min={1} max={120} />
+						<TextField
+							label="Every"
+							error={errors.intervalCount}
+							value={form.intervalCount}
+							onChange={(intervalCount) => change({ intervalCount })}
+							type="number"
+							min={1}
+							max={120}
+						/>
 						<label className="field flex-col !items-stretch px-3.5 pt-2 pb-2.5">
 							<span className="text-xs font-medium text-ink-500">Period</span>
-							<select value={form.interval} onChange={(event) => change({ interval: event.target.value as PlanInterval })} className="field-input cursor-pointer text-base text-ink-900">
+							<select
+								value={form.interval}
+								onChange={(event) => change({ interval: event.target.value as PlanInterval })}
+								className="field-input cursor-pointer text-base text-ink-900"
+							>
 								{INTERVALS.map((interval) => (
 									<option key={interval} value={interval}>
 										{form.intervalCount === "1" ? interval : `${interval}s`}
@@ -224,7 +268,15 @@ function PlanEditor({ plan, catalogue }: { plan: AdminPlan | null; catalogue: Fe
 							</select>
 						</label>
 					</div>
-					<TextField label="Order on the pricing page" error={errors.sort} value={form.sort} onChange={(sort) => change({ sort })} type="number" min={0} max={1000} />
+					<TextField
+						label="Order on the pricing page"
+						error={errors.sort}
+						value={form.sort}
+						onChange={(sort) => change({ sort })}
+						type="number"
+						min={0}
+						max={1000}
+					/>
 				</div>
 
 				<fieldset className="space-y-3">
@@ -265,14 +317,37 @@ function PlanEditor({ plan, catalogue }: { plan: AdminPlan | null; catalogue: Fe
 
 				<fieldset className="grid gap-3 sm:grid-cols-3">
 					<legend className="mb-3 font-semibold text-ink-900">Availability</legend>
-					<Check label="Default plan" hint="Accounts without paid time are on it." checked={form.isDefault} disabled={plan?.isDefault} onChange={(isDefault) => change({ isDefault })} error={errors.isDefault} />
-					<Check label="On" hint="Off plans can't be bought or given." checked={form.active} disabled={form.isDefault} onChange={(active) => change({ active })} error={errors.active} />
-					<Check label="Hidden" hint="Left off the pricing page. Admins can still give it." checked={form.isHidden} disabled={form.isDefault} onChange={(isHidden) => change({ isHidden })} error={errors.isHidden} />
+					<Check
+						label="Default plan"
+						hint="Accounts without paid time are on it."
+						checked={form.isDefault}
+						disabled={plan?.isDefault}
+						onChange={(isDefault) => change({ isDefault })}
+						error={errors.isDefault}
+					/>
+					<Check
+						label="On"
+						hint="Off plans can't be bought or given."
+						checked={form.active}
+						disabled={form.isDefault}
+						onChange={(active) => change({ active })}
+						error={errors.active}
+					/>
+					<Check
+						label="Hidden"
+						hint="Left off the pricing page. Admins can still give it."
+						checked={form.isHidden}
+						disabled={form.isDefault}
+						onChange={(isHidden) => change({ isHidden })}
+						error={errors.isHidden}
+					/>
 				</fieldset>
 
 				<fieldset>
 					<legend className="mb-1 font-semibold text-ink-900">Features</legend>
-					<p className="mb-4 text-sm text-ink-500">A feature that is off uses the free value. A feature that isn't listed still applies but is left off the pricing page.</p>
+					<p className="mb-4 text-sm text-ink-500">
+						A feature that is off uses the free value. A feature that isn't listed still applies but is left off the pricing page.
+					</p>
 					<div className="panel divide-y-[1.5px] divide-surface-200 overflow-hidden">
 						{catalogue.map((feature) => (
 							<FeatureRow key={feature.key} feature={feature} entry={form.features[feature.key]} onChange={(next) => changeFeature(feature.key, next)} />
@@ -313,7 +388,9 @@ function FeatureRow({ feature, entry, onChange }: { feature: FeatureDefinition; 
 				<p className="text-sm text-ink-500">
 					{feature.description}
 					{feature.type === "limit" &&
-						(feature.setting ? " When off, the limit set in Configuration applies." : ` When off: ${limitLabel({ type: "limit", unit: feature.unit ?? null, value: feature.fallback })}.`)}
+						(feature.setting
+							? " When off, the limit set in Configuration applies."
+							: ` When off: ${limitLabel({ type: "limit", unit: feature.unit ?? null, value: feature.fallback })}.`)}
 				</p>
 			</div>
 			{feature.type === "toggle" ? (
@@ -365,10 +442,32 @@ function TextField({
 	);
 }
 
-function Check({ label, hint, checked, disabled, error, onChange }: { label: string; hint: string; checked: boolean; disabled?: boolean; error?: string; onChange: (checked: boolean) => void }) {
+function Check({
+	label,
+	hint,
+	checked,
+	disabled,
+	error,
+	onChange,
+}: {
+	label: string;
+	hint: string;
+	checked: boolean;
+	disabled?: boolean;
+	error?: string;
+	onChange: (checked: boolean) => void;
+}) {
 	return (
-		<label className={`panel flex items-start gap-3 p-4 transition ${disabled ? "opacity-70" : "cursor-pointer hover:border-ink-500"} has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50`}>
-			<input type="checkbox" checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} className="mt-1 h-4 w-4 accent-brand-600" />
+		<label
+			className={`panel flex items-start gap-3 p-4 transition ${disabled ? "opacity-70" : "cursor-pointer hover:border-ink-500"} has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50`}
+		>
+			<input
+				type="checkbox"
+				checked={checked}
+				disabled={disabled}
+				onChange={(event) => onChange(event.target.checked)}
+				className="mt-1 h-4 w-4 accent-brand-600"
+			/>
 			<span>
 				<span className="block text-sm font-semibold text-ink-900">{label}</span>
 				<span className="block text-sm text-ink-500">{hint}</span>

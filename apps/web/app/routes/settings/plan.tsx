@@ -1,8 +1,8 @@
 import { Link } from "react-router";
+import { featureLine, formatBytes, formatMoney, limitLabel } from "@photos/types";
 import type { AccountPlan } from "@photos/types";
 import { buttonClass } from "~/components/ui";
 import { PageHeader, Section } from "~/components/settings/Section";
-import { bytesLabel, featureLine, limitLabel, money } from "~/lib/plans";
 import { requireSignIn } from "~/lib/session.server";
 import type { Route } from "./+types/plan";
 
@@ -18,7 +18,17 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 const STATUS = { complete: "Paid", pending: "Waiting", rejected: "Didn't go through" } as const;
 
 /** How much of one limit is used, as a bar. A limit of 0 means no limit. */
-function Usage({ label, used, limit, format = (value: number) => value.toLocaleString("en") }: { label: string; used: number; limit: number; format?: (value: number) => string }) {
+function Usage({
+	label,
+	used,
+	limit,
+	format = (value: number) => value.toLocaleString("en"),
+}: {
+	label: string;
+	used: number;
+	limit: number;
+	format?: (value: number) => string;
+}) {
 	const share = limit > 0 ? Math.min(100, (used / limit) * 100) : 0;
 
 	return (
@@ -30,7 +40,10 @@ function Usage({ label, used, limit, format = (value: number) => value.toLocaleS
 				</span>
 			</div>
 			<div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-200" aria-hidden>
-				<div className={`h-full rounded-full ${share >= 90 ? "bg-amber-500" : "bg-brand-600"}`} style={{ width: `${limit > 0 ? Math.max(share, used ? 2 : 0) : 0}%` }} />
+				<div
+					className={`h-full rounded-full ${share >= 90 ? "bg-amber-500" : "bg-brand-600"}`}
+					style={{ width: `${limit > 0 ? Math.max(share, used ? 2 : 0) : 0}%` }}
+				/>
 			</div>
 		</div>
 	);
@@ -55,7 +68,9 @@ export default function PlanSettings({ loaderData }: Route.ComponentProps) {
 							<p className="text-xs font-semibold tracking-[0.14em] text-ink-500 uppercase">Your plan</p>
 							<p className="mt-1 font-display text-3xl font-bold tracking-tight text-ink-900">{plan.plan.name}</p>
 							<p className="mt-1 text-sm text-ink-500">
-								{endsAt ? `Paid until ${endsAt}. It doesn't renew on its own; after that you're back on Free and keep everything you made.` : plan.plan.description}
+								{endsAt
+									? `Paid until ${endsAt}. It doesn't renew on its own; after that you're back on Free and keep everything you made.`
+									: plan.plan.description}
 							</p>
 						</div>
 						<Link prefetch="intent" to="/pricing" className={buttonClass(plan.premium ? "secondary" : "primary")}>
@@ -63,7 +78,7 @@ export default function PlanSettings({ loaderData }: Route.ComponentProps) {
 						</Link>
 					</div>
 					<div className="mt-8 grid gap-6 sm:grid-cols-3">
-						<Usage label="Storage" used={plan.usage.storage.used} limit={plan.usage.storage.limit} format={bytesLabel} />
+						<Usage label="Storage" used={plan.usage.storage.used} limit={plan.usage.storage.limit} format={formatBytes} />
 						<Usage label="Books" used={plan.usage.books} limit={limitOf(plan, "max_books")} />
 						<Usage label="Spaces" used={plan.usage.spaces} limit={limitOf(plan, "max_spaces")} />
 					</div>
@@ -96,8 +111,10 @@ export default function PlanSettings({ loaderData }: Route.ComponentProps) {
 										</p>
 									</div>
 									<div className="text-right">
-										<p className="font-medium text-ink-900">{money(payment.chargeAmount, payment.chargeCurrency)}</p>
-										<p className={payment.status === "complete" ? "text-emerald-700" : payment.status === "pending" ? "text-ink-500" : "text-amber-700"}>{STATUS[payment.status]}</p>
+										<p className="font-medium text-ink-900">{formatMoney(payment.chargeAmount, payment.chargeCurrency)}</p>
+										<p className={payment.status === "complete" ? "text-emerald-700" : payment.status === "pending" ? "text-ink-500" : "text-amber-700"}>
+											{STATUS[payment.status]}
+										</p>
 									</div>
 								</li>
 							))}

@@ -60,7 +60,10 @@ export default function AdminPaymentRegions({ loaderData }: Route.ComponentProps
 
 	return (
 		<>
-			<AdminHeader title="Payment regions" description="Charge a group of countries in their own currency. Everyone else pays the plan's price in the plan's currency." />
+			<AdminHeader
+				title="Payment regions"
+				description="Charge a group of countries in their own currency. Everyone else pays the plan's price in the plan's currency."
+			/>
 			<div className="lg:grid lg:grid-cols-[22rem_1fr]">
 				<nav aria-label="Payment regions" className={`border-surface-200 p-3 lg:block lg:border-r-[1.5px] ${chosen ? "hidden" : ""}`}>
 					<Link prefetch="intent" to="/admin/payment-regions/new" className={buttonClass("brand", "mb-3 w-full")}>
@@ -150,7 +153,12 @@ function RegionEditor({ region }: { region: PaymentRegion | null }) {
 		<div>
 			<label className="field flex-col !items-stretch px-3.5 pt-2 pb-2.5" aria-invalid={errors[name] ? true : undefined}>
 				<span className="text-xs font-medium text-ink-500">{label}</span>
-				<input {...props} value={String(form[name])} onChange={(event) => change({ [name]: event.target.value })} className="field-input text-base text-ink-900" />
+				<input
+					{...props}
+					value={String(form[name])}
+					onChange={(event) => change({ [name]: event.target.value })}
+					className="field-input text-base text-ink-900"
+				/>
 			</label>
 			{errors[name] ? <p className="mt-1.5 px-1 text-xs text-red-700">{errors[name]}</p> : hint && <p className="mt-1.5 px-1 text-xs text-ink-500">{hint}</p>}
 		</div>
@@ -177,12 +185,32 @@ function RegionEditor({ region }: { region: PaymentRegion | null }) {
 				<div className="grid gap-5 sm:grid-cols-2">
 					{field("Name", "name", { required: true, maxLength: 80, placeholder: "Ghana" })}
 					{field("Currency", "currency", { required: true, maxLength: 3, placeholder: "GHS" }, "The three-letter code Flutterwave charges in.")}
-					{field("Countries", "countries", { required: true, placeholder: "GH" }, countries.length ? countries.map(countryName).join(", ") : "Two-letter codes, separated by commas.")}
-					{field("Fixed rate", "exchangeRate", { type: "number", min: 0, step: "any", placeholder: "Live rate" }, "One unit of the plan currency in this currency. Leave empty to use the live rate.")}
-					{field("Markup on the live rate", "rateMarkup", { type: "number", min: 0, max: 100, step: "0.01" }, "Percent added to the live rate to cover conversion costs.")}
+					{field(
+						"Countries",
+						"countries",
+						{ required: true, placeholder: "GH" },
+						countries.length ? countries.map(countryName).join(", ") : "Two-letter codes, separated by commas.",
+					)}
+					{field(
+						"Fixed rate",
+						"exchangeRate",
+						{ type: "number", min: 0, step: "any", placeholder: "Live rate" },
+						"One unit of the plan currency in this currency. Leave empty to use the live rate.",
+					)}
+					{field(
+						"Markup on the live rate",
+						"rateMarkup",
+						{ type: "number", min: 0, max: 100, step: "0.01" },
+						"Percent added to the live rate to cover conversion costs.",
+					)}
 				</div>
 				<label className="panel flex max-w-md cursor-pointer items-start gap-3 p-4 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50">
-					<input type="checkbox" checked={form.active} onChange={(event) => change({ active: event.target.checked })} className="mt-1 h-4 w-4 accent-brand-600" />
+					<input
+						type="checkbox"
+						checked={form.active}
+						onChange={(event) => change({ active: event.target.checked })}
+						className="mt-1 h-4 w-4 accent-brand-600"
+					/>
 					<span>
 						<span className="block text-sm font-semibold text-ink-900">On</span>
 						<span className="block text-sm text-ink-500">When off, these countries pay the plan's own price.</span>
