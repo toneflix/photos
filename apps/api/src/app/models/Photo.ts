@@ -358,7 +358,7 @@ export class Photo extends Model {
 
   /** Delete the photo and its file, taking it out of every book first. */
   async remove(): Promise<void> {
-    await (await this.coverOf().where({ userId: this.userId }).getQuery()).update({ coverPhotoId: null })
+    await (await this.coverOf().where({ userId: this.userId }).getQuery()).updateFrom({ coverPhotoId: null })
 
     const pages = await BookPage.query()
       .whereHas('book', (query) => query.where({ userId: this.userId }))
