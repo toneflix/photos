@@ -97,6 +97,10 @@ describe('account', () => {
     await api('post', '/auth/forgot-password', { email }).expect(200)
 
     const html = await lastMailTo(email)
+
+    expect(html).toContain('>Reset your password</h1>')
+    expect(html).toContain('/brand/toneflix-mark.png')
+
     const link = new URL(html.match(/href="([^"]*reset-password[^"]*)"/)![1].replace(/&#38;/g, '&')).searchParams.get('token')
 
     await api('post', '/auth/reset-password', { token: link, password: 'password789', password_confirmation: 'password789' }).expect(200)

@@ -60,13 +60,14 @@ export class AccountMail {
 
   private static send(to: User | string, subject: string, message: string) {
     return Notification.mail()
-      .prepare(to as never)
+      .prepare(to as never, { frontend_url: config('app.frontend_url') })
+      .view('mails/default')
       .subject(subject)
       .send(message)
   }
 
   private static button(label: string, link: string) {
-    return `<p><a href="${AccountMail.escape(link)}" style="display:inline-block;padding:12px 20px;border-radius:999px;background:#1f1b16;color:#fbf8f1;text-decoration:none">${label}</a></p>`
+    return `<p><a href="${AccountMail.escape(link)}" style="display:inline-block;padding:12px 20px;border-radius:999px;background:#f6c101;color:#111c33;font-weight:600;text-decoration:none">${label}</a></p>`
   }
 
   private static escape(value: string) {
