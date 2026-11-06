@@ -11,7 +11,7 @@ import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
 import { ClothPicker, CoverDesignPicker } from "~/components/book/CoverPickers";
-import { PhotoPositionControls, storedPosition } from "~/components/book/PhotoPositionControls";
+import { jsonPosition, PhotoPositionControls, storedPosition } from "~/components/book/PhotoPositionControls";
 import { Button, Field, Input, Textarea, buttonClass, Spinner } from "~/components/ui";
 import type { Route } from "./+types/book-edit";
 
@@ -138,7 +138,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 						caption: p.caption || null,
 						photoIds: p.photos.map((ph) => ph.id),
 						photoFrames: p.photos.map((ph) => ph.frame),
-						photoPositions: p.photos.map((ph) => ph.position),
+						photoPositions: p.photos.map((ph) => jsonPosition(ph.position)),
 					})),
 				},
 				{ method: "post", encType: "application/json" },
@@ -782,7 +782,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 		fetcher.submit(
 			{
 				intent: "update",
-				changes: { title, description: description || null, theme, coverDesign, coverText, coverPhotoId, coverPosition, ...(book.isOwner ? { visibility, spaceId: spaceId || null } : {}) },
+				changes: { title, description: description || null, theme, coverDesign, coverText, coverPhotoId, coverPosition: jsonPosition(coverPosition), ...(book.isOwner ? { visibility, spaceId: spaceId || null } : {}) },
 			},
 			{ method: "post", encType: "application/json" },
 		);

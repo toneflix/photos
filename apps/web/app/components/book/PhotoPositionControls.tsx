@@ -7,6 +7,9 @@ export const storedPosition = (position: Partial<PhotoPosition> | null): PhotoPo
 	return crop.isCentred ? null : crop.toJSON();
 };
 
+/** A position as plain JSON, which form submissions take. */
+export const jsonPosition = (position: PhotoPosition | null) => position && { x: position.x, y: position.y, zoom: position.zoom };
+
 /**
  * Zoom and centre controls for a photo whose part on show is chosen by dragging it where it is printed.
  */
