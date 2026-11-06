@@ -67,6 +67,13 @@ export default [
 			route("books", "routes/explore/books.tsx", { id: "space-books" }),
 			route("members", "routes/space/members.tsx"),
 		]),
+
+		// A maker's profile: Explore kept to one maker's public work.
+		route("makers/:maker", "routes/maker/layout.tsx", [
+			index("routes/explore/photos.tsx", { id: "maker-photos" }),
+			route("books", "routes/explore/books.tsx", { id: "maker-books" }),
+			route("spaces", "routes/explore/spaces.tsx", { id: "maker-spaces" }),
+		]),
 		route("licenses", "routes/licenses.tsx"),
 		route("pricing", "routes/pricing.tsx"),
 	]),

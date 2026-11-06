@@ -17,6 +17,9 @@ export function AccountMenu({ user }: { user: User }) {
 					<p className="truncate text-xs text-ink-500">{user.email}</p>
 				</div>
 				<div className="my-1 border-t border-surface-200" />
+				<Link prefetch="intent" to={`/makers/${user.id}`} className={item}>
+					Your profile
+				</Link>
 				<Link prefetch="intent" to="/unlock" className={item}>
 					Open a book with a code
 				</Link>

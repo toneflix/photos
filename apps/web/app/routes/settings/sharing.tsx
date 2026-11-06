@@ -118,8 +118,10 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 						<label className="flex cursor-pointer items-start gap-3">
 							<input type="checkbox" name="showOwnerName" defaultChecked={user.showOwnerName} className="mt-1 h-4 w-4 accent-brand-600" />
 							<span>
-								<span className="block text-sm font-medium text-ink-900">Show my name on books I share</span>
-								<span className="block text-xs text-ink-500">When off, people opening your books don't see who made them.</span>
+								<span className="block text-sm font-medium text-ink-900">Show my name on work I share</span>
+								<span className="block text-xs text-ink-500">
+									When off, people don't see who made your public photos and books, and only you can open your profile.
+								</span>
 							</span>
 						</label>
 						<label className="flex cursor-pointer items-start gap-3">

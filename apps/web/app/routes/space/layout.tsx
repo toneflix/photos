@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ContentCounts } from "~/components/ContentCounts";
-import { data, Link, NavLink, Outlet, type MetaDescriptor, type ShouldRevalidateFunctionArgs } from "react-router";
+import { data, Link, NavLink, Outlet, type ShouldRevalidateFunctionArgs } from "react-router";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { getServerApi } from "~/lib/api.server";
 import { revalidateOnSubmit } from "~/lib/revalidate";
@@ -9,12 +9,6 @@ import { SpaceCover } from "~/components/spaces/SpaceCover";
 import { VisibilityBadge, spaceCounts } from "~/components/spaces/SpaceCard";
 import { buttonClass } from "~/components/ui";
 import type { Route } from "./+types/layout";
-
-/** Meta arguments for pages that also open inside a space and use its title there. */
-export interface SpaceMetaArgs {
-	params: { slug?: string };
-	matches: ({ id: string; meta: MetaDescriptor[] } | undefined)[];
-}
 
 export function meta({ loaderData }: Route.MetaArgs) {
 	const space = loaderData?.space;
