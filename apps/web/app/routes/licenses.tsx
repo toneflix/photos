@@ -53,7 +53,7 @@ export default function Licenses() {
 						<li>Your photos are private until you turn on Show on Explore. You keep all rights unless you pick another licence.</li>
 						<li>
 							Set the licence for new uploads in{" "}
-							<Link to="/settings/sharing" className="font-medium text-brand-700 hover:underline">
+							<Link prefetch="intent" to="/settings/sharing" className="font-medium text-brand-700 hover:underline">
 								Sharing settings
 							</Link>
 							, and change it for any photo from your library.

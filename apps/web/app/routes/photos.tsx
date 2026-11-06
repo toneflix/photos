@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Form, Link, useFetcher, useNavigation, useSearchParams } from "react-router";
 import type { Photo, Space } from "@photos/types";
-import { requireUser } from "~/lib/session.server";
+import { requireSignIn } from "~/lib/session.server";
+import { spaceFiltered } from "~/lib/space-filter.server";
 import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
@@ -23,18 +24,18 @@ export const meta = () => [{ title: "Your photos · Toneflix Photos" }];
 const PER_PAGE = 120;
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const url = new URL(request.url);
 	const pages = Math.max(1, Number(url.searchParams.get("pages")) || 1);
-	const { data: spaces } = await api.spaces.list({ per_page: 100 });
-	const space = spaces.find((item) => item.id === url.searchParams.get("space")) ?? null;
 	const filters = {
 		q: searchText(url),
 		orientation: filterParam(url, "orientation", ["landscape", "portrait", "square"] as const),
 		visibility: filterParam(url, "visibility", ["private", "public"] as const),
 		sort: filterParam(url, "sort", ["latest", "oldest"] as const),
 	};
-	const result = await api.photos.list({ ...filters, space: space?.id, page: 1, per_page: Math.min(PER_PAGE * pages, 600) });
+	const list = (space?: string) => api.photos.list({ ...filters, space, page: 1, per_page: Math.min(PER_PAGE * pages, 600) });
+
+	const { spaces, space, result } = await spaceFiltered(url, api, list);
 
 	return {
 		photos: result.data,
@@ -48,7 +49,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	return handlePhotoIntent(api, await request.formData());
 }
 
@@ -99,7 +100,7 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 						{space && (
 							<>
 								{" "}
-								<Link to={`/spaces/${space.slug}`} className="font-medium text-brand-700 hover:underline">
+								<Link prefetch="intent" to={`/spaces/${space.slug}`} className="font-medium text-brand-700 hover:underline">
 									Open the space page
 								</Link>
 							</>
@@ -353,7 +354,7 @@ function PhotoDialog({ photo: initial, spaces, onClose }: { photo: Photo; spaces
 							</Select>
 							<span className="mt-1.5 block text-ink-500">{license.forCreators}</span>
 						</label>
-						<Link to="/licenses" className="mt-1 inline-block text-sm font-medium text-brand-700 hover:underline">
+						<Link prefetch="intent" to="/licenses" className="mt-1 inline-block text-sm font-medium text-brand-700 hover:underline">
 							About licences
 						</Link>
 					</licensing.Form>

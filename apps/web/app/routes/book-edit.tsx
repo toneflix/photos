@@ -343,7 +343,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 			<div className="flex h-dvh flex-col bg-[#ece6da]">
 				{/* Header */}
 				<header className="flex items-center gap-3 border-b border-surface-300/70 bg-surface-50 px-3 py-2.5 sm:px-5">
-					<Link
+					<Link prefetch="intent"
 						to={book.isOwner ? "/books" : `/books/${book.id}`}
 						className="rounded-full p-2 text-ink-700 hover:bg-surface-200"
 						aria-label={book.isOwner ? "Back to your books" : "Back to the book"}
@@ -364,7 +364,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 							<path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
 						</svg>
 					</Button>
-					<Link to={`/books/${book.id}`} className={buttonClass("primary")}>
+					<Link prefetch="intent" to={`/books/${book.id}`} className={buttonClass("primary")}>
 						<svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
 							<path d="M3 5.5C5.5 4 9 4 12 6c3-2 6.5-2 9-.5v13c-2.5-1.5-6-1.5-9 .5-3-2-6.5-2-9-.5z" strokeLinejoin="round" />
 							<path d="M12 6v13" />
@@ -890,7 +890,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 							)}
 							<p className="mt-3 text-sm text-ink-500">
 								Give people an access code to open it while it's private, or to let them add photos, edit it or claim it.{" "}
-								<Link to={`/books/${book.id}/access`} className="font-medium text-brand-700 hover:underline">
+								<Link prefetch="intent" to={`/books/${book.id}/access`} className="font-medium text-brand-700 hover:underline">
 									Access codes
 								</Link>
 							</p>

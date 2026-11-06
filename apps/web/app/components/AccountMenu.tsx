@@ -17,16 +17,16 @@ export function AccountMenu({ user }: { user: User }) {
 					<p className="truncate text-xs text-ink-500">{user.email}</p>
 				</div>
 				<div className="my-1 border-t border-surface-200" />
-				<Link to="/unlock" className={item}>
+				<Link prefetch="intent" to="/unlock" className={item}>
 					Open a book with a code
 				</Link>
-				<Link to="/settings" className={item}>
+				<Link prefetch="intent" to="/settings" className={item}>
 					Settings
 				</Link>
-				<Link to="/settings/devices" className={item}>
+				<Link prefetch="intent" to="/settings/devices" className={item}>
 					Devices
 				</Link>
-				<Link to="/settings/data" className={item}>
+				<Link prefetch="intent" to="/settings/data" className={item}>
 					Download your data
 				</Link>
 				<div className="my-1 border-t border-surface-200" />

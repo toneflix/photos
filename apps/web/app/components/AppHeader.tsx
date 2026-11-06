@@ -17,37 +17,37 @@ export function AppHeader({ user }: { user: User | null }) {
 				<nav className="flex items-center gap-1 rounded-full border-[1.5px] border-surface-200 bg-surface-100 p-1">
 					{user && (
 						<>
-							<NavLink to="/books" className={tab}>
+							<NavLink prefetch="intent" to="/books" className={tab}>
 								Books
 							</NavLink>
-							<NavLink to="/photos" className={tab}>
+							<NavLink prefetch="intent" to="/photos" className={tab}>
 								Photos
 							</NavLink>
-							<NavLink to="/spaces" end className={tab}>
+							<NavLink prefetch="intent" to="/spaces" end className={tab}>
 								Spaces
 							</NavLink>
 						</>
 					)}
-					<NavLink to="/explore" className={tab}>
+					<NavLink prefetch="intent" to="/explore" className={tab}>
 						Explore
 					</NavLink>
 				</nav>
 				{user ? (
 					<div className="flex items-center gap-3">
-						<Link to="/photos" className={buttonClass("primary", "max-sm:hidden")}>
+						<Link prefetch="intent" to="/photos" className={buttonClass("primary", "max-sm:hidden")}>
 							Upload
 						</Link>
 						<AccountMenu key={pathname} user={user} />
 					</div>
 				) : (
 					<div className="flex items-center gap-1 sm:gap-2">
-						<Link to="/unlock" className={buttonClass("ghost", "max-lg:hidden")}>
+						<Link prefetch="intent" to="/unlock" className={buttonClass("ghost", "max-lg:hidden")}>
 							Have a code?
 						</Link>
-						<Link to={`/signin?next=${encodeURIComponent(pathname)}`} className={buttonClass("ghost", "max-sm:hidden")}>
+						<Link prefetch="intent" to={`/signin?next=${encodeURIComponent(pathname)}`} className={buttonClass("ghost", "max-sm:hidden")}>
 							Sign in
 						</Link>
-						<Link to="/signup" className={buttonClass("primary")}>
+						<Link prefetch="intent" to="/signup" className={buttonClass("primary")}>
 							Join free
 						</Link>
 					</div>

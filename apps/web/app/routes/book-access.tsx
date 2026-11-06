@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { data, Form, Link, redirect, useFetcher, useNavigation } from "react-router";
 import { BOOK_PERMISSIONS, type BookAccessCode, type BookPermission } from "@photos/types";
 import { formError } from "~/lib/api.server";
-import { requireUser } from "~/lib/session.server";
+import { requireSignIn } from "~/lib/session.server";
 import { Alert, Button, Field, Input, Select } from "~/components/ui";
 import type { Route } from "./+types/book-access";
 
@@ -21,7 +21,7 @@ const EXPIRY: [string, number | null][] = [
 const EXTRA_PERMISSIONS: BookPermission[] = ["add", "edit", "transfer"];
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const book = await api.books.get(params.id).then(
 		(response) => response.data,
 		() => {
@@ -37,7 +37,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, params, context }: Route.ActionArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const form = await request.formData();
 	const intent = form.get("intent");
 	const permissions = form.getAll("permissions").map(String) as BookPermission[];
@@ -80,7 +80,7 @@ export default function BookAccess({ loaderData, actionData }: Route.ComponentPr
 
 	return (
 		<main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
-			<Link to={`/books/${book.id}/edit`} className="text-sm font-medium text-brand-700 hover:underline">
+			<Link prefetch="intent" to={`/books/${book.id}/edit`} className="text-sm font-medium text-brand-700 hover:underline">
 				← Back to “{book.title}”
 			</Link>
 			<h1 className="mt-3 font-display text-4xl font-bold tracking-tight text-ink-900">Access codes</h1>

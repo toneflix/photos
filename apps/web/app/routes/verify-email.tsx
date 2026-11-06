@@ -38,13 +38,13 @@ export default function VerifyEmail({ loaderData }: Route.ComponentProps) {
 			{!verified && (
 				<p className="mb-6 text-sm text-ink-500">
 					Links work for 24 hours and only for the address they were sent to. You can send a new one from{" "}
-					<Link to="/settings/email" className="font-medium text-brand-700 hover:underline">
+					<Link prefetch="intent" to="/settings/email" className="font-medium text-brand-700 hover:underline">
 						your settings
 					</Link>
 					.
 				</p>
 			)}
-			<Link to={next.to} className={buttonClass("primary", "w-full py-3")}>
+			<Link prefetch="intent" to={next.to} className={buttonClass("primary", "w-full py-3")}>
 				{next.label}
 			</Link>
 		</AuthFrame>

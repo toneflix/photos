@@ -4,9 +4,10 @@ import { readToken } from "./session.server";
 /**
  * API client for loaders and actions. Create one per request: caching is off
  * so data can't leak between users, and the user's token is read from the
- * incoming request's session cookie.
+ * incoming request's session cookie. `onUnauthorized` runs when the API
+ * answers 401, and can throw a redirect.
  */
-export async function getServerApi(request: Request, env: Env, token?: string | null) {
+export async function getServerApi(request: Request, env: Env, token?: string | null, onUnauthorized?: () => void) {
 	const sessionToken = token === undefined ? await readToken(request) : token;
 
 	return createPhotosClient({
@@ -14,8 +15,11 @@ export async function getServerApi(request: Request, env: Env, token?: string | 
 		cacheFor: null,
 		getToken: () => sessionToken,
 		headers: visitorHeaders(request),
+		onUnauthorized,
 	}).api;
 }
+
+export type ServerApi = Awaited<ReturnType<typeof getServerApi>>;
 
 /**
  * The visitor's browser and IP, so the API can name their signed-in device.

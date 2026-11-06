@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { data, Link, NavLink, Outlet, type MetaDescriptor } from "react-router";
+import { data, Link, NavLink, Outlet, type MetaDescriptor, type ShouldRevalidateFunctionArgs } from "react-router";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { getServerApi } from "~/lib/api.server";
+import { revalidateOnSubmit } from "~/lib/revalidate";
 import { Owner } from "~/components/explore/Owner";
 import { SpaceCover } from "~/components/spaces/SpaceCover";
 import { VisibilityBadge, spaceCounts } from "~/components/spaces/SpaceCard";
@@ -33,6 +34,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 	return { space };
 }
 
+export function shouldRevalidate(args: ShouldRevalidateFunctionArgs) {
+	return args.currentParams.slug !== args.nextParams.slug || revalidateOnSubmit(args);
+}
+
 const tab = ({ isActive }: { isActive: boolean }) =>
 	`-mb-[1.5px] border-b-[3px] px-1 pb-3 text-sm font-semibold transition ${
 		isActive ? "border-brand-600 text-brand-700" : "border-transparent text-ink-500 hover:text-ink-900"
@@ -54,7 +59,7 @@ export default function SpaceLayout({ loaderData }: Route.ComponentProps) {
 			{space.canEdit && space.visibility === "private" && (
 				<p className="mb-6 rounded-xl bg-surface-100 px-5 py-3 text-sm text-ink-700">
 					Only you can see this page. It shows what visitors will see once you make the space public: its public photos and books.{" "}
-					<Link to={`/spaces?edit=${space.id}`} className="font-semibold text-brand-700 hover:underline">
+					<Link prefetch="intent" to={`/spaces?edit=${space.id}`} className="font-semibold text-brand-700 hover:underline">
 						Make it public
 					</Link>
 				</p>
@@ -78,10 +83,10 @@ export default function SpaceLayout({ loaderData }: Route.ComponentProps) {
 						)}
 						{space.canEdit && (
 							<>
-								<Link to={`/photos?space=${space.id}`} className={buttonClass("primary")}>
+								<Link prefetch="intent" to={`/photos?space=${space.id}`} className={buttonClass("primary")}>
 									Add photos
 								</Link>
-								<Link to={`/spaces?edit=${space.id}`} className={buttonClass("ghost")}>
+								<Link prefetch="intent" to={`/spaces?edit=${space.id}`} className={buttonClass("ghost")}>
 									Edit space
 								</Link>
 							</>
@@ -93,10 +98,10 @@ export default function SpaceLayout({ loaderData }: Route.ComponentProps) {
 				)}
 			</header>
 			<nav className="mt-10 flex gap-6 border-b-[1.5px] border-surface-200">
-				<NavLink to={`/spaces/${space.slug}`} end className={tab}>
+				<NavLink prefetch="intent" to={`/spaces/${space.slug}`} end className={tab}>
 					Photos
 				</NavLink>
-				<NavLink to={`/spaces/${space.slug}/books`} className={tab}>
+				<NavLink prefetch="intent" to={`/spaces/${space.slug}/books`} className={tab}>
 					Books
 				</NavLink>
 			</nav>

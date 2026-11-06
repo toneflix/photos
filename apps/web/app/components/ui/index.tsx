@@ -70,7 +70,7 @@ export function Select({ className = "", ...props }: SelectHTMLAttributes<HTMLSe
 
 export function Logo({ to = "/", light = false, compact = false }: { to?: string; light?: boolean; compact?: boolean }) {
 	return (
-		<Link to={to} aria-label="Toneflix Photos" className={`flex shrink-0 items-center gap-2.5 ${light ? "text-white" : "text-ink-900"}`}>
+		<Link prefetch="intent" to={to} aria-label="Toneflix Photos" className={`flex shrink-0 items-center gap-2.5 ${light ? "text-white" : "text-ink-900"}`}>
 			<img src="/brand/toneflix-mark.png" alt="" width="18" height="32" className="h-8 w-auto" />
 			<span className={`whitespace-nowrap font-display text-lg font-bold tracking-tight sm:text-xl ${compact ? "hidden sm:inline" : ""}`}>Photos</span>
 		</Link>

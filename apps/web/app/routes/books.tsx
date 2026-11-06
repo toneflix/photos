@@ -2,7 +2,8 @@ import { useState } from "react";
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 import { FlipbookModel, type Book, type BookTheme, type Space } from "@photos/types";
 import { formError } from "~/lib/api.server";
-import { requireUser } from "~/lib/session.server";
+import { requireSignIn } from "~/lib/session.server";
+import { spaceFiltered } from "~/lib/space-filter.server";
 import { useInfiniteList } from "~/lib/use-infinite-list";
 import { CoverView } from "@toneflix/flipbook-react";
 import { ClothPicker } from "~/components/book/CoverPickers";
@@ -14,19 +15,19 @@ import type { Route } from "./+types/books";
 export const meta = () => [{ title: "Your books · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const url = new URL(request.url);
 	const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
-	const { data: spaces } = await api.spaces.list({ per_page: 100 });
-	const space = spaces.find((item) => item.id === url.searchParams.get("space")) ?? null;
 	const filters = {
 		q: searchText(url),
 		theme: filterParam(url, "theme", ["classic", "linen", "midnight"] as const),
 		visibility: filterParam(url, "visibility", ["private", "shared", "public"] as const),
 		sort: filterParam(url, "sort", ["latest", "oldest"] as const),
 	};
+	const list = (space?: string) => api.books.list({ ...filters, space, page, per_page: BOOKS_PER_PAGE });
 
-	const { data: items, meta } = await api.books.list({ ...filters, space: space?.id, page, per_page: BOOKS_PER_PAGE });
+	const { spaces, space, result } = await spaceFiltered(url, api, list);
+	const { data: items, meta } = result;
 
 	return {
 		items,
@@ -43,7 +44,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 const BOOKS_PER_PAGE = 24;
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const { api } = await requireUser(request, context);
+	const { api } = await requireSignIn(request, context);
 	const form = await request.formData();
 
 	try {
@@ -129,7 +130,7 @@ function BookCard({ book }: { book: Book }) {
 	return (
 		<li className="group min-w-0">
 			<div className="relative">
-				<Link
+				<Link prefetch="intent"
 					to={`/books/${book.id}`}
 					className="relative block aspect-[3/4] overflow-hidden rounded-lg bg-surface-100 shadow-sm transition duration-300 group-hover:shadow-xl"
 					style={{ containerType: "size" }}
@@ -139,7 +140,7 @@ function BookCard({ book }: { book: Book }) {
 					<span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/20 opacity-0 transition group-hover:opacity-100" />
 				</Link>
 				<div className="absolute top-2 right-2 flex gap-1.5 opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100">
-					<Link
+					<Link prefetch="intent"
 						to={`/books/${book.id}/edit`}
 						className="rounded-lg bg-white/95 px-3 py-1.5 text-xs font-semibold text-ink-900 shadow hover:bg-white"
 					>

@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { requireUser } from "~/lib/session.server";
+import { requireSignIn, requireUser } from "~/lib/session.server";
 import { Avatar } from "~/components/Avatar";
 import { SETTINGS_GROUPS } from "~/components/settings/nav";
 import type { Route } from "./+types/index";
@@ -7,8 +7,12 @@ import type { Route } from "./+types/index";
 export const meta = () => [{ title: "Settings · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	const { user, api } = await requireUser(request, context);
-	const [{ data: twoFactor }, { data: sessions }] = await Promise.all([api.account.twoFactor(), api.account.sessions()]);
+	const { api } = await requireSignIn(request, context);
+	const [{ user }, { data: twoFactor }, { data: sessions }] = await Promise.all([
+		requireUser(request, context),
+		api.account.twoFactor(),
+		api.account.sessions(),
+	]);
 
 	return { user, twoFactorOn: twoFactor.enabled, devices: sessions.length };
 }
@@ -30,7 +34,7 @@ export default function SettingsHome({ loaderData }: Route.ComponentProps) {
 	return (
 		<>
 			<h1 className="font-display font-bold tracking-tight text-4xl text-ink-900 md:hidden">Settings</h1>
-			<Link to="/settings/profile" className="panel mt-6 flex items-center gap-4 p-5 transition hover:border-surface-300 md:mt-0">
+			<Link prefetch="intent" to="/settings/profile" className="panel mt-6 flex items-center gap-4 p-5 transition hover:border-surface-300 md:mt-0">
 				<Avatar user={user} size="lg" />
 				<div className="min-w-0">
 					<p className="font-display font-bold tracking-tight text-2xl text-ink-900">{user.name}</p>
@@ -49,7 +53,7 @@ export default function SettingsHome({ loaderData }: Route.ComponentProps) {
 
 								return (
 									<li key={page.to}>
-										<Link to={page.to} className="flex items-center gap-4 px-5 py-4 transition hover:bg-surface-100">
+										<Link prefetch="intent" to={page.to} className="flex items-center gap-4 px-5 py-4 transition hover:bg-surface-100">
 											<div className="min-w-0 flex-1">
 												<p className={`font-medium ${danger ? "text-red-700" : "text-ink-900"}`}>{page.label}</p>
 												<p className="text-sm text-ink-500">{page.hint}</p>

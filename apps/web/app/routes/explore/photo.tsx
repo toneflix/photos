@@ -55,13 +55,13 @@ export default function ExplorePhoto({ loaderData }: Route.ComponentProps) {
 				<div className="flex min-w-0 items-center gap-2">
 					<Owner owner={photo.owner} />
 					{photo.space && (
-						<Link to={`/spaces/${photo.space.slug}`} className="truncate text-sm text-ink-500 hover:text-ink-900">
+						<Link prefetch="intent" to={`/spaces/${photo.space.slug}`} className="truncate text-sm text-ink-500 hover:text-ink-900">
 							in <span className="font-semibold text-brand-700">{photo.space.name}</span>
 						</Link>
 					)}
 				</div>
 				<div className="flex items-center gap-4">
-					<Link to={photo.space ? `/spaces/${photo.space.slug}` : "/explore"} className="text-sm font-medium text-ink-500 hover:text-ink-900">
+					<Link prefetch="intent" to={photo.space ? `/spaces/${photo.space.slug}` : "/explore"} className="text-sm font-medium text-ink-500 hover:text-ink-900">
 						{photo.space ? `Back to ${photo.space.name}` : "Back to Explore"}
 					</Link>
 					{license.downloadable && (
@@ -101,7 +101,7 @@ export default function ExplorePhoto({ loaderData }: Route.ComponentProps) {
 							<ul className="mt-2 space-y-2">
 								{photo.books.map((book) => (
 									<li key={book.id}>
-										<Link
+										<Link prefetch="intent"
 											to={`/books/${book.id}?page=${book.page}`}
 											className="flex items-center gap-3 rounded-lg border border-surface-200 bg-white p-3 transition hover:border-ink-500"
 										>
@@ -167,7 +167,7 @@ function LicensePanel({ photo }: { photo: PublicPhotoDetail }) {
 						<span className="text-ink-300"> · </span>
 					</>
 				)}
-				<Link to="/licenses" className="font-medium text-brand-700 hover:underline">
+				<Link prefetch="intent" to="/licenses" className="font-medium text-brand-700 hover:underline">
 					About licences
 				</Link>
 			</p>
