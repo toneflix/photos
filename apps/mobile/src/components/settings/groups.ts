@@ -8,6 +8,7 @@ export const SETTINGS_GROUPS: { label: string; pages: { to: Href; label: string;
     pages: [
       { to: '/settings/profile', label: 'Profile', hint: 'Your name and photo' },
       { to: '/settings/email', label: 'Email', hint: 'Your address and confirming it' },
+      { to: '/settings/plan', label: 'Plan', hint: 'What your account includes and payments' },
     ],
   },
   {

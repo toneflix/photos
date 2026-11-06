@@ -1,5 +1,6 @@
 import type {
   AccountPlan,
+  AdminPlan,
   AdminOverview,
   AdminUser,
   AdminUserDetail,
@@ -14,6 +15,7 @@ import type {
   BookPageInput,
   BookWithPages,
   ID,
+  FeatureDefinition,
   MakerItemStats,
   MakerStats,
   ModeratedKind,
@@ -22,7 +24,11 @@ import type {
   ModerationSort,
   BookQuery,
   PhotoQuery,
+  Payment,
+  PaymentRegion,
+  PaymentRegionInput,
   Plan,
+  PlanInput,
   PageQuery,
   PaginatedResponse,
   PermissionDefinition,
@@ -65,8 +71,16 @@ export function createEndpoints(alova: PhotosAlova) {
     /** Upload sizes and other limits to check before sending anything. Works signed out. */
     limits: () => alova.Get<ApiResponse<AppLimits>>('/limits', { cacheFor: null }),
 
-    /** Plans on offer, cheapest first. Works signed out. */
-    plans: () => alova.Get<ApiResponse<Plan[]>>('/plans', { cacheFor: null }),
+    /** Plans on offer, cheapest first, priced in the visitor's currency when their region has one. Works signed out. */
+    plans: (country?: string | null) => alova.Get<ApiResponse<Plan[]>>('/plans', { params: country ? { country } : {}, cacheFor: null }),
+
+    /** Paying for time on a plan through the provider's hosted checkout. */
+    payments: {
+      /** Start a payment. Send the payer to `checkoutUrl`; they come back to /checkout/complete. */
+      start: (data: { plan: string; cycles?: number }) => alova.Post<ApiResponse<Payment>>('/payments', data),
+      /** Check a payment with the provider and settle it when it has an answer. */
+      verify: (reference: string) => alova.Post<ApiResponse<Payment>>(`/payments/${encodeURIComponent(reference)}/verify`),
+    },
 
     auth: {
       /** Signs in, or asks for a two-factor code when the account has it on. */
@@ -87,6 +101,7 @@ export function createEndpoints(alova: PhotosAlova) {
 
     account: {
       plan: () => alova.Get<ApiResponse<AccountPlan>>('/account/plan', { cacheFor: null }),
+      payments: (params: PageQuery = {}) => alova.Get<PaginatedResponse<Payment>>('/account/payments', { params, cacheFor: null }),
       /** Views and downloads of everything the account owns, charted over `days`. */
       stats: (days?: number) => alova.Get<ApiResponse<MakerStats>>('/account/stats', { params: { days }, cacheFor: null }),
       /** One of the account's own photos, books or spaces with its daily views and downloads. */
@@ -237,6 +252,18 @@ export function createEndpoints(alova: PhotosAlova) {
       updateRole: (id: ID, data: Partial<RoleInput>) => alova.Put<ApiResponse<Role>>(`/admin/roles/${id}`, data),
       /** Refused for built-in roles and roles someone still has. */
       removeRole: (id: ID) => alova.Delete<ApiResponse<Role>>(`/admin/roles/${id}`),
+      /** Put an account on a plan without payment. The default plan ends any paid time. */
+      setUserPlan: (id: ID, data: { plan: string; cycles?: number }) => alova.Put<ApiResponse<AdminUserDetail>>(`/admin/users/${id}/plan`, data),
+      /** Every plan, with the feature catalogue to build them from. */
+      plans: () => alova.Get<ApiResponse<AdminPlan[]> & { features: FeatureDefinition[] }>('/admin/plans', { cacheFor: null }),
+      createPlan: (data: PlanInput & { name: string; price: number }) => alova.Post<ApiResponse<AdminPlan>>('/admin/plans', data),
+      updatePlan: (id: ID, data: PlanInput) => alova.Put<ApiResponse<AdminPlan>>(`/admin/plans/${id}`, data),
+      /** A plan someone has had time on is turned off instead (`deleted: false`). */
+      removePlan: (id: ID) => alova.Delete<ApiResponse<AdminPlan> & { deleted: boolean }>(`/admin/plans/${id}`),
+      paymentRegions: () => alova.Get<ApiResponse<PaymentRegion[]>>('/admin/payment-regions', { cacheFor: null }),
+      createPaymentRegion: (data: PaymentRegionInput) => alova.Post<ApiResponse<PaymentRegion>>('/admin/payment-regions', data),
+      updatePaymentRegion: (id: ID, data: PaymentRegionInput) => alova.Put<ApiResponse<PaymentRegion>>(`/admin/payment-regions/${id}`, data),
+      removePaymentRegion: (id: ID) => alova.Delete<ApiResponse<PaymentRegion>>(`/admin/payment-regions/${id}`),
       settings: () => alova.Get<ApiResponse<SettingGroup[]>>('/admin/settings', { cacheFor: null }),
       /** Save a group's fields by name. Null puts a field back to its .env default. */
       updateSettings: (group: string, values: Record<string, number | boolean | string | null>) =>

@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@toneflix/flipbook-core": "^0.3.5"
+    "@toneflix/flipbook-core": "^0.3.5",
+    "@toneflix/money": "^1.0.1"
   },
   "devDependencies": {
     "typescript": "^6.0.0"

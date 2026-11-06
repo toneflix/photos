@@ -9,6 +9,9 @@ import SessionController from 'src/app/http/controllers/SessionController'
 import TwoFactorController from 'src/app/http/controllers/TwoFactorController'
 import LimitsController from 'src/app/http/controllers/LimitsController'
 import PlanController from 'src/app/http/controllers/PlanController'
+import PaymentController from 'src/app/http/controllers/PaymentController'
+import AdminPlanController from 'src/app/http/controllers/admin/PlanController'
+import PaymentRegionController from 'src/app/http/controllers/admin/PaymentRegionController'
 import StatsController from 'src/app/http/controllers/StatsController'
 import ModerationController from 'src/app/http/controllers/admin/ModerationController'
 import OverviewController from 'src/app/http/controllers/admin/OverviewController'
@@ -29,6 +32,12 @@ Router.get('/limits', [LimitsController, 'show'], [limiter(120, 60)])
 // Plans on offer and the signed-in account's own
 Router.get('/plans', [PlanController, 'index'], [limiter(120, 60)])
 Router.get('/account/plan', [PlanController, 'mine'], [auth])
+Router.get('/account/payments', [PlanController, 'payments'], [auth])
+
+// Paying for a plan on the provider's checkout. The webhook checks each payment with the provider.
+Router.post('/payments', [PaymentController, 'create'], [auth, limiter(10, 60)])
+Router.post('/payments/:reference/verify', [PaymentController, 'verify'], [auth, limiter(30, 60)])
+Router.post('/payments/flutterwave/webhook', [PaymentController, 'flutterwave'], [limiter(120, 60)])
 
 // Auth
 Router.post('/auth/register', [AuthController, 'register'], [limiter(20, 60)])
@@ -115,3 +124,12 @@ Router.get('/admin/roles', [RoleController, 'index'], [auth, Authorize.to('roles
 Router.post('/admin/roles', [RoleController, 'create'], [auth, Authorize.to('roles.manage')])
 Router.put('/admin/roles/:role', [RoleController, 'update'], [auth, Authorize.to('roles.manage')])
 Router.delete('/admin/roles/:role', [RoleController, 'destroy'], [auth, Authorize.to('roles.manage')])
+Router.put('/admin/users/:user/plan', [UserController, 'plan'], [auth, Authorize.to('plans.manage')])
+Router.get('/admin/plans', [AdminPlanController, 'index'], [auth, Authorize.to('plans.manage')])
+Router.post('/admin/plans', [AdminPlanController, 'create'], [auth, Authorize.to('plans.manage')])
+Router.put('/admin/plans/:plan', [AdminPlanController, 'update'], [auth, Authorize.to('plans.manage')])
+Router.delete('/admin/plans/:plan', [AdminPlanController, 'destroy'], [auth, Authorize.to('plans.manage')])
+Router.get('/admin/payment-regions', [PaymentRegionController, 'index'], [auth, Authorize.to('plans.manage')])
+Router.post('/admin/payment-regions', [PaymentRegionController, 'create'], [auth, Authorize.to('plans.manage')])
+Router.put('/admin/payment-regions/:region', [PaymentRegionController, 'update'], [auth, Authorize.to('plans.manage')])
+Router.delete('/admin/payment-regions/:region', [PaymentRegionController, 'destroy'], [auth, Authorize.to('plans.manage')])

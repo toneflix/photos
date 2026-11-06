@@ -98,6 +98,12 @@ Runs never overlap: a second deploy waits for the first to finish.
    cd /var/www/api.photos.toneflix.net/current/apps/api && pnpm exec ark seed PlanSeeder
    ```
 
+   Admins then change plans and add more under Admin → Plans.
+
+9. **Payments**: plans are paid through Flutterwave's hosted checkout. Set `FLUTTERWAVE_PUBLIC_KEY` and `FLUTTERWAVE_SECRET_KEY` in the API `.env`. In the Flutterwave dashboard, under Settings → Webhooks, set the URL to `https://api.photos.toneflix.net/api/payments/flutterwave/webhook`, pick a secret hash and put the same value in `FLUTTERWAVE_WEBHOOK_HASH`. Without a secret key, checkout says payments are not available. Payers are sent back to `FRONTEND_URL/checkout/complete`, so `FRONTEND_URL` must be the live web address.
+
+   Regional prices are set under Admin → Plans → Payment regions. A region with no fixed rate uses the live rate from @toneflix/money (`EXCHANGE_RATES_PROVIDER`, `EXCHANGERATE_API_KEY`) plus its markup.
+
 ## Admin settings
 
 Upload limits, display copies, sign-ups, sign-in lockouts and book limits can be changed in the dashboard (Admin → Configuration). Each one has an env variable in `.env.example` that sets its default, and a value saved in the dashboard wins over it. Saving the same value as the env default removes the override, so the field follows `.env` again. Secrets and connection settings stay in `.env` only. With more than one API instance, use `CACHE_STORE=redis` so a saved setting reaches every instance within `SETTINGS_CACHE_SECONDS`.

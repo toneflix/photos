@@ -16,6 +16,7 @@ import type { PermissionName } from '@app/policies/Permission'
 import { Role } from './Role'
 import { Plan } from './Plan'
 import { Subscription } from './Subscription'
+import { Payment } from './Payment'
 
 export interface UserPreferences {
   defaultVisibility?: BookVisibility
@@ -106,6 +107,10 @@ export class User extends BaseUser {
 
   subscriptions() {
     return this.hasMany(Subscription, 'userId')
+  }
+
+  payments() {
+    return this.hasMany(Payment, 'userId')
   }
 
   /** The plan the user is on now: their current subscription's, else the default plan. */

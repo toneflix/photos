@@ -4,6 +4,7 @@ import { Auth, AuthenticationException } from '@arkstack/auth'
 import { Controller } from 'clear-router'
 import { HttpContext } from 'clear-router/types/express'
 import type { User } from '@app/models/User'
+import { PaymentRegions } from '@app/services/payments/PaymentRegions'
 
 export class BaseController extends Controller<HttpContext> {
   async validate<D extends Record<string, any>, R extends RulesForData<D>>(rules: R, camelizeKeys = false) {
@@ -56,6 +57,11 @@ export class BaseController extends Controller<HttpContext> {
     if (String(this.ctx.req.get('purpose') ?? this.ctx.req.get('sec-purpose') ?? '').includes('prefetch')) return null
 
     return viewer?.id ?? String(this.ctx.req.ip)
+  }
+
+  /** The payer's country, from `?country=` or the country header the web app and Cloudflare send. */
+  protected country(): string | null {
+    return PaymentRegions.country(this.query.country, this.ctx.req.get('x-country'), this.ctx.req.get('cf-ipcountry'))
   }
 
   /** The signed-in user. Only call this behind the `auth` middleware. */

@@ -49,7 +49,7 @@ describe('Admin dashboard', () => {
 
     expect(admin.body.data).toMatchObject({
       role: 'admin',
-      permissions: ['dashboard.view', 'users.view', 'users.manage', 'content.moderate', 'settings.manage', 'roles.manage'],
+      permissions: ['dashboard.view', 'users.view', 'users.manage', 'content.moderate', 'settings.manage', 'roles.manage', 'plans.manage'],
     })
     expect(moderator.body.data).toMatchObject({ role: 'moderator', permissions: ['dashboard.view', 'content.moderate'] })
     expect(member.body.data).toMatchObject({ role: 'user', permissions: [] })

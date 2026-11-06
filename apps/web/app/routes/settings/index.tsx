@@ -8,23 +8,25 @@ export const meta = () => [{ title: "Settings · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const { api } = await requireSignIn(request, context);
-	const [{ user }, { data: twoFactor }, { data: sessions }] = await Promise.all([
+	const [{ user }, { data: twoFactor }, { data: sessions }, { data: plan }] = await Promise.all([
 		requireUser(request, context),
 		api.account.twoFactor(),
 		api.account.sessions(),
+		api.account.plan(),
 	]);
 
-	return { user, twoFactorOn: twoFactor.enabled, devices: sessions.length };
+	return { user, twoFactorOn: twoFactor.enabled, devices: sessions.length, plan: plan.plan.name, premium: plan.premium };
 }
 
 const VISIBILITY_LABEL = { private: "Only me", shared: "Anyone with the link", public: "Public" };
 
 /** The settings home: every page in its group, with where each one stands now. */
 export default function SettingsHome({ loaderData }: Route.ComponentProps) {
-	const { user, twoFactorOn, devices } = loaderData;
+	const { user, twoFactorOn, devices, plan, premium } = loaderData;
 
 	const status: Record<string, { text: string; tone?: "good" | "warn" }> = {
 		"/settings/profile": { text: user.name },
+		"/settings/plan": premium ? { text: plan, tone: "good" } : { text: plan },
 		"/settings/email": user.emailVerified ? { text: "Confirmed", tone: "good" } : { text: "Not confirmed", tone: "warn" },
 		"/settings/two-step": twoFactorOn ? { text: "On", tone: "good" } : { text: "Off", tone: "warn" },
 		"/settings/devices": { text: devices === 1 ? "1 device" : `${devices} devices` },

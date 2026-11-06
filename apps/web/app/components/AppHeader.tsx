@@ -41,6 +41,9 @@ export function AppHeader({ user }: { user: User | null }) {
 					</div>
 				) : (
 					<div className="flex items-center gap-1 sm:gap-2">
+						<Link prefetch="intent" to="/pricing" className={buttonClass("ghost", "max-md:hidden")}>
+							Pricing
+						</Link>
 						<Link prefetch="intent" to="/unlock" className={buttonClass("ghost", "max-lg:hidden")}>
 							Have a code?
 						</Link>
