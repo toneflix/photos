@@ -27,7 +27,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 		sort: filterParam(url, "sort", ["latest", "oldest"] as const),
 	};
 
-	const { data: items, meta } = await api.explore.photos({ ...filters, space: params.slug, maker: params.maker, page, per_page: 40 });
+	const { data: items, meta } = await api.explore.photos({ ...filters, space: params.space, maker: params.maker, page, per_page: 40 });
 
 	return { items, page: meta.current_page, lastPage: meta.last_page, total: meta.total, filtered: Object.values(filters).some(Boolean) };
 }
@@ -44,7 +44,7 @@ export default function ExplorePhotos({ loaderData }: Route.ComponentProps) {
 				<Empty>
 					{loaderData.filtered
 						? "No photos match. Try other words or clear the filters."
-						: params.slug
+						: params.space
 							? "No public photos in this space yet."
 							: params.maker
 								? "No public photos yet."

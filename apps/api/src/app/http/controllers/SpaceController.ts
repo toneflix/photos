@@ -77,7 +77,10 @@ export default class SpaceController extends BaseController {
 
   /** Delete the space. Its photos and books stay in the library, outside any space. */
   async destroy() {
-    const space = await this.user.spaces().findOrFail(String(this.params.space))
+    const space = await this.user
+      .spaces()
+      .scope('handle', String(this.params.space))
+      .firstOrFail()
 
     await space.delete()
 

@@ -148,6 +148,22 @@ describe('Spaces', () => {
     expect(ids(await api('get', '/explore/photos', undefined, null))).toContain(inside)
   })
 
+  it('opens a space by its id or its web address', async () => {
+    const byId = await api('get', `/explore/spaces/${spaceId}`, undefined, null)
+    const bySlug = await api('get', `/explore/spaces/${slug.toUpperCase()}`, undefined, null)
+    const photos = await api('get', `/explore/photos?space=${spaceId}`, undefined, null)
+    const settings = await api('get', `/spaces/${slug}`)
+    const members = await api('get', `/spaces/${slug}/members`)
+
+    expect(byId.body.data).toMatchObject({ id: spaceId, slug })
+    expect(bySlug.body.data.id).toBe(spaceId)
+    expect(ids(photos)).toEqual([inside])
+    expect(settings.body.data.id).toBe(spaceId)
+    expect(members.status).toBe(200)
+    expect((await api('get', '/explore/spaces/00000000-0000-0000-0000-000000000000', undefined, null)).status).toBe(404)
+    expect((await api('get', `/spaces/${slug}`, undefined, 'other')).status).toBe(403)
+  })
+
   it('changes the web address and moves photos out', async () => {
     const taken = await api('post', '/spaces', { name: 'Taken address' })
     const clash = await api('put', `/spaces/${spaceId}`, { slug: taken.body.data.slug })

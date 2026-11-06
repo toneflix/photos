@@ -4,6 +4,7 @@ import { Photo } from './Photo'
 import { SpaceMember } from './SpaceMember'
 import { User } from './User'
 import { matches } from '@app/support/search'
+import { UUID_PATTERN } from '@app/support/rules'
 import type { QueryBuilder } from 'arkormx'
 import { randomBytes } from 'node:crypto'
 
@@ -100,6 +101,13 @@ export class Space extends Model {
     while (await Space.query().where({ slug }).exists()) slug = `${base}-${randomBytes(3).toString('hex')}`
 
     return slug
+  }
+
+  /** The space `handle` names: its id or its web address. */
+  scopeHandle(query: QueryBuilder<Space>, handle: string): QueryBuilder<Space> {
+    const value = handle.trim()
+
+    return query.where(UUID_PATTERN.test(value) ? { id: value } : { slug: value.toLowerCase() })
   }
 
   /** Public spaces for Explore. Words match names, descriptions and shown owner names. */

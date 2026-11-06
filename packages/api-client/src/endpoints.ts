@@ -182,8 +182,8 @@ export function createEndpoints(alova: PhotosAlova) {
       spaces: (params: SpaceQuery = {}) => alova.Get<PaginatedResponse<PublicSpace>>('/explore/spaces', { params }),
       /** A maker's profile by id or username. */
       maker: (handle: string) => alova.Get<ApiResponse<Profile>>(`/explore/makers/${encodeURIComponent(handle)}`, { cacheFor: null }),
-      /** A space's page by its web address. Private spaces open only for their owner and members. */
-      space: (slug: string) => alova.Get<ApiResponse<PublicSpace>>(`/explore/spaces/${encodeURIComponent(slug)}`, { cacheFor: null }),
+      /** A space's page by id or web address. Private spaces open only for their owner and members. */
+      space: (handle: string) => alova.Get<ApiResponse<PublicSpace>>(`/explore/spaces/${encodeURIComponent(handle)}`, { cacheFor: null }),
     },
 
     /** Your spaces: collections of photos and books with their own page. */

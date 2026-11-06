@@ -1,5 +1,6 @@
 import { ContentCounts } from "~/components/ContentCounts";
 import { data, Link, NavLink, Outlet, type ShouldRevalidateFunctionArgs } from "react-router";
+import { canonicalRedirect } from "~/lib/canonical";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { getServerApi } from "~/lib/api.server";
 import { revalidateOnSubmit } from "~/lib/revalidate";
@@ -18,19 +19,21 @@ export function meta({ loaderData }: Route.MetaArgs) {
 	return [{ title: `${space.name} · Toneflix Photos` }, { name: "description", content: space.description ?? `Photos and books from ${space.name}.` }];
 }
 
-/** A space's page. Public spaces open for everyone; private ones only for their owner and members. */
+/** A space's page, by id or web address. Public spaces open for everyone; private ones only for their owner and members. */
 export async function loader({ request, params, context }: Route.LoaderArgs) {
 	const { env } = context.get(cloudflareContext);
 	const api = await getServerApi(request, env);
-	const { data: space } = await api.explore.space(params.slug).catch(() => {
+	const { data: space } = await api.explore.space(params.space).catch(() => {
 		throw data("Space not found", { status: 404 });
 	});
+
+	if (params.space !== space.slug) throw canonicalRedirect(request, 2, space.slug);
 
 	return { space };
 }
 
 export function shouldRevalidate(args: ShouldRevalidateFunctionArgs) {
-	return args.currentParams.slug !== args.nextParams.slug || revalidateOnSubmit(args);
+	return args.currentParams.space !== args.nextParams.space || revalidateOnSubmit(args);
 }
 
 const tab = ({ isActive }: { isActive: boolean }) =>

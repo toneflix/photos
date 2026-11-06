@@ -29,7 +29,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 		sort: filterParam(url, "sort", ["latest", "oldest"] as const),
 	};
 
-	const { data: items, meta } = await api.explore.books({ ...filters, space: params.slug, maker: params.maker, page, per_page: 24 });
+	const { data: items, meta } = await api.explore.books({ ...filters, space: params.space, maker: params.maker, page, per_page: 24 });
 
 	return { items, page: meta.current_page, lastPage: meta.last_page, total: meta.total, filtered: Object.values(filters).some(Boolean) };
 }
@@ -46,7 +46,7 @@ export default function ExploreBooks({ loaderData }: Route.ComponentProps) {
 				<Empty>
 					{loaderData.filtered
 						? "No books match. Try other words or clear the filters."
-						: params.slug
+						: params.space
 							? "No public books in this space yet."
 							: params.maker
 								? "No public books yet."

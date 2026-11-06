@@ -1,7 +1,8 @@
-import { data, Link, NavLink, Outlet, redirect, type ShouldRevalidateFunctionArgs } from "react-router";
+import { data, Link, NavLink, Outlet, type ShouldRevalidateFunctionArgs } from "react-router";
 import { Avatar } from "~/components/Avatar";
 import { ContentCounts } from "~/components/ContentCounts";
 import { buttonClass } from "~/components/ui";
+import { canonicalRedirect } from "~/lib/canonical";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { getServerApi } from "~/lib/api.server";
 import { revalidateOnSubmit } from "~/lib/revalidate";
@@ -24,15 +25,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 		throw data("Maker not found", { status: 404 });
 	});
 
-	if (params.maker !== maker.username) {
-		const url = new URL(request.url);
-		const path = url.pathname.replace(/(\/_root)?\.data$/, "").split("/");
-
-		path[2] = maker.username;
-		url.searchParams.delete("_routes");
-
-		throw redirect(`${path.join("/")}${url.search}`);
-	}
+	if (params.maker !== maker.username) throw canonicalRedirect(request, 2, maker.username);
 
 	return { maker };
 }
