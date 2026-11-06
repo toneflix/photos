@@ -3,29 +3,38 @@ export const colors = {
   white: '#ffffff',
   black: '#000000',
 
+  canvas: '#f4f7fc',
   surface50: '#ffffff',
-  surface100: '#f7f7f7',
-  surface200: '#ededed',
-  surface300: '#dfdfe0',
+  surface100: '#e8effa',
+  surface200: '#d5deea',
+  surface300: '#b9c6d8',
 
-  ink500: '#7f7f7f',
-  ink700: '#4a4d52',
-  ink900: '#2c343e',
+  ink500: '#5f6c80',
+  ink700: '#344157',
+  ink900: '#111c33',
 
-  brand50: '#e6f7ff',
-  brand100: '#c6edff',
-  brand400: '#00eaff',
-  brand500: '#00afff',
-  brand700: '#006ea6',
-  brand800: '#00537d',
+  brand50: '#e5f5ff',
+  brand100: '#c2e9ff',
+  brand200: '#85d4ff',
+  brand300: '#3dbdff',
+  brand400: '#00e1ff',
+  brand500: '#00a6ff',
+  brand600: '#0085f0',
+  brand700: '#0064d6',
+  brand800: '#0046a3',
 
-  gold50: '#fff9e1',
-  gold300: '#fdd236',
-  gold400: '#f6c101',
+  gold50: '#fff8dc',
+  gold100: '#ffeda3',
+  gold200: '#ffe066',
+  gold300: '#ffd22e',
+  gold400: '#ffc300',
+  gold500: '#e6a800',
   gold600: '#bb8c01',
+  gold700: '#8c6901',
 
   red50: '#fef2f2',
   red200: '#fecaca',
+  red600: '#dc2626',
   red700: '#b91c1c',
   red800: '#991b1b',
 
@@ -54,6 +63,7 @@ export const fonts = {
 
 export const radius = {
   md: 8,
+  field: 10,
   lg: 12,
   xl: 16,
   full: 999,
@@ -61,3 +71,11 @@ export const radius = {
 
 /** The logo's blue sweep, as gradient stops. */
 export const brandSweep = [colors.brand500, colors.brand400] as const
+
+/** Flat containers and fields: firm 1.5px edges, no shadows. */
+export const surfaces = {
+  panel: { borderWidth: 1.5, borderColor: colors.surface200, borderRadius: radius.xl, backgroundColor: colors.surface50 },
+  field: { borderWidth: 1.5, borderColor: colors.surface300, borderRadius: radius.field, backgroundColor: colors.surface50 },
+  fieldFocused: { borderColor: colors.brand600, boxShadow: `inset 0 0 0 1px ${colors.brand600}` },
+  backdrop: 'rgba(17,28,51,0.6)',
+} as const

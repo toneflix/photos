@@ -65,7 +65,7 @@ export default function Sharing() {
             <Text style={styles.label}>Show my name on work I share</Text>
             <Text variant="small">When off, people don't see who made your public photos and books, and only you can open your profile.</Text>
           </View>
-          <Switch value={showName} onValueChange={setShowName} trackColor={{ true: colors.brand700, false: colors.surface300 }} />
+          <Switch value={showName} onValueChange={setShowName} trackColor={{ true: colors.brand600, false: colors.surface300 }} />
         </View>
         <View style={styles.toggle}>
           <View style={styles.flex}>
@@ -103,11 +103,11 @@ function Choice({ label, hint, selected, onPress }: { label: string; hint: strin
 
 const styles = StyleSheet.create({
   flex: { flex: 1, gap: 2 },
-  choice: { flexDirection: 'row', gap: 12, padding: 14, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.surface300 },
-  chosen: { borderColor: colors.ink900, backgroundColor: colors.surface100 },
+  choice: { flexDirection: 'row', gap: 12, padding: 14, borderRadius: radius.lg, borderWidth: 1.5, borderColor: colors.surface300 },
+  chosen: { borderColor: colors.brand600, backgroundColor: colors.brand50 },
   radio: { width: 20, height: 20, marginTop: 1, borderRadius: 10, borderWidth: 2, borderColor: colors.surface300, alignItems: 'center', justifyContent: 'center' },
-  radioOn: { borderColor: colors.ink900 },
-  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.ink900 },
+  radioOn: { borderColor: colors.brand600 },
+  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.brand600 },
   label: { fontFamily: fonts.semibold, color: colors.ink900 },
   toggle: { flexDirection: 'row', alignItems: 'center', gap: 12 },
 })

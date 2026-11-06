@@ -10,9 +10,9 @@ import { colors } from '@/theme'
 
 /** Opened from the emailed confirmation link; confirms the address straight away. */
 export default function VerifyEmail() {
-  const { token = '', email = '' } = useLocalSearchParams<{ token?: string; email?: string }>()
+  const { token = '', email } = useLocalSearchParams<{ token?: string; email?: string }>()
   const { user } = useSession()
-  const { loading, error, data } = useRequest(() => api.auth.verifyEmail({ token, email })).onSuccess(({ data: response }) => {
+  const { loading, error, data } = useRequest(() => api.auth.verifyEmail({ token, email: email || undefined })).onSuccess(({ data: response }) => {
     if (user?.id === response.data.id) session.setUser(response.data)
   })
   const next = user ? { href: '/' as const, label: 'Go to your books' } : { href: '/signin' as const, label: 'Sign in' }

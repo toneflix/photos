@@ -70,7 +70,7 @@ export function CoverTextSwitch({ design, value, onChange }: { design: CoverDesi
       <Switch
         value={printed}
         onValueChange={(next) => onChange(next === fallback ? null : next)}
-        trackColor={{ true: colors.ink900, false: colors.surface300 }}
+        trackColor={{ true: colors.brand600, false: colors.surface300 }}
         thumbColor={colors.white}
         accessibilityLabel="Print the title on the cover"
       />
@@ -80,7 +80,7 @@ export function CoverTextSwitch({ design, value, onChange }: { design: CoverDesi
 
 const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 6, paddingRight: 14, paddingVertical: 6, borderRadius: radius.full, borderWidth: 1, borderColor: colors.surface300 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 6, paddingRight: 14, paddingVertical: 6, borderRadius: radius.full, borderWidth: 1.5, borderColor: colors.surface300 },
   chipOn: { borderColor: colors.ink900, backgroundColor: colors.ink900 },
   swatch: { width: 20, height: 20, borderRadius: 10, borderWidth: 2 },
   chipText: { fontSize: 14, fontFamily: fonts.medium, color: colors.ink700 },

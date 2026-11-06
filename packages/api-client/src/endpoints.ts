@@ -101,7 +101,7 @@ export function createEndpoints(alova: PhotosAlova) {
       forgotPassword: (data: { email: string }) => alova.Post<ApiResponse<{ email: string }>>('/auth/forgot-password', data),
       resetPassword: (data: { token: string; password: string; password_confirmation: string }) =>
         alova.Post<ApiResponse<User>>('/auth/reset-password', data),
-      verifyEmail: (data: { token: string; email: string }) => alova.Post<ApiResponse<User>>('/auth/verify-email', data),
+      verifyEmail: (data: { token: string; email?: string }) => alova.Post<ApiResponse<User>>('/auth/verify-email', data),
     },
 
     account: {

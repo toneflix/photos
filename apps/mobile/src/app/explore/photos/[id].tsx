@@ -12,7 +12,7 @@ import { Owner } from '@/components/explore/Owner'
 import { ContentCounts } from '@/components/ContentCounts'
 import { Button, Callout, Text } from '@/components/ui'
 import { api } from '@/lib/api'
-import { savePhoto } from '@/lib/download'
+import { DownloadSheet } from '@/components/DownloadSheet'
 import { FormProblem } from '@/lib/forms'
 import { colors, fonts, radius } from '@/theme'
 
@@ -96,18 +96,7 @@ function LicensePanel({ photo }: { photo: PublicPhotoDetail }) {
   const license = licenseFor(photo.license)
   const credit = creditLine(photo, license)
   const [copied, setCopied] = useState(false)
-  const [saving, setSaving] = useState<'idle' | 'busy' | 'saved' | Error>('idle')
-
-  const save = async () => {
-    setSaving('busy')
-
-    try {
-      await savePhoto(photo.id)
-      setSaving('saved')
-    } catch (problem) {
-      setSaving(problem instanceof Error ? problem : new Error("We couldn't save the photo."))
-    }
-  }
+  const [downloading, setDownloading] = useState(false)
 
   const copy = async () => {
     await Clipboard.setStringAsync(credit)
@@ -135,19 +124,14 @@ function LicensePanel({ photo }: { photo: PublicPhotoDetail }) {
       <Link href="/licenses">
         <Text variant="link">About licences</Text>
       </Link>
-      {license.downloadable && (
-        <>
-          {saving instanceof Error ? <Callout>{saving.message}</Callout> : null}
-          {saving === 'saved' ? <Callout tone="notice">Saved to your photos.</Callout> : null}
-          <Button title={saving === 'busy' ? 'Saving…' : 'Save to your photos'} loading={saving === 'busy'} onPress={save} />
-        </>
-      )}
+      {license.downloadable && <Button title="Download" onPress={() => setDownloading(true)} />}
+      {downloading && <DownloadSheet photo={photo} owned={false} onClose={() => setDownloading(false)} />}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.white },
+  page: { flex: 1, backgroundColor: colors.canvas },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   flex: { flex: 1 },
   stage: { backgroundColor: colors.ink900, alignItems: 'center' },
@@ -164,13 +148,13 @@ const styles = StyleSheet.create({
   body: { padding: 20, gap: 14 },
   byline: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
   caption: { fontSize: 18, lineHeight: 26 },
-  panel: { gap: 8, padding: 16, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.surface200 },
+  panel: { gap: 8, padding: 16, borderRadius: radius.lg, borderWidth: 1.5, borderColor: colors.surface200, backgroundColor: colors.white },
   kicker: { fontFamily: fonts.semibold, fontSize: 11, letterSpacing: 1.5, color: colors.ink500 },
   licenseRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   licenseName: { fontFamily: fonts.display, fontSize: 16 },
   credit: { gap: 4, padding: 12, borderRadius: radius.md, backgroundColor: colors.surface100 },
   books: { gap: 8 },
-  book: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.md, borderWidth: 1, borderColor: colors.surface200 },
+  book: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.surface200 },
   spine: { width: 36, height: 48, borderRadius: 2 },
   bookTitle: { fontFamily: fonts.display, fontSize: 15 },
 })

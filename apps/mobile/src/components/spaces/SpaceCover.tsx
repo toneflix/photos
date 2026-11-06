@@ -12,7 +12,7 @@ export function SpaceCover({ photos, style }: { photos: Photo[]; style?: StylePr
   if (!tiles.length) {
     return (
       <LinearGradient colors={[colors.brand50, colors.surface100, colors.gold50]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.empty, style]}>
-        <Ionicons name="images-outline" size={40} color="rgba(0,110,166,0.4)" />
+        <Ionicons name="images-outline" size={40} color="rgba(0,100,214,0.4)" />
       </LinearGradient>
     )
   }

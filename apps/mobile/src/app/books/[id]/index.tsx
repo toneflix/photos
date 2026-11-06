@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRequest } from 'alova/client'
-import type { BookPermission, BookWithPages } from '@photos/types'
+import { licenseFor, type BookPermission, type BookWithPages } from '@photos/types'
 import { Flipbook } from '@toneflix/flipbook-native'
 import { AuthFrame } from '@/components/AuthFrame'
 import { ContentCounts } from '@/components/ContentCounts'
@@ -16,6 +16,7 @@ import { BOOK_FONTS } from '@/components/book/look'
 import { Button, Callout, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { bookCodes, useBookCode } from '@/lib/book-codes'
+import { ApiDownload } from '@/lib/download'
 import { FlipbookModel } from '@/lib/flipbook'
 import { FormProblem } from '@/lib/forms'
 import { bookLists } from '@/lib/lists'
@@ -94,8 +95,9 @@ function LoadBook({ id, code, startPage, shareError }: { id: string; code: strin
 function Book({ book, code, startPage, reload }: { book: BookWithPages; code: string | null; startPage?: number; reload: () => void }) {
   const insets = useSafeAreaInsets()
   const { width } = useWindowDimensions()
-  const [panel, setPanel] = useState<'add' | 'claim' | null>(null)
+  const [panel, setPanel] = useState<'add' | 'claim' | 'download' | null>(null)
   const can = (permission: BookPermission) => book.permissions.includes(permission)
+  const downloadable = can('transfer') || book.pages.some((page) => page.photos.some((photo) => licenseFor(photo.license).downloadable))
   const model = useMemo(() => FlipbookModel.book(book), [book])
 
   return (
@@ -119,6 +121,7 @@ function Book({ book, code, startPage, reload }: { book: BookWithPages; code: st
             {book.isOwner && book.creatorId === book.userId && <Chip title="Stats" onPress={() => router.push({ pathname: '/stats/[kind]/[id]', params: { kind: 'books', id: book.id } })} />}
             {!book.isOwner && can('add') && <Chip title="Add photos" onPress={() => setPanel('add')} />}
             {!book.isOwner && can('transfer') && <Chip title="Make it yours" onPress={() => setPanel('claim')} />}
+            {downloadable && <Chip title="Download" onPress={() => setPanel('download')} />}
             {book.canEdit && <Chip title="Edit" onPress={() => router.push({ pathname: '/books/[id]/edit', params: { id: book.id } })} />}
           </>
         }
@@ -126,6 +129,7 @@ function Book({ book, code, startPage, reload }: { book: BookWithPages; code: st
 
       {panel === 'add' && <AddPhotos book={book} code={code} onDone={reload} onClose={() => setPanel(null)} />}
       {panel === 'claim' && <Claim book={book} code={code} onClose={() => setPanel(null)} />}
+      {panel === 'download' && <DownloadBook book={book} code={code} everything={can('transfer')} onClose={() => setPanel(null)} />}
     </View>
   )
 }
@@ -135,6 +139,30 @@ function Chip({ title, onPress }: { title: string; onPress: () => void }) {
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}>
       <Text style={styles.chipText}>{title}</Text>
     </Pressable>
+  )
+}
+
+/** A zip of the book's original photos: all of them for the owner and transfer-code holders, else the openly licensed ones. */
+function DownloadBook({ book, code, everything, onClose }: { book: BookWithPages; code: string | null; everything: boolean; onClose: () => void }) {
+  const [state, setState] = useState<'idle' | 'busy' | Error>('idle')
+
+  const download = async () => {
+    setState('busy')
+
+    try {
+      await ApiDownload.book(book.id, code).share(`Save “${book.title}”`)
+      onClose()
+    } catch (problem) {
+      setState(problem instanceof Error ? problem : new Error("We couldn't make the zip."))
+    }
+  }
+
+  return (
+    <Sheet title="Download the photos" onClose={onClose}>
+      <Text variant="muted">{everything ? 'Every original photo in this book, as a zip.' : 'The openly licensed photos in this book, as a zip.'}</Text>
+      {state instanceof Error ? <Callout>{state.message}</Callout> : null}
+      <Button title={state === 'busy' ? 'Making the zip…' : 'Download zip'} size="lg" loading={state === 'busy'} onPress={download} />
+    </Sheet>
   )
 }
 
@@ -240,7 +268,7 @@ function Claim({ book, code, onClose }: { book: BookWithPages; code: string | nu
 
 const styles = StyleSheet.create({
   reader: { flex: 1, backgroundColor: colors.black },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: colors.white },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: colors.canvas },
   flex: { flex: 1 },
   row: { flexDirection: 'row', gap: 8 },
   topLeft: { flexDirection: 'row', alignItems: 'center', gap: 16 },

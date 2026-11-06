@@ -67,7 +67,12 @@ export class AccountMail {
   }
 
   private static button(label: string, link: string) {
-    return `<p><a href="${AccountMail.escape(link)}" style="display:inline-block;padding:12px 20px;border-radius:999px;background:#f6c101;color:#111c33;font-weight:600;text-decoration:none">${label}</a></p>`
+    return `<p><a href="${AccountMail.href(link)}" style="display:inline-block;padding:12px 20px;border-radius:999px;background:#f6c101;color:#111c33;font-weight:600;text-decoration:none">${label}</a></p>`
+  }
+
+  /** Percent-encodes the characters that would end the attribute, so the link needs no HTML entities. */
+  private static href(link: string) {
+    return link.replace(/["'<>]/g, (char) => encodeURIComponent(char))
   }
 
   private static escape(value: string) {

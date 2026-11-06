@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRequest } from 'alova/client'
 import { LICENSES, licenseFor, type Photo, type PhotoLicense } from '@photos/types'
+import { DownloadSheet } from '@/components/DownloadSheet'
 import { Button, Callout, Field, Input, Select, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { confirm } from '@/lib/confirm'
@@ -25,6 +26,7 @@ export default function PhotoDetail() {
   const insets = useSafeAreaInsets()
   const spaces = useSpaces()
   const [caption, setCaption] = useState('')
+  const [downloading, setDownloading] = useState(false)
   const loaded = useRequest(() => api.photos.get(id), { force: true })
   const update = useRequest((changes: PhotoChanges) => api.photos.update(id, changes), { immediate: false }).onSuccess(({ data }) =>
     photoLists.replace(data.data),
@@ -87,6 +89,8 @@ export default function PhotoDetail() {
           </Text>
         </View>
 
+        <Button title="Download" variant="secondary" onPress={() => setDownloading(true)} />
+
         {problem.message ? <Callout>{problem.message}</Callout> : null}
 
         <View style={styles.panel}>
@@ -103,7 +107,7 @@ export default function PhotoDetail() {
             value={isPublic}
             disabled={update.loading}
             onValueChange={(on) => save({ visibility: on ? 'public' : 'private' })}
-            trackColor={{ true: colors.brand700, false: colors.surface300 }}
+            trackColor={{ true: colors.brand600, false: colors.surface300 }}
             thumbColor={colors.white}
             accessibilityLabel="Show on Explore"
           />
@@ -146,12 +150,13 @@ export default function PhotoDetail() {
 
         <Button title={remove.loading ? 'Deleting…' : 'Delete photo'} variant="danger" loading={remove.loading} onPress={destroy} style={styles.delete} />
       </View>
+      {downloading && <DownloadSheet photo={photo} owned onClose={() => setDownloading(false)} />}
     </ScrollView>
   )
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.white },
+  page: { flex: 1, backgroundColor: colors.canvas },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   flex: { flex: 1, gap: 2 },
   stage: { backgroundColor: colors.ink900, alignItems: 'center' },
@@ -167,7 +172,7 @@ const styles = StyleSheet.create({
   },
   body: { padding: 20, gap: 18 },
   meta: { gap: 2 },
-  panel: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.lg, backgroundColor: colors.surface100 },
+  panel: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.lg, borderWidth: 1.5, borderColor: colors.surface200, backgroundColor: colors.white },
   caption: { minHeight: 88, textAlignVertical: 'top' },
   delete: { marginTop: 12 },
 })

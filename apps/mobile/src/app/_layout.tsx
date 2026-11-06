@@ -43,7 +43,7 @@ export default function RootLayout() {
   return (
     <>
       <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.white } }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas } }}>
         <Stack.Protected guard={!!user} redirectTo="/welcome">
           <Stack.Screen name="(tabs)" />
         </Stack.Protected>

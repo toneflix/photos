@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Pressable, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { colors, radius } from '@/theme'
+import { colors, surfaces } from '@/theme'
 import { OptionSheet, type Option } from './OptionSheet'
 import { Text } from './Text'
 
@@ -45,10 +45,7 @@ const styles = StyleSheet.create({
   box: {
     minHeight: 48,
     paddingHorizontal: 14,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.surface300,
-    backgroundColor: colors.white,
+    ...surfaces.field,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
