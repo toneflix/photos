@@ -46,9 +46,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: web-production
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -74,7 +74,7 @@ jobs:
     if: github.event_name == 'push' || inputs.build_apk
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-eas
         with:
           expo-token: ${{ secrets.EXPO_TOKEN }}
@@ -94,7 +94,7 @@ jobs:
             curl -fsSL -o "$RUNNER_TEMP/app.apk" "$(jq -r '.[0].artifacts.buildUrl' "$RUNNER_TEMP/build.json")"
           fi
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: toneflix-photos-${{ github.sha }}-apk
           path: ${{ runner.temp }}/app.apk
@@ -108,7 +108,7 @@ jobs:
       TRACK: ${{ inputs.play_store_track || vars.PLAY_STORE_TRACK || 'internal' }}
       RELEASE_STATUS: ${{ inputs.play_store_release_status || vars.PLAY_STORE_RELEASE_STATUS || 'completed' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-eas
         with:
           expo-token: ${{ secrets.EXPO_TOKEN }}
@@ -156,7 +156,7 @@ jobs:
             eas submit --platform android --profile production --path "$RUNNER_TEMP/app.aab" --non-interactive --wait
           fi
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: env.ANDROID_BUILDER == 'runner'
         with:
           name: toneflix-photos-${{ github.sha }}-aab
