@@ -9,6 +9,8 @@ const PATHS: Record<string, string> = {
 	image: "M4 5h16v14H4zM4 16l4.5-4.5 4 4 2.5-2.5L20 18M15.5 9.5h.01",
 	lock: "M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3",
 	book: "M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h10",
+	key: "M14.5 9.5a4 4 0 1 0-3.9 3.1L4 19.2V21h3v-2h2v-2h2l1.6-1.6a4 4 0 0 0 1.9-5.9zM16 8h.01",
+	plus: "M12 5v14M5 12h14",
 	chevron: "M9 6l6 6-6 6",
 	search: "M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14M20 20l-4-4",
 };

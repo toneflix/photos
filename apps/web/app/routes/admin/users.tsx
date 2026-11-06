@@ -1,5 +1,5 @@
 import { Form, Link, useNavigation, useSearchParams, useSubmit } from "react-router";
-import type { AdminUser, UserRole } from "@photos/types";
+import type { AdminUser, Role, UserRole } from "@photos/types";
 import { AdminHeader } from "~/components/admin/AdminHeader";
 import { Avatar } from "~/components/Avatar";
 import { Alert, Button, Input, Select, buttonClass } from "~/components/ui";
@@ -10,29 +10,26 @@ import type { Route } from "./+types/users";
 
 export const meta = () => [{ title: "Users · Admin · Toneflix Photos" }];
 
-const ROLES: { value: UserRole; label: string }[] = [
-	{ value: "user", label: "Member" },
-	{ value: "moderator", label: "Moderator" },
-	{ value: "admin", label: "Admin" },
-];
-
 export async function loader({ request, context }: Route.LoaderArgs) {
-	const { api, user } = await requireAdmin(request, context, "users");
+	const { api, user } = await requireAdmin(request, context, "users.view", "users.manage");
 	const params = new URL(request.url).searchParams;
 	const role = params.get("role") as UserRole | null;
 	const status = params.get("status") as "active" | "suspended" | null;
-	const result = await api.admin.users({
+	const [result, roles] = await Promise.all([
+		api.admin.users({
 		q: params.get("q") || undefined,
 		role: role || undefined,
 		status: status || undefined,
-		page: Number(params.get("page")) || 1,
-	});
+			page: Number(params.get("page")) || 1,
+		}),
+		api.admin.roles(),
+	]);
 
-	return { users: result.data, meta: result.meta, me: user.id };
+	return { users: result.data, meta: result.meta, roles: roles.data, me: user.id, canManage: user.permissions.includes("users.manage") };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-	const { api } = await requireAdmin(request, context, "users");
+	const { api } = await requireAdmin(request, context, "users.manage");
 	const form = await request.formData();
 	const id = String(form.get("id"));
 
@@ -47,7 +44,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function AdminUsers({ loaderData, actionData }: Route.ComponentProps) {
-	const { users, meta, me } = loaderData;
+	const { users, meta, roles, me, canManage } = loaderData;
 	const [params] = useSearchParams();
 	const pageLink = (page: number) => {
 		const next = new URLSearchParams(params);
@@ -73,9 +70,9 @@ export default function AdminUsers({ loaderData, actionData }: Route.ComponentPr
 					/>
 					<Select name="role" defaultValue={params.get("role") ?? ""} aria-label="Role" className="w-auto">
 						<option value="">Every role</option>
-						{ROLES.map((role) => (
-							<option key={role.value} value={role.value}>
-								{role.label}s
+						{roles.map((role) => (
+							<option key={role.slug} value={role.slug}>
+								{role.name}
 							</option>
 						))}
 					</Select>
@@ -97,7 +94,7 @@ export default function AdminUsers({ loaderData, actionData }: Route.ComponentPr
 					) : (
 						<ul className="divide-y divide-surface-200">
 							{users.map((account) => (
-								<UserRow key={account.id} account={account} isMe={account.id === me} />
+								<UserRow key={account.id} account={account} roles={roles} isMe={account.id === me} canManage={canManage} />
 							))}
 						</ul>
 					)}
@@ -127,7 +124,7 @@ export default function AdminUsers({ loaderData, actionData }: Route.ComponentPr
 	);
 }
 
-function UserRow({ account, isMe }: { account: AdminUser; isMe: boolean }) {
+function UserRow({ account, roles, isMe, canManage }: { account: AdminUser; roles: Role[]; isMe: boolean; canManage: boolean }) {
 	const submit = useSubmit();
 	const navigation = useNavigation();
 	const busy = navigation.state !== "idle" && navigation.formData?.get("id") === account.id;
@@ -149,14 +146,15 @@ function UserRow({ account, isMe }: { account: AdminUser; isMe: boolean }) {
 			<p className="text-sm text-ink-500">
 				{account.photoCount} {account.photoCount === 1 ? "photo" : "photos"} · {account.bookCount} {account.bookCount === 1 ? "book" : "books"} · joined {new Date(account.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })}
 			</p>
+			{canManage ? (
 			<div className="flex items-center gap-2">
 				<Form method="post" onChange={(event) => submit(event.currentTarget, { preventScrollReset: true })}>
 					<input type="hidden" name="intent" value="role" />
 					<input type="hidden" name="id" value={account.id} />
 					<Select name="role" defaultValue={account.role} disabled={isMe || busy} aria-label={`Role for ${account.name}`} className="w-auto !py-2 text-sm">
-						{ROLES.map((role) => (
-							<option key={role.value} value={role.value}>
-								{role.label}
+						{roles.map((role) => (
+							<option key={role.slug} value={role.slug}>
+								{role.name}
 							</option>
 						))}
 					</Select>
@@ -176,6 +174,9 @@ function UserRow({ account, isMe }: { account: AdminUser; isMe: boolean }) {
 					</Button>
 				</Form>
 			</div>
+			) : (
+				<span className="rounded-md bg-surface-100 px-2 py-1 text-sm font-medium text-ink-700">{roles.find((role) => role.slug === account.role)?.name ?? account.role}</span>
+			)}
 		</li>
 	);
 }

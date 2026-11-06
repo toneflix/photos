@@ -14,7 +14,7 @@ export const meta = () => [{ title: "Configuration · Admin · Toneflix Photos" 
 type Values = Record<string, number | boolean | string | null>;
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
-	const { api } = await requireAdmin(request, context, "settings");
+	const { api } = await requireAdmin(request, context, "settings.manage");
 	const { data: groups } = await api.admin.settings();
 	const current = groups.find((group) => group.id === params.group);
 
@@ -24,7 +24,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context, params }: Route.ActionArgs) {
-	const { api } = await requireAdmin(request, context, "settings");
+	const { api } = await requireAdmin(request, context, "settings.manage");
 	const values = (await request.json()) as Values;
 
 	try {

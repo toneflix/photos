@@ -18,7 +18,7 @@ const KINDS: { value: ModeratedKind; label: string }[] = [
 const kindOf = (value: string | undefined): ModeratedKind => (KINDS.some((kind) => kind.value === value) ? (value as ModeratedKind) : "photos");
 
 export async function loader({ request, context, params }: Route.LoaderArgs) {
-	const { api } = await requireAdmin(request, context, "moderation");
+	const { api } = await requireAdmin(request, context, "content.moderate");
 	const search = new URL(request.url).searchParams;
 	const kind = kindOf(params.kind);
 	const result = await api.admin.moderation(kind, { q: search.get("q") || undefined, page: Number(search.get("page")) || 1 });
@@ -27,7 +27,7 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context, params }: Route.ActionArgs) {
-	const { api } = await requireAdmin(request, context, "moderation");
+	const { api } = await requireAdmin(request, context, "content.moderate");
 	const form = await request.formData();
 
 	try {

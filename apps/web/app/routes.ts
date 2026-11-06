@@ -36,6 +36,7 @@ export default [
 			index("routes/admin/overview.tsx"),
 			route("users", "routes/admin/users.tsx"),
 			route("moderation/:kind?", "routes/admin/moderation.tsx"),
+			route("roles/:role?", "routes/admin/roles.tsx"),
 			route("configuration/:group?", "routes/admin/configuration.tsx"),
 		]),
 	]),

@@ -7,10 +7,10 @@ import type { Route } from "./+types/overview";
 export const meta = () => [{ title: "Overview · Admin · Toneflix Photos" }];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-	const { api, user } = await requireAdmin(request, context, "dashboard");
+	const { api, user } = await requireAdmin(request, context, "dashboard.view");
 	const { data } = await api.admin.overview();
 
-	return { overview: data, canManageUsers: user.permissions.includes("users") };
+	return { overview: data, canManageUsers: user.permissions.some((permission) => permission === "users.view" || permission === "users.manage") };
 }
 
 const number = new Intl.NumberFormat("en");

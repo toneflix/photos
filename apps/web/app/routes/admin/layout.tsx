@@ -18,7 +18,7 @@ export const shouldRevalidate = revalidateOnSubmit;
 
 /** The admin dashboard: a sidebar of the areas the signed-in role can open, beside the page. */
 export default function AdminLayout({ loaderData }: Route.ComponentProps) {
-	const pages = ADMIN_PAGES.filter((page) => loaderData.user.permissions.includes(page.permission));
+	const pages = ADMIN_PAGES.filter((page) => page.permissions.some((permission) => loaderData.user.permissions.includes(permission)));
 	const item = (isActive: boolean) =>
 		`flex items-center gap-3 rounded-[0.625rem] px-3 py-2.5 text-sm font-medium whitespace-nowrap transition ${
 			isActive ? "bg-brand-600 text-white" : "text-ink-700 hover:bg-surface-100 hover:text-ink-900"
