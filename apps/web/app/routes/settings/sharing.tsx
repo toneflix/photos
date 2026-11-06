@@ -41,6 +41,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 		await api.account.updatePrivacy({
 			defaultVisibility: String(form.get("defaultVisibility")) as Visibility,
 			showOwnerName: form.get("showOwnerName") === "on",
+			showCounts: form.get("showCounts") === "on",
 			defaultLicense: String(form.get("defaultLicense")) as PhotoLicense,
 		});
 
@@ -119,6 +120,13 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 							<span>
 								<span className="block text-sm font-medium text-ink-900">Show my name on books I share</span>
 								<span className="block text-xs text-ink-500">When off, people opening your books don't see who made them.</span>
+							</span>
+						</label>
+						<label className="flex cursor-pointer items-start gap-3">
+							<input type="checkbox" name="showCounts" defaultChecked={user.showCounts} className="mt-1 h-4 w-4 accent-brand-600" />
+							<span>
+								<span className="block text-sm font-medium text-ink-900">Show view and download counts on my public work</span>
+								<span className="block text-xs text-ink-500">When off, only you see how often your photos, books and spaces are viewed and downloaded.</span>
 							</span>
 						</label>
 						<div className="flex items-center gap-3">
