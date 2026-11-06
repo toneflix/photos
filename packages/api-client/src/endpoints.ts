@@ -17,6 +17,7 @@ import type {
   PhotoQuery,
   PageQuery,
   PaginatedResponse,
+  PermissionDefinition,
   Photo,
   PhotoLicense,
   PhotoVisibility,
@@ -24,6 +25,8 @@ import type {
   PublicPhoto,
   PublicPhotoDetail,
   PublicSpace,
+  Role,
+  RoleInput,
   Session,
   SettingGroup,
   SignedIn,
@@ -207,6 +210,12 @@ export function createEndpoints(alova: PhotosAlova) {
         alova.Get<PaginatedResponse<ModerationItem>>(`/admin/moderation/${kind}`, { params, cacheFor: null }),
       /** Take a public photo, book or space off Explore. It becomes private for its owner. */
       unpublish: (kind: ModeratedKind, id: ID) => alova.Post<ApiResponse<ModerationItem>>(`/admin/moderation/${kind}/${id}/unpublish`),
+      /** Every role, with the permissions there are to choose from. */
+      roles: () => alova.Get<ApiResponse<Role[]> & { permissions: PermissionDefinition[] }>('/admin/roles', { cacheFor: null }),
+      createRole: (data: RoleInput) => alova.Post<ApiResponse<Role>>('/admin/roles', data),
+      updateRole: (id: ID, data: Partial<RoleInput>) => alova.Put<ApiResponse<Role>>(`/admin/roles/${id}`, data),
+      /** Refused for built-in roles and roles someone still has. */
+      removeRole: (id: ID) => alova.Delete<ApiResponse<Role>>(`/admin/roles/${id}`),
       settings: () => alova.Get<ApiResponse<SettingGroup[]>>('/admin/settings', { cacheFor: null }),
       /** Save a group's fields by name. Null puts a field back to its .env default. */
       updateSettings: (group: string, values: Record<string, number | boolean | string | null>) =>

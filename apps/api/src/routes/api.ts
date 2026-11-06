@@ -11,6 +11,7 @@ import LimitsController from 'src/app/http/controllers/LimitsController'
 import ModerationController from 'src/app/http/controllers/admin/ModerationController'
 import OverviewController from 'src/app/http/controllers/admin/OverviewController'
 import SettingsController from 'src/app/http/controllers/admin/SettingsController'
+import RoleController from 'src/app/http/controllers/admin/RoleController'
 import UserController from 'src/app/http/controllers/admin/UserController'
 import { Authorize } from 'src/app/http/middlewares/Authorize'
 import { Router } from '@arkstack/driver-express'
@@ -91,11 +92,15 @@ Router.post('/access-codes/redeem', [BookAccessCodeController, 'redeem'], [limit
 Router.post('/access-codes/claim', [BookAccessCodeController, 'claim'], [auth, limiter(10, 60)])
 
 // Admin dashboard. Each area needs a role that grants it.
-Router.get('/admin/overview', [OverviewController, 'show'], [auth, Authorize.to('dashboard')])
-Router.get('/admin/users', [UserController, 'index'], [auth, Authorize.to('users')])
-Router.get('/admin/users/:user', [UserController, 'show'], [auth, Authorize.to('users')])
-Router.put('/admin/users/:user', [UserController, 'update'], [auth, Authorize.to('users')])
-Router.get('/admin/moderation/:kind', [ModerationController, 'index'], [auth, Authorize.to('moderation')])
-Router.post('/admin/moderation/:kind/:item/unpublish', [ModerationController, 'unpublish'], [auth, Authorize.to('moderation')])
-Router.get('/admin/settings', [SettingsController, 'index'], [auth, Authorize.to('settings')])
-Router.put('/admin/settings/:group', [SettingsController, 'update'], [auth, Authorize.to('settings')])
+Router.get('/admin/overview', [OverviewController, 'show'], [auth, Authorize.to('dashboard.view')])
+Router.get('/admin/users', [UserController, 'index'], [auth, Authorize.to('users.view', 'users.manage')])
+Router.get('/admin/users/:user', [UserController, 'show'], [auth, Authorize.to('users.view', 'users.manage')])
+Router.put('/admin/users/:user', [UserController, 'update'], [auth, Authorize.to('users.manage')])
+Router.get('/admin/moderation/:kind', [ModerationController, 'index'], [auth, Authorize.to('content.moderate')])
+Router.post('/admin/moderation/:kind/:item/unpublish', [ModerationController, 'unpublish'], [auth, Authorize.to('content.moderate')])
+Router.get('/admin/settings', [SettingsController, 'index'], [auth, Authorize.to('settings.manage')])
+Router.put('/admin/settings/:group', [SettingsController, 'update'], [auth, Authorize.to('settings.manage')])
+Router.get('/admin/roles', [RoleController, 'index'], [auth, Authorize.to('roles.manage', 'users.view', 'users.manage')])
+Router.post('/admin/roles', [RoleController, 'create'], [auth, Authorize.to('roles.manage')])
+Router.put('/admin/roles/:role', [RoleController, 'update'], [auth, Authorize.to('roles.manage')])
+Router.delete('/admin/roles/:role', [RoleController, 'destroy'], [auth, Authorize.to('roles.manage')])

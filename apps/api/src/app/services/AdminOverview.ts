@@ -1,6 +1,7 @@
 import { Book } from '@app/models/Book'
 import { Photo } from '@app/models/Photo'
 import { Space } from '@app/models/Space'
+import { Role } from '@app/models/Role'
 import { User } from '@app/models/User'
 import { where } from 'arkormx'
 
@@ -18,7 +19,7 @@ export class AdminOverview {
           .where(where('createdAt', '>=', since))
           .count(),
         suspended: await User.query().whereNotNull('suspendedAt').count(),
-        staff: await User.query().whereIn('role', ['moderator', 'admin']).count(),
+        staff: await User.query().where(where('role', '<>', Role.MEMBER)).count(),
       },
       photos: {
         total: await Photo.query().count(),

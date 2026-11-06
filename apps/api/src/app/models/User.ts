@@ -13,7 +13,8 @@ import { AccountMail } from '@app/notifications/AccountMail'
 import { ImageFile } from '@app/support/ImageFile'
 import { BookPage } from './BookPage'
 import { randomUUID } from 'node:crypto'
-import { Role, type AdminPermission, type UserRole } from '@app/policies/Role'
+import type { PermissionName } from '@app/policies/Permission'
+import { Role } from './Role'
 
 export interface UserPreferences {
   defaultVisibility?: BookVisibility
@@ -31,7 +32,8 @@ export class User extends BaseUser {
   declare defaultVisibility: BookVisibility
   declare showOwnerName: boolean
   declare defaultLicense: PhotoLicense
-  declare role: UserRole
+  /** The slug of the user's role. */
+  declare role: string
   declare suspendedAt: Date | null
   declare createdAt: Date
   declare updatedAt: Date
@@ -83,13 +85,13 @@ export class User extends BaseUser {
     return this.hasMany(UserNotification, 'userId')
   }
 
-  /** The user's role, with what it allows in the admin dashboard. */
-  access(): Role {
-    return new Role(this.role ?? 'user')
+  /** What the user's role allows in the admin dashboard. */
+  permissions(): Promise<PermissionName[]> {
+    return Role.permissionsFor(this.role)
   }
 
-  can(permission: AdminPermission): boolean {
-    return this.access().allows(permission)
+  async can(permission: PermissionName): Promise<boolean> {
+    return (await this.permissions()).includes(permission)
   }
 
   isSuspended(): boolean {

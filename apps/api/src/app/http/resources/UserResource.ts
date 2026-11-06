@@ -15,7 +15,7 @@ export class UserResource extends Resource {
       showOwnerName: user.showOwnerName,
       defaultLicense: user.defaultLicense,
       role: user.role ?? 'user',
-      permissions: user.access().permissions(),
+      permissions: await user.permissions(),
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     }

@@ -1,4 +1,4 @@
-import type { ID, UserRole } from './models'
+import type { ID, Permission, UserRole } from './models'
 import type { PageQuery } from './api'
 
 /** Limits the API enforces that apps can check before sending anything. Open to everyone. */
@@ -82,4 +82,32 @@ export interface SettingGroup {
   /** An icon name for the group's list entry. */
   icon: string
   fields: SettingField[]
+}
+
+/** A named collection of permissions accounts are given. */
+export interface Role {
+  id: ID
+  slug: UserRole
+  name: string
+  description: string | null
+  permissions: Permission[]
+  /** Built-in roles (members and admins) can't be changed or deleted. */
+  system: boolean
+  userCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+/** A permission there is to choose from when making a role. */
+export interface PermissionDefinition {
+  name: Permission
+  label: string
+  description: string
+}
+
+export interface RoleInput {
+  name: string
+  slug?: string | null
+  description?: string | null
+  permissions: Permission[]
 }

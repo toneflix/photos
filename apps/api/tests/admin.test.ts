@@ -47,8 +47,11 @@ describe('Admin dashboard', () => {
     const moderator = await api('get', '/auth/me', undefined, 'moderator')
     const member = await api('get', '/auth/me', undefined, 'member')
 
-    expect(admin.body.data).toMatchObject({ role: 'admin', permissions: ['dashboard', 'moderation', 'users', 'settings'] })
-    expect(moderator.body.data).toMatchObject({ role: 'moderator', permissions: ['dashboard', 'moderation'] })
+    expect(admin.body.data).toMatchObject({
+      role: 'admin',
+      permissions: ['dashboard.view', 'users.view', 'users.manage', 'content.moderate', 'settings.manage', 'roles.manage'],
+    })
+    expect(moderator.body.data).toMatchObject({ role: 'moderator', permissions: ['dashboard.view', 'content.moderate'] })
     expect(member.body.data).toMatchObject({ role: 'user', permissions: [] })
   })
 
@@ -128,6 +131,50 @@ describe('Admin dashboard', () => {
     expect(unpublished.body.data.visibility).toBe('private')
     expect((await api('get', `/explore/photos/${photoId}`, undefined, null)).status).toBe(404)
     expect((await api('get', '/admin/moderation/videos', undefined, 'moderator')).status).toBe(404)
+  })
+
+  it('builds new roles from permissions and gives them to accounts', async () => {
+    const list = await api('get', '/admin/roles')
+
+    expect(list.body.data.map((role: { slug: string }) => role.slug)).toEqual(expect.arrayContaining(['user', 'admin', 'moderator']))
+    expect(list.body.permissions.map((permission: { name: string }) => permission.name)).toContain('roles.manage')
+
+    const created = await api('post', '/admin/roles', { name: `Support ${Date.now()}`, permissions: ['dashboard.view', 'users.view', 'made.up'] })
+
+    expect(created.status).toBe(422)
+
+    const support = await api('post', '/admin/roles', { name: 'Support desk', description: 'Answers account questions', permissions: ['dashboard.view', 'users.view'] })
+    const role = support.body.data
+
+    expect(support.status).toBe(201)
+    expect(role).toMatchObject({ name: 'Support desk', permissions: ['dashboard.view', 'users.view'], system: false, userCount: 0 })
+    expect(role.slug).toMatch(/^support-desk/)
+
+    await api('put', `/admin/users/${accounts.member.id}`, { role: role.slug })
+
+    expect((await api('get', '/auth/me', undefined, 'member')).body.data.permissions).toEqual(['dashboard.view', 'users.view'])
+    expect((await api('get', '/admin/users', undefined, 'member')).status).toBe(200)
+    expect((await api('put', `/admin/users/${accounts.moderator.id}`, { role: 'user' }, 'member')).status).toBe(403)
+
+    await api('put', `/admin/roles/${role.id}`, { permissions: ['dashboard.view'] })
+
+    expect((await api('get', '/admin/users', undefined, 'member')).status).toBe(403)
+    expect((await api('delete', `/admin/roles/${role.id}`)).status).toBe(422)
+
+    await api('put', `/admin/users/${accounts.member.id}`, { role: 'user' })
+
+    expect((await api('delete', `/admin/roles/${role.id}`)).status).toBe(200)
+    expect((await api('put', `/admin/users/${accounts.member.id}`, { role: role.slug })).status).toBe(422)
+  })
+
+  it('keeps the built-in roles as they are', async () => {
+    const roles = (await api('get', '/admin/roles')).body.data
+    const admin = roles.find((role: { slug: string }) => role.slug === 'admin')
+
+    expect(admin.system).toBe(true)
+    expect((await api('put', `/admin/roles/${admin.id}`, { permissions: [] })).status).toBe(422)
+    expect((await api('delete', `/admin/roles/${admin.id}`)).status).toBe(422)
+    expect((await api('get', '/admin/roles', undefined, 'moderator')).status).toBe(403)
   })
 
   it('lists settings groups with their .env defaults', async () => {

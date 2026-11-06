@@ -2,7 +2,7 @@ import { AdminUserCollection } from '@app/http/resources/AdminUserCollection'
 import { AdminUserResource } from '@app/http/resources/AdminUserResource'
 import { BaseController } from '../BaseController'
 import type { QueryBuilder } from 'arkormx'
-import { Role } from '@app/policies/Role'
+import { Role } from '@app/models/Role'
 import { User } from '@app/models/User'
 import { abortIf, perPage } from '@arkstack/common'
 import { matches } from '@app/support/search'
@@ -12,7 +12,7 @@ export default class UserController extends BaseController {
   async index() {
     const filters = await this.validateQuery({
       q: 'nullable|string|max:100',
-      role: `nullable|in:${Role.NAMES.join(',')}`,
+      role: 'nullable|string|max:40',
       status: 'nullable|in:active,suspended',
     })
 
@@ -39,13 +39,20 @@ export default class UserController extends BaseController {
   async update() {
     const user = await User.query().findOrFail(String(this.params.user))
     const data = await this.validate({
-      role: `nullable|in:${Role.NAMES.join(',')}`,
+      role: 'nullable|string|max:40',
       suspended: 'nullable|boolean',
     })
 
     abortIf(user.id === this.user.id, 'You cannot change your own role or suspend yourself.', 422)
 
-    if (data.role) await user.update({ role: data.role })
+    if (data.role) {
+      const role = await Role.query().where({ slug: data.role }).first()
+
+      abortIf(!role, 'Pick a role that exists.', 422)
+
+      await user.update({ role: role!.slug })
+    }
+
     if (data.suspended === true || data.suspended === 'true') await user.suspend()
     if (data.suspended === false || data.suspended === 'false') await user.reinstate()
 
