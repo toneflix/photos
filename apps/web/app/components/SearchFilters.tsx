@@ -58,19 +58,19 @@ export function SearchFilters({ placeholder, filters }: { placeholder: string; f
 					defaultValue={params.get("q") ?? ""}
 					placeholder={placeholder}
 					maxLength={100}
-					className={`field !rounded-full py-3 pr-4 pl-12 ${busy ? "opacity-70" : ""}`}
+					className={`field !rounded-full py-3 pr-4 pl-12 text-ellipsis ${busy ? "opacity-70" : ""}`}
 				/>
 			</label>
 			<div className="flex flex-wrap items-center gap-2">
 				{filters.map((field) => (
-					<label key={field.name} className="relative">
+					<label key={field.name} className="relative max-w-full">
 						<span className="sr-only">{field.label}</span>
 						<select
 							key={params.get(field.name) ?? ""}
 							name={field.name}
 							defaultValue={params.get(field.name) ?? ""}
 							onChange={() => form.current?.requestSubmit()}
-							className={`cursor-pointer appearance-none rounded-full border-[1.5px] py-2.5 pr-9 pl-4 text-sm font-semibold transition ${
+							className={`max-w-full cursor-pointer truncate appearance-none rounded-full border-[1.5px] py-2.5 pr-9 pl-4 text-sm font-semibold transition ${
 								params.get(field.name) ? "border-brand-700 bg-brand-600 text-white" : "border-surface-300 bg-white text-ink-700 hover:border-ink-500"
 							}`}
 						>

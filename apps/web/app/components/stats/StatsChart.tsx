@@ -70,7 +70,7 @@ export function StatsChart({ days, title, downloads = true }: { days: StatsDay[]
 	const hovered = active === null ? null : days[active];
 
 	return (
-		<figure className="panel p-5" aria-labelledby={`${id}-title`}>
+		<figure className="panel min-w-0 p-5" aria-labelledby={`${id}-title`}>
 			<div className="flex flex-wrap items-start justify-between gap-3">
 				<figcaption id={`${id}-title`} className="font-display text-lg font-bold text-ink-900">
 					{title}

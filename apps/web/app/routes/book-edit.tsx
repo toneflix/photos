@@ -367,7 +367,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 						<p className="truncate font-serif text-lg leading-tight text-ink-900">{book.title}</p>
 						<div className="text-xs">{status}</div>
 					</div>
-					<Button variant="secondary" onClick={() => setSettingsOpen(true)} className="hidden sm:inline-flex">
+					<Button variant="secondary" onClick={() => setSettingsOpen(true)} className="max-sm:hidden">
 						Book settings
 					</Button>
 					<Button variant="ghost" onClick={() => setSettingsOpen(true)} className="sm:hidden" aria-label="Book settings">

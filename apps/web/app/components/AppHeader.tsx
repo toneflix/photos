@@ -4,17 +4,17 @@ import { Logo, buttonClass } from "~/components/ui";
 import { AccountMenu } from "~/components/AccountMenu";
 
 const tab = ({ isActive }: { isActive: boolean }) =>
-	`rounded-full px-2.5 py-2 text-sm font-semibold transition sm:px-4 ${isActive ? "bg-brand-600 text-white" : "text-ink-700 hover:bg-white"}`;
+	`rounded-full px-2.5 py-2 text-center text-sm font-semibold transition max-sm:flex-1 sm:px-4 ${isActive ? "bg-brand-600 text-white" : "text-ink-700 hover:bg-white"}`;
 
-/** The top bar. Signed-in people get their library tabs; visitors get Explore and a way in. */
+/** The top bar. Signed-in people get their library tabs, on a row of their own on phones; visitors get Explore and a way in. */
 export function AppHeader({ user }: { user: User | null }) {
 	const { pathname } = useLocation();
 
 	return (
 		<header className="sticky top-0 z-20 border-b-[1.5px] border-surface-200 bg-white/95 backdrop-blur">
-			<div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+			<div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3 sm:px-6">
 				<Logo to={user ? "/books" : "/"} compact />
-				<nav className="flex items-center gap-1 rounded-full border-[1.5px] border-surface-200 bg-surface-100 p-1">
+				<nav className={`flex items-center gap-1 rounded-full border-[1.5px] border-surface-200 bg-surface-100 p-1 ${user ? "max-sm:order-last max-sm:w-full" : ""}`}>
 					{user && (
 						<>
 							<NavLink prefetch="intent" to="/books" className={tab}>
