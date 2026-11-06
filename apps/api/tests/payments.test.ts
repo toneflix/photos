@@ -109,18 +109,18 @@ describe('Plans admin and checkout', () => {
   })
 
   it('prices plans in the currency of the payer’s region', async () => {
-    const region = await api('post', '/admin/payment-regions', { name: 'Ghana test', countries: ['gh'], currency: 'ghs', exchangeRate: 0.0123 })
-    const overlap = await api('post', '/admin/payment-regions', { name: 'West Africa test', countries: ['GH', 'SN'], currency: 'XOF' })
+    const region = await api('post', '/admin/payment-regions', { name: 'Ghana test', countries: ['qz'], currency: 'ghs', exchangeRate: 0.0123 })
+    const overlap = await api('post', '/admin/payment-regions', { name: 'West Africa test', countries: ['QZ', 'QY'], currency: 'XOF' })
 
     regionId = region.body.data.id
 
     expect(region.status).toBe(201)
-    expect(region.body.data).toMatchObject({ countries: ['GH'], currency: 'GHS' })
+    expect(region.body.data).toMatchObject({ countries: ['QZ'], currency: 'GHS' })
     expect(overlap.status).toBe(422)
     expect(overlap.body.errors.countries[0]).toContain('Ghana test')
 
     const home = (await api('get', '/plans', undefined, null)).body.data.find((plan: { slug: string }) => plan.slug === 'premium')
-    const ghana = (await api('get', '/plans', undefined, null, { 'X-Country': 'GH' })).body.data.find((plan: { slug: string }) => plan.slug === 'premium')
+    const ghana = (await api('get', '/plans', undefined, null, { 'X-Country': 'QZ' })).body.data.find((plan: { slug: string }) => plan.slug === 'premium')
 
     expect(home.chargeCurrency).toBe('NGN')
     expect(home.billing[0].charge).toBe(home.price)
@@ -129,8 +129,8 @@ describe('Plans admin and checkout', () => {
   })
 
   it('uses the live rate and markup when a region has no fixed rate', async () => {
-    const kenya = await api('post', '/admin/payment-regions', { name: 'Kenya test', countries: ['KE'], currency: 'KES', rateMarkup: 5 })
-    const premium = (await api('get', '/plans?country=KE', undefined, null)).body.data.find((plan: { slug: string }) => plan.slug === 'premium')
+    const kenya = await api('post', '/admin/payment-regions', { name: 'Kenya test', countries: ['QX'], currency: 'KES', rateMarkup: 5 })
+    const premium = (await api('get', '/plans?country=QX', undefined, null)).body.data.find((plan: { slug: string }) => plan.slug === 'premium')
 
     await api('delete', `/admin/payment-regions/${kenya.body.data.id}`)
 
@@ -139,7 +139,7 @@ describe('Plans admin and checkout', () => {
   })
 
   it('sends payers to Flutterwave and gives them the plan once paid', async () => {
-    const start = await api('post', '/payments', { plan: 'premium', cycles: 12 }, 'payer', { 'X-Country': 'GH' })
+    const start = await api('post', '/payments', { plan: 'premium', cycles: 12 }, 'payer', { 'X-Country': 'QZ' })
     const payment = start.body.data
 
     expect(start.status).toBe(201)
