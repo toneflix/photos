@@ -18,7 +18,11 @@ export default (): NotificationConfig => {
      */
     drivers: {
       mail: {
-        transport: env('MAIL_TRANSPORT', 'smtp') as 'smtp' | 'file',
+        transport: ['staging', 'production'].includes(env('APP_ENV'))
+          ? new SendPulseTransport({
+              apiKey: env('MAIL_API_KEY'),
+            })
+          : env('MAIL_TRANSPORT', 'smtp'),
         from: {
           name: env('MAIL_FROM_NAME', 'Arcstack'),
           address: env('MAIL_FROM_ADDRESS', 'no-reply@example.com'),
