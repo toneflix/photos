@@ -147,7 +147,7 @@ function PermissionPicker({ selected = ["view"] }: { selected?: BookPermission[]
 				{EXTRA_PERMISSIONS.map((permission) => (
 					<label
 						key={permission}
-						className="flex cursor-pointer items-start gap-3 rounded-xl border-[1.5px] border-surface-300 px-4 py-3 text-sm transition hover:border-ink-500 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:checked]:shadow-[0_3px_0_0_var(--color-brand-500)]"
+						className="flex cursor-pointer items-start gap-3 rounded-xl border-[1.5px] border-surface-300 px-4 py-3 text-sm transition hover:border-ink-500 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50"
 					>
 						<input
 							type="checkbox"
@@ -191,7 +191,7 @@ function CodeCard({ code, highlight }: { code: BookAccessCode; highlight: boolea
 	};
 
 	return (
-		<li className={`panel p-5 transition ${highlight ? "!border-brand-600 !shadow-[0_3px_0_0_var(--color-brand-500)]" : ""} ${revoking ? "opacity-50" : ""}`}>
+		<li className={`panel p-5 transition ${highlight ? "!border-brand-600" : ""} ${revoking ? "opacity-50" : ""}`}>
 			<div className="flex flex-wrap items-start justify-between gap-3">
 				<div className="min-w-0">
 					<p className={`font-mono text-2xl font-bold tracking-[0.2em] ${code.expired ? "text-ink-500 line-through" : "text-ink-900"}`}>{code.code}</p>

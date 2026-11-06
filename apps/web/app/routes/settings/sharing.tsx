@@ -68,7 +68,7 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 								{VISIBILITY.map((option) => (
 									<label
 										key={option.value}
-										className="flex cursor-pointer flex-col gap-1 rounded-xl border-[1.5px] border-surface-300 p-4 transition hover:border-ink-500 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:checked]:shadow-[0_3px_0_0_var(--color-brand-500)]"
+										className="flex cursor-pointer flex-col gap-1 rounded-xl border-[1.5px] border-surface-300 p-4 transition hover:border-ink-500 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50"
 									>
 										<span className="flex items-center gap-2 text-sm font-medium text-ink-900">
 											<input
@@ -97,7 +97,7 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 								{LICENSES.map((option) => (
 									<label
 										key={option.value}
-										className="flex cursor-pointer flex-col gap-1 rounded-xl border-[1.5px] border-surface-300 p-4 transition hover:border-ink-500 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:checked]:shadow-[0_3px_0_0_var(--color-brand-500)]"
+										className="flex cursor-pointer flex-col gap-1 rounded-xl border-[1.5px] border-surface-300 p-4 transition hover:border-ink-500 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50"
 									>
 										<span className="flex items-center gap-2 text-sm font-medium text-ink-900">
 											<input

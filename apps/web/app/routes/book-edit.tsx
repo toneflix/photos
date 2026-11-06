@@ -860,7 +860,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 								).map(([value, label]) => (
 									<label
 										key={value}
-										className="flex cursor-pointer items-center gap-3 rounded-xl border-[1.5px] border-surface-300 px-4 py-3 text-sm transition hover:border-ink-500 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:checked]:shadow-[0_3px_0_0_var(--color-brand-500)]"
+										className="flex cursor-pointer items-center gap-3 rounded-xl border-[1.5px] border-surface-300 px-4 py-3 text-sm transition hover:border-ink-500 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50"
 									>
 										<input
 											type="radio"
