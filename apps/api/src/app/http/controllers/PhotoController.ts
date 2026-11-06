@@ -1,5 +1,5 @@
 import { SORTS } from '@app/support/search'
-import { UUID, photoFile } from '@app/support/rules'
+import { UUID, downloadSize, photoFile } from '@app/support/rules'
 import { perPage } from '@arkstack/common'
 import { BaseController } from './BaseController'
 import { Photo } from '@app/models/Photo'
@@ -55,6 +55,13 @@ export default class PhotoController extends BaseController {
     const photo = await this.user.photos().findOrFail(String(this.params.photo))
 
     return new PhotoResource(photo).additional({ status: 'success', message: 'OK', code: 200 })
+  }
+
+  /** The owner's original, or a copy at a preset or custom size, whatever its licence. */
+  async download() {
+    const photo = await this.user.photos().findOrFail(String(this.params.photo))
+
+    return photo.download(await this.validateQuery(downloadSize(Object.keys(Photo.DOWNLOAD_SIZES))))
   }
 
   async update() {

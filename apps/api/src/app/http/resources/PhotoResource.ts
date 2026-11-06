@@ -20,6 +20,7 @@ export class PhotoResource extends Resource {
       visibility: photo.visibility,
       publishedAt: photo.publishedAt,
       license: photo.license,
+      downloads: photo.downloadSizes(),
       createdAt: photo.createdAt,
       updatedAt: photo.updatedAt,
     }

@@ -45,6 +45,11 @@ export class PhotoImage {
     return this.mimeType in PhotoImage.FORMATS
   }
 
+  /** The type downloads at other sizes are written in: the original's when it can be written, else JPEG. */
+  get outputType(): string {
+    return this.editable ? this.mimeType : 'image/jpeg'
+  }
+
   /**
    * The same photo in the same format, at most `maxBytes` long: quality is lowered first, then the
    * size, keeping its colour profile and camera details. Null when it already fits or can't be re-encoded.
@@ -73,6 +78,14 @@ export class PhotoImage {
   /** A WebP copy for showing in the app, no longer than `maxEdge` on its longest side. */
   display(maxEdge: number, quality: number): Promise<EncodedImage> {
     return this.render({ width: maxEdge, height: maxEdge, quality, mimeType: 'image/webp' }, 'inside')
+  }
+
+  /**
+   * The photo at another size, never larger than the original. With both sides it is cropped from the
+   * centre to exactly that shape; with one side the other follows the photo's shape.
+   */
+  resize(width?: number | null, height?: number | null): Promise<EncodedImage> {
+    return this.render({ width, height, quality: 90, mimeType: this.outputType }, width && height ? 'cover' : 'inside')
   }
 
   /** Encode with the given size and quality. Without a size the photo keeps its own. */

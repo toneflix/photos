@@ -88,7 +88,7 @@ export interface Photo {
   userId: ID
   /** The space the photo sits in, if any. */
   spaceId: ID | null
-  /** Signed URL, generated per response. */
+  /** Signed URL of the WebP display copy (or the original when there is none), generated per response. */
   url: string
   /** Signed URL, generated per response. */
   thumbnailUrl: string | null
@@ -101,9 +101,21 @@ export interface Photo {
   /** Public photos show on Explore. */
   visibility: PhotoVisibility
   license: PhotoLicense
+  /** The original's size first, then each smaller preset it can be downloaded at. */
+  downloads: PhotoDownloadSize[]
   publishedAt: string | null
   createdAt: string
   updatedAt: string
+}
+
+/** A preset download size: `original`, `large`, `medium` or `small`. */
+export type PhotoDownloadPreset = 'original' | 'large' | 'medium' | 'small'
+
+/** One size a photo can be downloaded at. */
+export interface PhotoDownloadSize {
+  size: PhotoDownloadPreset
+  width: number
+  height: number
 }
 
 export type PhotoVisibility = 'private' | 'public'

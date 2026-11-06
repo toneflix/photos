@@ -3,6 +3,7 @@ import { ImageFile } from '@app/support/ImageFile'
 import { PhotoImage } from '@app/support/PhotoImage'
 import { BookPage } from './BookPage'
 import { Model } from '@arkstack/database'
+import { abortIf } from '@arkstack/common'
 import { Space } from './Space'
 import { Storage } from '@arkstack/filesystem'
 import { User } from './User'
@@ -30,6 +31,20 @@ export interface UploadedPhoto {
   mimetype: string
   originalname?: string
   size: number
+}
+
+/** A download size: a preset name, or custom dimensions as numbers or query strings. */
+export interface DownloadRequest {
+  size?: string | null
+  width?: number | string | null
+  height?: number | string | null
+}
+
+/** One size a photo can be downloaded at. */
+export interface DownloadSize {
+  size: string
+  width: number
+  height: number
 }
 
 export interface PhotoDetails {
@@ -64,6 +79,9 @@ export class Photo extends Model {
   static readonly VISIBILITIES = ['private', 'public']
   static readonly ORIENTATIONS = ['landscape', 'portrait', 'square']
   static readonly LICENSES = ['all-rights-reserved', 'cc-by', 'cc-by-nc', 'cc0']
+
+  /** Preset download sizes, by their longest side in pixels. */
+  static readonly DOWNLOAD_SIZES: Record<string, number> = { large: 1920, medium: 1280, small: 640 }
 
   /** The largest photo upload, in kilobytes. */
   static readonly MAX_KILOBYTES = 25_600
@@ -271,16 +289,59 @@ export class Photo extends Model {
     return this.license !== 'all-rights-reserved'
   }
 
-  /** The original file as an attachment, named after the caption. */
-  async download(): Promise<Response> {
-    const bytes = await Storage.disk(this.disk as never).getBytes(this.path)
-    const name = (this.caption ?? 'photo').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'photo'
-    const extension = Photo.EXTENSIONS[this.mimeType] ?? 'bin'
+  /** The original's size, then each preset smaller than it. Presets need the photo's size to be known. */
+  downloadSizes(): DownloadSize[] {
+    if (!this.width || !this.height) return [{ size: 'original', width: this.width ?? 0, height: this.height ?? 0 }]
 
-    return new Response(bytes as BodyInit, {
+    const longest = Math.max(this.width, this.height)
+    const presets = Object.entries(Photo.DOWNLOAD_SIZES).filter(([, edge]) => edge < longest)
+
+    return [
+      { size: 'original', width: this.width, height: this.height },
+      ...presets.map(([size, edge]) => ({ size, width: Math.round((this.width! * edge) / longest), height: Math.round((this.height! * edge) / longest) })),
+    ]
+  }
+
+  /**
+   * The dimensions a download asks for, or null for the original. Custom sizes larger than
+   * the original shrink to fit it, keeping the shape that was asked for.
+   */
+  downloadTarget(request: DownloadRequest): { width: number | null; height: number | null } | null {
+    if (request.size && request.size !== 'original') {
+      const preset = this.downloadSizes().find(({ size }) => size === request.size)
+
+      return preset ? { width: preset.width, height: preset.height } : null
+    }
+
+    const width = Number(request.width) || null
+    const height = Number(request.height) || null
+
+    if (!width && !height) return null
+
+    const shrink = Math.min(1, this.width && width ? this.width / width : 1, this.height && height ? this.height / height : 1)
+
+    return {
+      width: width ? Math.max(1, Math.round(width * shrink)) : null,
+      height: height ? Math.max(1, Math.round(height * shrink)) : null,
+    }
+  }
+
+  /** The original file as an attachment named after the caption, or a copy at the size asked for. */
+  async download(request: DownloadRequest = {}): Promise<Response> {
+    const bytes = Buffer.from(await Storage.disk(this.disk as never).getBytes(this.path))
+    const target = this.downloadTarget(request)
+    const name = (this.caption ?? 'photo').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'photo'
+    const file = target ? await new PhotoImage(bytes, this.mimeType).resize(target.width, target.height).catch(() => null) : null
+
+    abortIf(!!target && !file, 'This photo can only be downloaded at its original size.', 422)
+
+    const mimeType = file?.mimeType ?? this.mimeType
+    const suffix = file ? `-${file.width}x${file.height}` : ''
+
+    return new Response((file?.bytes ?? bytes) as BodyInit, {
       headers: {
-        'Content-Type': this.mimeType,
-        'Content-Disposition': `attachment; filename="${name}-toneflix-photos.${extension}"`,
+        'Content-Type': mimeType,
+        'Content-Disposition': `attachment; filename="${name}-toneflix-photos${suffix}.${Photo.EXTENSIONS[mimeType] ?? 'bin'}"`,
         'Cache-Control': 'no-store',
       },
     })

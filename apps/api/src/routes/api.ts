@@ -60,6 +60,7 @@ Router.get('/explore/spaces/:space', [ExploreController, 'space'], [limiter(120,
 Router.apiResource('/spaces', SpaceController, { middlewares: auth })
 
 // Photo library
+Router.get('/photos/:photo/download', [PhotoController, 'download'], [auth, limiter(30, 60)])
 Router.apiResource('/photos', PhotoController, {
   middlewares: { index: auth, show: auth, create: [auth, limiter(60, 60)], update: auth, destroy: auth },
 })

@@ -16,3 +16,10 @@ export class PhotoFile extends ValidationRule {
 
 /** Validation rules for a photo upload of at most `maxKilobytes`. */
 export const photoFile = (maxKilobytes: number) => ['required', 'file', `max:${maxKilobytes}`, new PhotoFile()]
+
+/** Query rules for a photo download: a preset size or custom dimensions, both optional. */
+export const downloadSize = (sizes: string[]) => ({
+  size: `nullable|in:original,${sizes.join(',')}`,
+  width: 'nullable|integer|min:1|max:12000',
+  height: 'nullable|integer|min:1|max:12000',
+})
