@@ -42,6 +42,7 @@ const flutterwave = vi.spyOn(globalThis, 'fetch').mockImplementation(async (inpu
   }
 
   if (url === 'https://v6.exchangerate-api.com/v6/test-key/pair/NGN/KES/1') return json({ result: 'success', conversion_rate: 0.08, conversion_result: 0.08 })
+  if (url.startsWith('https://v6.exchangerate-api.com/v6/test-key/pair/NGN/USD')) return json({ result: 'error', 'error-type': 'quota-reached' }, 429)
 
   return realFetch(input, init)
 })
@@ -156,6 +157,21 @@ describe('Plans admin and checkout', () => {
 
     expect(premium.chargeCurrency).toBe('KES')
     expect(premium.billing[0].charge).toBe(Math.ceil(Math.round(premium.price * 0.08 * 1.05 * 10_000) / 100) / 100)
+  })
+
+  it('shows plan prices when a live rate is unavailable, and refuses to charge', async () => {
+    const region = await api('post', '/admin/payment-regions', { name: 'No rate test', countries: ['QV'], currency: 'USD' })
+    const plans = await api('get', '/plans?country=QV', undefined, null)
+    const start = await api('post', '/payments', { plan: 'premium', cycles: 1 }, 'payer', { 'X-Country': 'QV' })
+    const premium = plans.body.data.find((plan: { slug: string }) => plan.slug === 'premium')
+
+    await api('delete', `/admin/payment-regions/${region.body.data.id}`)
+
+    expect(plans.status).toBe(200)
+    expect(premium.chargeCurrency).toBe('NGN')
+    expect(premium.billing[0].charge).toBe(premium.price)
+    expect(start.status).toBe(422)
+    expect(start.body.errors.currency[0]).toBe('Payments in USD are not available right now.')
   })
 
   it('sends payers to Flutterwave and gives them the plan once paid', async () => {

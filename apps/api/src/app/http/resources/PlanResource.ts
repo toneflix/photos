@@ -15,7 +15,7 @@ export class PlanResource extends Resource {
 
   async data() {
     const plan = this.resource as Plan
-    const options = await PaymentRegions.for(this.country, plan.currency)
+    const options = await PaymentRegions.shown(this.country, plan.currency)
 
     return {
       id: plan.id,
