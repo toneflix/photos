@@ -22,8 +22,7 @@ export default function Welcome() {
       <View style={styles.copy}>
         <Text style={styles.headline}>Your photos, bound into books that last for all time.</Text>
         <Text style={styles.lede}>
-          Upload your favourite moments, lay them out page by page, and turn through them like a real album. Turn your phone sideways and the book
-          opens across two pages.
+          Lay out your favourite moments page by page, then turn through them like a real album.
         </Text>
         <View style={styles.actions}>
           <Button title="Create your first book" size="lg" onPress={() => router.push('/signup')} />

@@ -37,7 +37,7 @@ export default function VerifyEmail() {
   }
 
   return (
-    <AuthFrame title="Email confirmed" subtitle={`${data.data.email} is confirmed. Thanks for keeping your account safe.`}>
+    <AuthFrame title="Email confirmed" subtitle={`${data.data.email} is confirmed.`}>
       <Button title={next.label} size="lg" onPress={() => router.replace(next.href)} />
     </AuthFrame>
   )

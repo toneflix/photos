@@ -33,7 +33,7 @@ export default function VerifyEmail({ loaderData }: Route.ComponentProps) {
 	return (
 		<AuthFrame
 			title={verified ? "Email confirmed" : "We couldn't confirm it"}
-			subtitle={verified ? `${email} is confirmed. Thanks for keeping your account safe.` : error}
+			subtitle={verified ? `${email} is confirmed.` : error}
 		>
 			{!verified && (
 				<p className="mb-6 text-sm text-ink-500">

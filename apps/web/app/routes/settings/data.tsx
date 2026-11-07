@@ -14,7 +14,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 export default function Data() {
 	return (
 		<>
-			<PageHeader title="Your data" description="Everything you've kept here is yours. Take a copy whenever you like." />
+			<PageHeader title="Your data" description="Download a copy of your photos, books and account." />
 			<Section>
 				<ul className="space-y-2 text-sm text-ink-700">
 					<li>Every photo, as the original file you uploaded</li>

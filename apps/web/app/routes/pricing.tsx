@@ -9,7 +9,7 @@ import type { Route } from "./+types/pricing";
 
 export const meta = () => [
 	{ title: "Plans · Toneflix Photos" },
-	{ name: "description", content: "Make photo books for free, or go Premium for more storage, your own branding and books you hand to clients." },
+	{ name: "description", content: "Make photo books for free, or go Premium for more photos, your own branding and books you hand to clients." },
 ];
 
 export async function loader({ request, context }: Route.LoaderArgs) {

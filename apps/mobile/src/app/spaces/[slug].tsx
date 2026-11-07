@@ -39,9 +39,9 @@ export default function SpacePage() {
   const header = (
     <View style={styles.header}>
       {space.canEdit && space.visibility === 'private' && (
-        <Callout tone="warning">Only you and the people you invite can see this page. Its public photos and books show to everyone once you make the space public.</Callout>
+        <Callout tone="warning">This space is private. Only you and the people you invite can see it.</Callout>
       )}
-      {!space.canEdit && space.visibility === 'private' && <Callout tone="warning">This space is private. You can see it because you're a member.</Callout>}
+      {!space.canEdit && space.visibility === 'private' && <Callout tone="warning">This space is private to its members.</Callout>}
       {space.previews.length > 0 && <SpaceCover photos={space.previews} style={styles.cover} />}
       <View style={styles.titleRow}>
         <Text variant="display" style={styles.flex}>

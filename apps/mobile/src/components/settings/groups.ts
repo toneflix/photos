@@ -23,7 +23,7 @@ export const SETTINGS_GROUPS: { label: string; pages: { to: Href; label: string;
     label: 'Privacy',
     pages: [
       { to: '/settings/sharing', label: 'Sharing', hint: 'Who can open your books' },
-      { to: '/settings/data', label: 'Your data', hint: "Download everything you've kept" },
+      { to: '/settings/data', label: 'Your data', hint: "A copy of your photos and books" },
       { to: '/settings/delete-account', label: 'Delete account', hint: 'Remove your account for good', danger: true },
     ],
   },

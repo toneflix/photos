@@ -92,7 +92,7 @@ export default function SpaceForm() {
             <Text variant="muted">
               {visibility === 'public'
                 ? 'Anyone can browse its public photos and books, and it shows on Explore.'
-                : 'Only you can open it. Its photos and books stay off Explore.'}
+                : 'Only you and the people you invite can open it. Its photos and books stay off Explore.'}
             </Text>
           </View>
           <Switch

@@ -43,7 +43,7 @@ export default function Books() {
       <Text variant="display">Your books</Text>
       <Text variant="muted">
         {filters.active
-          ? `${total} ${total === 1 ? 'book' : 'books'} found.`
+          ? `${total} ${total === 1 ? 'book matches' : 'books match'}.`
           : total === 0 && !list.loading
             ? 'Bind your photos into your first book.'
             : `${total} ${total === 1 ? 'book' : 'books'} on your shelf.`}

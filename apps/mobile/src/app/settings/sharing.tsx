@@ -42,14 +42,14 @@ export default function Sharing() {
   }
 
   return (
-    <SettingsPage title="Sharing" description="Who can open your books and reuse your photos. Each book and photo also has its own setting; these are the starting point.">
+    <SettingsPage title="Sharing" description="Who can open your new books and reuse your new photos.">
       <Section title="Who can open a new book">
         {VISIBILITY.map((option) => (
           <Choice key={option.value} label={option.label} hint={option.hint} selected={visibility === option.value} onPress={() => setVisibility(option.value)} />
         ))}
       </Section>
 
-      <Section title="Licence for new photos" description="What people may do with your photos once they're on Explore. You can change it for any photo from your library.">
+      <Section title="Licence for new photos" description="What people may do with your photos on Explore.">
         <Text variant="link" accessibilityRole="link" onPress={() => router.push('/licenses')}>
           About licences
         </Text>

@@ -55,8 +55,7 @@ export default function SpaceLayout({ loaderData }: Route.ComponentProps) {
 		<main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
 			{space.canEdit && space.visibility === "private" && (
 				<p className="mb-6 rounded-xl bg-surface-100 px-5 py-3 text-sm text-ink-700">
-					Only you and the people you invite can see this page. It shows its public photos and books, which everyone will see once you make the space
-					public.{" "}
+					This space is private. Only you and the people you invite can see it.{" "}
 					<Link prefetch="intent" to={`/spaces?edit=${space.id}`} className="font-semibold text-brand-700 hover:underline">
 						Make it public
 					</Link>
@@ -64,7 +63,7 @@ export default function SpaceLayout({ loaderData }: Route.ComponentProps) {
 			)}
 			{!space.canEdit && space.visibility === "private" && (
 				<p className="mb-6 rounded-xl bg-surface-100 px-5 py-3 text-sm text-ink-700">
-					This space is private. You can see it because you're a member.
+					This space is private to its members.
 				</p>
 			)}
 			<header className="flex flex-col-reverse gap-6 md:flex-row md:items-end md:justify-between">
