@@ -41,9 +41,11 @@
 }
 
 @layer base {
-	/* AppHeader replaces this with its measured height. */
+	/* AppHeader replaces --header-height with its measured height. The photo dialog resets the --photo-* pair to its own box. */
 	:root {
 		--header-height: 4.125rem;
+		--photo-top: var(--header-height);
+		--photo-height: calc(100dvh - var(--header-height));
 	}
 
 	html,
