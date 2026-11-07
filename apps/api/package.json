@@ -48,7 +48,7 @@
     "kysely": "^0.29.2",
     "nodemailer-sendpulse-transport": "^0.1.0",
     "pg": "^8.22.0",
-    "resora": "^1.5.0",
+    "resora": "^1.5.1",
     "sharp": "^0.35.5"
   },
   "devDependencies": {
