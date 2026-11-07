@@ -43,7 +43,7 @@ export default function Pricing({ loaderData, actionData }: Route.ComponentProps
 	const [chosen, setChosen] = useState(cycles.at(-1) ?? 1);
 	const options = cycles.map((count) => ({
 		cycles: count,
-		label: count === 1 ? `Pay each ${periodLabel(paid[0])}` : `Pay for ${periodLabel(paid[0], count)}`,
+		label: paid.flatMap((plan) => plan.billing).find((option) => option.cycles === count)?.label ?? periodLabel(paid[0], count),
 		discount: Math.max(0, ...paid.map((plan) => plan.billing.find((option) => option.cycles === count)?.discount ?? 0)),
 	}));
 	const starting = navigation.state !== "idle" && navigation.formAction === "/pricing";

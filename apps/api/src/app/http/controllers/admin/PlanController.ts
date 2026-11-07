@@ -19,6 +19,7 @@ const rules = (creating: boolean) => ({
   billingOptions: 'nullable|array|max:10',
   'billingOptions.*.cycles': 'required|integer|min:2|max:120',
   'billingOptions.*.discount': 'required|numeric|min:0|max:100',
+  'billingOptions.*.name': 'nullable|string|max:40',
   isDefault: 'nullable|boolean',
   active: 'nullable|boolean',
   isHidden: 'nullable|boolean',
