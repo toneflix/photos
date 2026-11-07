@@ -54,8 +54,8 @@ describe('Plans', () => {
     expect(res.status).toBe(200)
     expect(slugs.slice(0, 2)).toEqual(['free', 'premium'])
     expect(premium.billing).toEqual([
-      { cycles: 1, discount: 0, price: premium.price, saved: 0, charge: premium.price },
-      expect.objectContaining({ cycles: 12, discount: 20 }),
+      { cycles: 1, discount: 0, name: null, label: 'Monthly', price: premium.price, saved: 0, charge: premium.price },
+      expect.objectContaining({ cycles: 12, discount: 20, label: 'Yearly' }),
     ])
     expect(premium.features).toContainEqual(expect.objectContaining({ key: 'book_zip', value: true }))
   })

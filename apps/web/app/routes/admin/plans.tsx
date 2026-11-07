@@ -23,7 +23,7 @@ interface PlanForm {
 	currency: string;
 	interval: PlanInterval;
 	intervalCount: string;
-	billingOptions: Array<{ cycles: string; discount: string }>;
+	billingOptions: Array<{ cycles: string; discount: string; name: string }>;
 	isDefault: boolean;
 	active: boolean;
 	isHidden: boolean;
@@ -145,7 +145,11 @@ function startingForm(plan: AdminPlan | null, catalogue: FeatureDefinition[]): P
 		currency: plan?.currency ?? "NGN",
 		interval: plan?.interval ?? "month",
 		intervalCount: String(plan?.intervalCount ?? 1),
-		billingOptions: (plan?.billingOptions ?? []).map((option) => ({ cycles: String(option.cycles), discount: String(option.discount) })),
+		billingOptions: (plan?.billingOptions ?? []).map((option) => ({
+			cycles: String(option.cycles),
+			discount: String(option.discount),
+			name: option.name ?? "",
+		})),
 		isDefault: plan?.isDefault ?? false,
 		active: plan?.active ?? true,
 		isHidden: plan?.isHidden ?? false,
@@ -165,7 +169,7 @@ function toInput(form: PlanForm): PlanInput {
 		intervalCount: Number(form.intervalCount) || 1,
 		billingOptions: form.billingOptions
 			.filter((option) => option.cycles)
-			.map((option) => ({ cycles: Number(option.cycles), discount: Number(option.discount) || 0 })),
+			.map((option) => ({ cycles: Number(option.cycles), discount: Number(option.discount) || 0, name: option.name.trim() || null })),
 		isDefault: form.isDefault,
 		active: form.active,
 		isHidden: form.isHidden,
@@ -285,9 +289,18 @@ function PlanEditor({ plan, catalogue }: { plan: AdminPlan | null; catalogue: Fe
 
 				<fieldset className="space-y-3">
 					<legend className="mb-1 font-semibold text-ink-900">Pay for longer at once</legend>
-					<p className="text-sm text-ink-500">Each option lets people pay for several periods in one go, at a discount.</p>
+					<p className="text-sm text-ink-500">Each option lets people pay for several periods in one go, at a discount. Its name shows on the pricing page.</p>
 					{form.billingOptions.map((option, index) => (
 						<div key={index} className="flex flex-wrap items-center gap-3">
+							<div className="w-44">
+								<TextField
+									label="Name"
+									value={option.name}
+									onChange={(name) => change({ billingOptions: form.billingOptions.map((entry, at) => (at === index ? { ...entry, name } : entry)) })}
+									maxLength={40}
+									placeholder={plan?.billing.find((entry) => String(entry.cycles) === option.cycles)?.label ?? "Yearly"}
+								/>
+							</div>
 							<div className="w-36">
 								<TextField
 									label="Periods"
@@ -313,7 +326,7 @@ function PlanEditor({ plan, catalogue }: { plan: AdminPlan | null; catalogue: Fe
 							</Button>
 						</div>
 					))}
-					<Button variant="secondary" onClick={() => change({ billingOptions: [...form.billingOptions, { cycles: "12", discount: "20" }] })}>
+					<Button variant="secondary" onClick={() => change({ billingOptions: [...form.billingOptions, { cycles: "12", discount: "20", name: "" }] })}>
 						<Icon name="plus" className="h-4 w-4" />
 						Add an option
 					</Button>

@@ -82,7 +82,10 @@ describe('Plans admin and checkout', () => {
       name: 'Studio test',
       price: 12000,
       sort: 50,
-      billingOptions: [{ cycles: 6, discount: 10 }],
+      billingOptions: [
+        { cycles: 3, discount: 5 },
+        { cycles: 6, discount: 10, name: ' Twice a year ' },
+      ],
       features: { max_books: { value: 50 }, book_zip: { value: true, listed: false }, badge: { value: true, active: false } },
     })
     const plan = created.body.data
@@ -91,7 +94,11 @@ describe('Plans admin and checkout', () => {
     expect(list.body.features.map((feature: { key: string }) => feature.key)).toContain('custom_imprint')
     expect(created.status).toBe(201)
     expect(plan.slug).toBe('studio-test')
-    expect(plan.billing.map((option: { cycles: number }) => option.cycles)).toEqual([1, 6])
+    expect(plan.billing.map((option: { cycles: number; label: string }) => [option.cycles, option.label])).toEqual([
+      [1, 'Monthly'],
+      [3, 'Quarterly'],
+      [6, 'Twice a year'],
+    ])
     expect(plan.features.find((feature: { key: string }) => feature.key === 'book_zip')).toMatchObject({ value: true, active: true, listed: false })
     expect(plan.features.find((feature: { key: string }) => feature.key === 'badge')).toMatchObject({ value: false, active: false })
 

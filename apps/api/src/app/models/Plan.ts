@@ -16,10 +16,11 @@ export interface PlanFeatureEntry {
   listed: boolean
 }
 
-/** A way to pay for several cycles at once, e.g. 12 months at 20% off. */
+/** A way to pay for several cycles at once, e.g. 12 months at 20% off, with the name admins give it. */
 export interface BillingOption {
   cycles: number
   discount: number
+  name?: string | null
 }
 
 /** What admins send to make or change a plan. Features left out keep what the plan has. */
@@ -204,7 +205,11 @@ export class Plan extends Model {
   /** Billing options with whole cycles over one, each once, shortest first. */
   static cleanBilling(options: BillingOption[]): BillingOption[] {
     return options
-      .map((option) => ({ cycles: Math.floor(Number(option.cycles)), discount: Math.round(Math.min(100, Math.max(0, Number(option.discount) || 0)) * 100) / 100 }))
+      .map((option) => ({
+        cycles: Math.floor(Number(option.cycles)),
+        discount: Math.round(Math.min(100, Math.max(0, Number(option.discount) || 0)) * 100) / 100,
+        name: option.name?.trim() || null,
+      }))
       .filter((option, index, all) => option.cycles > 1 && all.findIndex((other) => other.cycles === option.cycles) === index)
       .sort((a, b) => a.cycles - b.cycles)
   }
@@ -318,10 +323,14 @@ export class Plan extends Model {
     return ends
   }
 
-  /** One cycle at full price, then any bulk options, each with its price after discount. */
-  billing(): Array<BillingOption & { price: number; saved: number }> {
-    const options = [{ cycles: 1, discount: 0 }, ...(this.billingOptions ?? [])]
-      .map((option) => ({ cycles: Math.max(1, Math.floor(Number(option.cycles) || 1)), discount: Math.min(100, Math.max(0, Number(option.discount) || 0)) }))
+  /** One cycle at full price, then any bulk options, each with its price after discount and the name people see. */
+  billing(): Array<Required<BillingOption> & { label: string; price: number; saved: number }> {
+    const options = [{ cycles: 1, discount: 0, name: null }, ...(this.billingOptions ?? [])]
+      .map((option) => ({
+        cycles: Math.max(1, Math.floor(Number(option.cycles) || 1)),
+        discount: Math.min(100, Math.max(0, Number(option.discount) || 0)),
+        name: option.name?.trim() || null,
+      }))
       .filter((option, index, all) => all.findIndex((other) => other.cycles === option.cycles) === index)
       .sort((a, b) => a.cycles - b.cycles)
 
@@ -329,8 +338,21 @@ export class Plan extends Model {
       const full = multiply(this.price, option.cycles)
       const price = round(subtract(full, multiply(full, divide(option.discount, 100))), 2)
 
-      return { ...option, price, saved: round(subtract(full, price), 2) }
+      return { ...option, label: option.name ?? this.billingLabel(option.cycles), price, saved: round(subtract(full, price), 2) }
     })
+  }
+
+  /** How paying for `cycles` at once reads when admins have not named it, e.g. "Monthly", "Quarterly" or "Every 2 years". */
+  billingLabel(cycles = 1): string {
+    const { unit, count } = this.period(cycles)
+    const months = unit === 'month' ? count : unit === 'year' ? count * 12 : 0
+    const names: Record<string, string> = { 'day:1': 'Daily', 'week:1': 'Weekly', 'month:1': 'Monthly', 'month:3': 'Quarterly', 'month:6': 'Half-yearly' }
+
+    if (names[`${unit}:${count}`]) return names[`${unit}:${count}`]
+    if (months === 12) return 'Yearly'
+    if (months && months % 12 === 0) return `Every ${months / 12} years`
+
+    return `Every ${count} ${unit}s`
   }
 
   isFree(): boolean {

@@ -39,6 +39,10 @@ export interface PlanFeature {
 export interface PlanBilling {
   cycles: number
   discount: number
+  /** The name admins gave this option, if any. */
+  name: string | null
+  /** What people see for this option: its name, else one made from the period, e.g. "Monthly" or "Quarterly". */
+  label: string
   price: number
   saved: number
   /** The price in the payer's currency (`Plan.chargeCurrency`), which is what checkout charges. */
@@ -94,9 +98,16 @@ export interface AdminPlanFeature extends PlanFeature {
   listed: boolean
 }
 
+/** A way to pay for several periods at once, with an optional name such as "Yearly". */
+export interface PlanBillingOption {
+  cycles: number
+  discount: number
+  name?: string | null
+}
+
 /** A plan as admins see it, with every feature and who is on it now. */
 export interface AdminPlan extends Omit<Plan, 'features' | 'chargeCurrency' | 'billing'> {
-  billingOptions: Array<{ cycles: number; discount: number }>
+  billingOptions: PlanBillingOption[]
   billing: Array<Omit<PlanBilling, 'charge'>>
   active: boolean
   isHidden: boolean
@@ -116,7 +127,7 @@ export interface PlanInput {
   currency?: string
   interval?: PlanInterval
   intervalCount?: number
-  billingOptions?: Array<{ cycles: number; discount: number }>
+  billingOptions?: PlanBillingOption[]
   isDefault?: boolean
   active?: boolean
   isHidden?: boolean
