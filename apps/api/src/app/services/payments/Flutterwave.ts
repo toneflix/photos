@@ -21,6 +21,7 @@ export class Flutterwave implements PaymentGateway {
         redirect_url: request.returnUrl,
         customer: { email: request.email, name: request.name },
         customizations: { title: String(config('app.name')), description: request.title },
+        meta: { app: 'photos' },
       }),
     }).catch(() => unreachable)
     const url = (response.body.data as { link?: string } | undefined)?.link

@@ -164,7 +164,8 @@ describe('Plans admin and checkout', () => {
     expect(start.status).toBe(201)
     expect(payment).toMatchObject({ status: 'pending', cycles: 12, chargeCurrency: 'GHS', currency: 'NGN' })
     expect(payment.checkoutUrl).toBe(`https://checkout.flutterwave.test/pay/${payment.reference}`)
-    expect(started.at(-1)).toMatchObject({ tx_ref: payment.reference, currency: 'GHS', amount: payment.chargeAmount, customer: { email: accounts.payer.email } })
+    expect(payment.reference).toMatch(/^tfp_/)
+    expect(started.at(-1)).toMatchObject({ tx_ref: payment.reference, currency: 'GHS', amount: payment.chargeAmount, customer: { email: accounts.payer.email }, meta: { app: 'photos' } })
     expect(started.at(-1)!.redirect_url).toContain(`/checkout/complete?reference=${payment.reference}`)
 
     const waiting = await api('post', `/payments/${payment.reference}/verify`, undefined, 'payer')
