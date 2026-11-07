@@ -3,6 +3,7 @@ import { Checkout } from '@app/services/payments/Checkout'
 import { Flutterwave } from '@app/services/payments/Flutterwave'
 import { Payment } from '@app/models/Payment'
 import { PaymentResource } from '@app/http/resources/PaymentResource'
+import { RelayWebhook } from '@app/services/payments/RelayWebhook'
 import { abortIf } from '@arkstack/common'
 
 /** Paying for time on a plan through the provider's hosted checkout. */
@@ -27,10 +28,11 @@ export default class PaymentController extends BaseController {
     return new PaymentResource(payment).additional({ status: 'success', message: payment.status === 'complete' ? 'Payment received' : 'OK', code: 200 })
   }
 
-  /** Flutterwave tells us about payments here. Each one is checked with Flutterwave before it counts. */
+  /** Flutterwave tells us about payments here, through the payment relay. Each one is checked with Flutterwave before it counts. */
   async flutterwave() {
     const gateway = new Flutterwave()
 
+    abortIf(!RelayWebhook.accepts(this.ctx.req.rawBody, this.ctx.req.get(RelayWebhook.header)), 'Webhooks are accepted only from the payment relay.', 401)
     abortIf(!gateway.validWebhook(this.ctx.req.get('verif-hash')), 'Invalid signature.', 401)
 
     const event = String(this.body.event ?? this.body['event.type'] ?? '').toLowerCase()

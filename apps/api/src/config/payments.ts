@@ -4,9 +4,19 @@
 export default () => {
   return {
     /**
-     * Where payments start each reference, to tell them apart in the provider's dashboard.
+     * Where payments start each reference. The payment relay routes webhooks to Photos by this prefix.
      */
-    reference_prefix: String(env('PAYMENT_REFERENCE_PREFIX', 'TPH-')),
+    reference_prefix: String(env('PAYMENT_REFERENCE_PREFIX', 'tfp_')),
+
+    /**
+     * The secret the payment relay signs forwarded webhooks with. Once set, webhooks are accepted only from the relay.
+     */
+    relay_secret: String(env('PAYMENT_RELAY_SECRET', '')),
+
+    /**
+     * The name Photos is registered under on the payment relay, sent with each payment.
+     */
+    relay_app: String(env('PAYMENT_RELAY_APP', 'photos')),
 
     flutterwave: {
       public_key: String(env('FLUTTERWAVE_PUBLIC_KEY', '')),

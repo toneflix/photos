@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { app } from '../src/core/bootstrap'
+import { createHmac } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import request from 'parasito'
 import { seedPlans } from './support/plans'
@@ -164,7 +165,8 @@ describe('Plans admin and checkout', () => {
     expect(start.status).toBe(201)
     expect(payment).toMatchObject({ status: 'pending', cycles: 12, chargeCurrency: 'GHS', currency: 'NGN' })
     expect(payment.checkoutUrl).toBe(`https://checkout.flutterwave.test/pay/${payment.reference}`)
-    expect(started.at(-1)).toMatchObject({ tx_ref: payment.reference, currency: 'GHS', amount: payment.chargeAmount, customer: { email: accounts.payer.email } })
+    expect(payment.reference).toMatch(/^tfp_/)
+    expect(started.at(-1)).toMatchObject({ tx_ref: payment.reference, currency: 'GHS', amount: payment.chargeAmount, customer: { email: accounts.payer.email }, meta: { app: 'photos' } })
     expect(started.at(-1)!.redirect_url).toContain(`/checkout/complete?reference=${payment.reference}`)
 
     const waiting = await api('post', `/payments/${payment.reference}/verify`, undefined, 'payer')
@@ -210,6 +212,27 @@ describe('Plans admin and checkout', () => {
     expect((await api('get', '/account/plan', undefined, 'member')).body.data.premium).toBe(false)
     expect((await api('post', '/payments/flutterwave/webhook', event, null, { 'verif-hash': 'test-webhook-hash' })).status).toBe(200)
     expect((await api('get', '/account/plan', undefined, 'member')).body.data.premium).toBe(true)
+  })
+
+  it('takes Flutterwave webhooks only from the payment relay once a relay secret is set', async () => {
+    const start = (await api('post', '/payments', { plan: 'premium' }, 'member')).body.data
+    const event = { event: 'charge.completed', data: { tx_ref: start.reference, status: 'successful' } }
+    const signature = createHmac('sha256', 'photos-relay-secret').update(JSON.stringify(event)).digest('hex')
+    const signed = { 'verif-hash': 'test-webhook-hash' }
+    const status = async () => (await api('get', '/account/payments', undefined, 'member')).body.data.find((payment: { reference: string }) => payment.reference === start.reference)
+
+    verified[start.reference] = { status: 'successful', amount: start.chargeAmount, currency: start.chargeCurrency }
+    config({ 'payments.relay_secret': 'photos-relay-secret' })
+
+    try {
+      expect((await api('post', '/payments/flutterwave/webhook', event, null, signed)).status).toBe(401)
+      expect((await api('post', '/payments/flutterwave/webhook', event, null, { ...signed, 'x-relay-signature': 'forged' })).status).toBe(401)
+      expect((await status()).status).toBe('pending')
+      expect((await api('post', '/payments/flutterwave/webhook', event, null, { ...signed, 'x-relay-signature': signature })).status).toBe(200)
+      expect((await status()).status).toBe('complete')
+    } finally {
+      config({ 'payments.relay_secret': '' })
+    }
   })
 
   it('lets admins put an account on a plan and take it off', async () => {
