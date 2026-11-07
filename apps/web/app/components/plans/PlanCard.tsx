@@ -9,7 +9,7 @@ export function PlanCard({ plan, cycles, current, children }: { plan: Plan; cycl
 	const perPeriod = chargePerCycle(billing);
 
 	return (
-		<article className={`panel flex flex-col p-6 sm:p-8 ${free ? "" : "!border-brand-600"}`}>
+		<article className={`panel flex flex-col p-6 sm:p-8 ${plan.isHighlighted ? "!border-brand-600" : ""}`}>
 			<div className="flex items-center justify-between gap-3">
 				<h2 className="font-display text-2xl font-bold tracking-tight text-ink-900">{plan.name}</h2>
 				{current && <span className="rounded-md bg-brand-50 px-2 py-1 text-xs font-semibold text-brand-700">Your plan</span>}

@@ -5,7 +5,7 @@ import { Seeder } from '@arkstack/database'
 type FeatureValues = Partial<Record<FeatureKey, FeatureValue>>
 
 /**
- * The starting plans: Free, the default for every account, and Premium. Plans that
+ * The starting plans: Free, the default for every account, and Premium, the highlighted one. Plans that
  * already exist are left as admins set them, so this is safe to run again.
  */
 export class PlanSeeder extends Seeder {
@@ -44,6 +44,7 @@ export class PlanSeeder extends Seeder {
       description: 'For photographers who make books for their clients.',
       price: 5000,
       isDefault: false,
+      isHighlighted: true,
       sort: 1,
       billingOptions: [{ cycles: 12, discount: 20 }],
       features: {
@@ -80,6 +81,6 @@ export class PlanSeeder extends Seeder {
       Object.entries(details.features).map(([key, value]) => [key, { value: Feature.cast(Feature.find(key)!, value), active: true, listed: true }]),
     )
 
-    await Plan.query().create({ currency: 'NGN', interval: 'month', intervalCount: 1, active: true, isHidden: false, ...details, features } as never)
+    await Plan.query().create({ currency: 'NGN', interval: 'month', intervalCount: 1, active: true, isHidden: false, isHighlighted: false, ...details, features } as never)
   }
 }

@@ -20,6 +20,7 @@ export class AdminPlanResource extends Resource {
       isDefault: plan.isDefault,
       active: plan.active,
       isHidden: plan.isHidden,
+      isHighlighted: plan.isHighlighted,
       sort: plan.sort,
       features: await plan.allFeatures(),
       subscriberCount: await plan.subscriptions().scope('current').count(),

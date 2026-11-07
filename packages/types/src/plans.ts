@@ -63,6 +63,8 @@ export interface Plan {
   /** The currency the visitor pays in: their payment region's, else the plan's. */
   chargeCurrency: string
   isDefault: boolean
+  /** The one plan the pricing page draws attention to. */
+  isHighlighted: boolean
   features: PlanFeature[]
 }
 
@@ -131,6 +133,7 @@ export interface PlanInput {
   isDefault?: boolean
   active?: boolean
   isHidden?: boolean
+  isHighlighted?: boolean
   sort?: number
   features?: Partial<Record<FeatureKey, Partial<Pick<AdminPlanFeature, 'value' | 'active' | 'listed'>>>>
 }

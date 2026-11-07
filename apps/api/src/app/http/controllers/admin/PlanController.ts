@@ -23,6 +23,7 @@ const rules = (creating: boolean) => ({
   isDefault: 'nullable|boolean',
   active: 'nullable|boolean',
   isHidden: 'nullable|boolean',
+  isHighlighted: 'nullable|boolean',
   sort: 'nullable|integer|min:0|max:1000',
   features: 'nullable|object',
   ...Object.fromEntries(
@@ -48,6 +49,7 @@ const details = (data: Record<string, any>): PlanDetails =>
       isDefault: data.isDefault ?? undefined,
       active: data.active ?? undefined,
       isHidden: data.isHidden ?? undefined,
+      isHighlighted: data.isHighlighted ?? undefined,
       sort: data.sort === undefined || data.sort === null ? undefined : Number(data.sort),
       features: data.features ?? undefined,
     }).filter(([key, value]) => value !== undefined || (key === 'description' && 'description' in data)),
