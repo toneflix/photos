@@ -8,6 +8,11 @@ export default () => {
      */
     reference_prefix: String(env('PAYMENT_REFERENCE_PREFIX', 'tfp_')),
 
+    /**
+     * The secret the payment relay signs forwarded webhooks with. Once set, webhooks are accepted only from the relay.
+     */
+    relay_secret: String(env('PAYMENT_RELAY_SECRET', '')),
+
     flutterwave: {
       public_key: String(env('FLUTTERWAVE_PUBLIC_KEY', '')),
       secret_key: String(env('FLUTTERWAVE_SECRET_KEY', '')),
