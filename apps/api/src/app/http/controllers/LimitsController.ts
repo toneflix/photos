@@ -7,12 +7,15 @@ import { Limits } from '@app/policies/Limits'
 export default class LimitsController extends BaseController {
   async show() {
     const limits = await Limits.for(await this.viewer())
+    const branding = await Limits.defaultBranding()
 
     return new GenericResource({
       maxPhotoMb: (await limits.photoKb()) / 1024,
       maxAvatarMb: await Settings.number('uploads.max_avatar_mb'),
       maxBookPages: await limits.get('max_book_pages'),
       registrationOpen: Boolean(await Settings.get('accounts.registration_open')),
+      bookKicker: branding.kicker,
+      bookImprint: branding.imprint,
     }).additional({ status: 'success', message: 'OK', code: 200 })
   }
 }

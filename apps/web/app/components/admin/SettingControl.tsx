@@ -6,12 +6,13 @@ type Value = number | boolean | string | null;
 export function describeValue(field: SettingField, value: Value) {
 	if (field.type === "boolean") return value ? "on" : "off";
 	if (field.type === "select") return field.options?.find((option) => option.value === value)?.label ?? String(value);
+	if (field.type === "text") return `“${value}”`;
 
 	return field.unit ? `${value} ${field.unit}` : String(value);
 }
 
 /**
- * One setting on the configuration form. Text and choice fields are boxes with the
+ * One setting on the configuration form. Number, text and choice fields are boxes with the
  * label inside; on/off fields are cards with a switch. Below each is its help and
  * the .env default it falls back to.
  */
@@ -78,7 +79,7 @@ export function SettingControl({
 	}
 
 	return (
-		<div>
+		<div className={field.type === "text" ? "sm:col-span-2" : undefined}>
 			<label htmlFor={id} className="field flex-col !items-stretch px-3.5 pt-2 pb-2.5" aria-invalid={error ? true : undefined}>
 				<span className="text-xs font-medium text-ink-500">{field.label}</span>
 				{field.type === "select" ? (
@@ -94,6 +95,16 @@ export function SettingControl({
 							</option>
 						))}
 					</select>
+				) : field.type === "text" ? (
+					<input
+						id={id}
+						type="text"
+						maxLength={field.max ?? undefined}
+						value={value === null ? "" : String(value)}
+						placeholder={String(field.default)}
+						onChange={(event) => onChange(event.target.value === "" ? null : event.target.value)}
+						className="field-input text-base text-ink-900"
+					/>
 				) : (
 					<span className="flex items-baseline gap-2">
 						<input

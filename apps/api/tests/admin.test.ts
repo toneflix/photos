@@ -40,6 +40,7 @@ describe('Admin dashboard', () => {
   afterAll(async () => {
     await api('put', '/admin/settings/uploads', { max_avatar_mb: null })
     await api('put', '/admin/settings/display', { display_quality: null })
+    await api('put', '/admin/settings/branding', { kicker: null, imprint: null, colophon: null })
   })
 
   it('gives each role its admin areas', async () => {
@@ -198,8 +199,30 @@ describe('Admin dashboard', () => {
     const reset = await api('put', '/admin/settings/display', { display_quality: 80 })
 
     expect(reset.body.data.fields.find((field: { name: string }) => field.name === 'display_quality')).toMatchObject({ value: 80, saved: false })
+    expect((await api('put', '/admin/settings/accounts', { default_license: 'cc-by' })).body.data.fields.find((field: { name: string }) => field.name === 'default_license')).toMatchObject({ value: 'cc-by', saved: true })
+    expect((await api('put', '/admin/settings/accounts', { default_license: null })).status).toBe(200)
     expect((await api('put', '/admin/settings/display', { display_quality: 101 })).status).toBe(422)
     expect((await api('put', '/admin/settings/nothing', {})).status).toBe(404)
+  })
+
+  it('prints the book branding admins set on books without their own', async () => {
+    const book = (await api('post', '/books', { title: 'Default branding', visibility: 'shared' }, 'member')).body.data.id
+    const saved = await api('put', '/admin/settings/branding', { kicker: '  A Studio album ', imprint: 'Studio Books', colophon: 'Made with Studio Books.' })
+
+    expect(saved.status).toBe(200)
+    expect(saved.body.data.fields.find((field: { name: string }) => field.name === 'kicker')).toMatchObject({ type: 'text', value: 'A Studio album', default: 'A Toneflix photo book', saved: true })
+    expect((await api('get', `/books/${book}`, undefined, 'member')).body.data.branding).toEqual({
+      kicker: 'A Studio album',
+      brand: null,
+      imprint: 'Studio Books',
+      colophon: 'Made with Studio Books.',
+    })
+    expect((await api('get', '/limits', undefined, null)).body.data).toMatchObject({ bookKicker: 'A Studio album', bookImprint: 'Studio Books' })
+    expect((await api('put', '/admin/settings/branding', { kicker: 'x'.repeat(61) })).status).toBe(422)
+
+    await api('put', '/admin/settings/branding', { kicker: null, imprint: null, colophon: null })
+
+    expect((await api('get', `/books/${book}`, undefined, 'member')).body.data.branding.colophon).toBe('Preserved for all time with Toneflix Photos.')
   })
 
   it('applies upload limits as soon as they are saved', async () => {

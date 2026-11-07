@@ -6,10 +6,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { usePhotoGestures, useNaturalSize } from '@toneflix/flipbook-native'
 import type { BookBrandingInput, BookTheme, BookWithPages, CoverDesign, Photo, PhotoPosition, Space, Visibility } from '@photos/types'
 import { BookCover } from '@/components/BookCover'
-import { BrandingFields, DEFAULT_KICKER, brandingChanges } from '@/components/book/BrandingFields'
+import { BrandingFields, brandingChanges } from '@/components/book/BrandingFields'
 import { PhotoPositionControls } from '@/components/book/PhotoPositionControls'
 import { ClothPicker, CoverDesignPicker, CoverTextSwitch } from '@/components/book/CoverPickers'
 import { Button, Callout, Field, Input, Select, Text } from '@/components/ui'
+import { useLimits } from '@/lib/limits'
 import { webUrl } from '@/lib/links'
 import { spaceOptions } from '@/lib/spaces'
 import { colors, fonts, radius } from '@/theme'
@@ -57,7 +58,8 @@ export function BookSettings({
   const coverPhoto = photos.find((photo) => photo.id === coverPhotoId) ?? null
   const natural = useNaturalSize(coverPhoto && { src: coverPhoto.url, width: coverPhoto.width, height: coverPhoto.height })
   const gestures = usePhotoGestures(coverPosition, COVER_SIZE, natural, coverPhoto ? setCoverPosition : undefined, setPositioning)
-  const kicker = (book.brandingAllowed?.kicker && branding.kicker?.trim()) || DEFAULT_KICKER
+  const { bookKicker } = useLimits()
+  const kicker = (book.brandingAllowed?.kicker && branding.kicker?.trim()) || bookKicker
   const cover = {
     title: title || 'Untitled',
     description,
