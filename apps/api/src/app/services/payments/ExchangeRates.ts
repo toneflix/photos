@@ -21,7 +21,7 @@ export class ExchangeRates {
     const hours = Number(config('payments.exchange_rates.hours') ?? 6)
     const key = `exchange-rates:${provider}:${from}:${to}`
     const rate = await Cache.remember(key, hours * 3600, async () => {
-      Exchange.setProvider(ExchangeRates.PROVIDERS[provider as keyof typeof ExchangeRates.PROVIDERS] ?? ExchangeRateApi)
+      Exchange.setProvider(ExchangeRates.PROVIDERS[provider as keyof typeof ExchangeRates.PROVIDERS] ?? FrankfurterApi)
 
       if (config('payments.exchange_rates.key')) Exchange.setApiKey(String(config('payments.exchange_rates.key')))
 
