@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { Image } from 'expo-image'
-import * as Clipboard from 'expo-clipboard'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { usePhotoGestures, useNaturalSize } from '@toneflix/flipbook-native'
 import type { BookBrandingInput, BookTheme, BookWithPages, CoverDesign, Photo, PhotoPosition, Space, Visibility } from '@photos/types'
@@ -9,9 +8,10 @@ import { BookCover } from '@/components/BookCover'
 import { BrandingFields, brandingChanges } from '@/components/book/BrandingFields'
 import { PhotoPositionControls } from '@/components/book/PhotoPositionControls'
 import { ClothPicker, CoverDesignPicker, CoverTextSwitch } from '@/components/book/CoverPickers'
-import { Button, Callout, Field, Input, Select, Text } from '@/components/ui'
+import { Button, Callout, Field, Input, ModalToastHost, Select, Text } from '@/components/ui'
 import { useLimits } from '@/lib/limits'
 import { webUrl } from '@/lib/links'
+import { toast } from '@/lib/toast'
 import { spaceOptions } from '@/lib/spaces'
 import { colors, fonts, radius } from '@/theme'
 
@@ -54,7 +54,6 @@ export function BookSettings({
   const [positioning, setPositioning] = useState(false)
   const [spaceId, setSpaceId] = useState(book.spaceId ?? '')
   const [branding, setBranding] = useState<BookBrandingInput>(book.customBranding ?? { kicker: null, brand: null, imprint: null })
-  const [copied, setCopied] = useState(false)
   const coverPhoto = photos.find((photo) => photo.id === coverPhotoId) ?? null
   const natural = useNaturalSize(coverPhoto && { src: coverPhoto.url, width: coverPhoto.width, height: coverPhoto.height })
   const gestures = usePhotoGestures(coverPosition, COVER_SIZE, natural, coverPhoto ? setCoverPosition : undefined, setPositioning)
@@ -89,12 +88,6 @@ export function BookSettings({
       ...(book.isOwner ? { visibility, spaceId: spaceId || null } : {}),
       ...brandingChanges(book, branding),
     })
-
-  const copy = async () => {
-    await Clipboard.setStringAsync(shareUrl)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
-  }
 
   return (
     <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
@@ -174,7 +167,7 @@ export function BookSettings({
                   <Text selectable numberOfLines={1} style={styles.url}>
                     {shareUrl}
                   </Text>
-                  <Button title={copied ? 'Copied' : 'Copy'} variant="secondary" onPress={copy} />
+                  <Button title="Copy" variant="secondary" onPress={() => toast.copy(shareUrl, 'Link copied.')} />
                 </View>
               )}
             </Field>
@@ -184,6 +177,7 @@ export function BookSettings({
           {book.isOwner && <Button title="Delete book" variant="danger" onPress={onDelete} />}
         </ScrollView>
       </KeyboardAvoidingView>
+      <ModalToastHost />
     </Modal>
   )
 }
