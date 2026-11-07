@@ -41,6 +41,11 @@
 }
 
 @layer base {
+	/* AppHeader replaces this with its measured height. */
+	:root {
+		--header-height: 4.125rem;
+	}
+
 	html,
 	body {
 		@apply bg-canvas text-ink-900 antialiased;

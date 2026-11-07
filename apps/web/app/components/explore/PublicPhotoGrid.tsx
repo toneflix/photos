@@ -4,9 +4,9 @@ import { Owner } from "./Owner";
 import { guardImage, licenseFor } from "~/lib/licenses";
 
 /** A masonry wall of public photos. Hovering shows who took each one. */
-export function PublicPhotoGrid({ photos }: { photos: PublicPhoto[] }) {
+export function PublicPhotoGrid({ photos, className = "columns-2 sm:columns-3 lg:columns-4" }: { photos: PublicPhoto[]; className?: string }) {
 	return (
-		<ul className="columns-2 gap-4 sm:columns-3 lg:columns-4">
+		<ul className={`gap-4 ${className}`}>
 			{photos.map((photo) => (
 				<li key={photo.id} className="mb-4 break-inside-avoid">
 					<Link

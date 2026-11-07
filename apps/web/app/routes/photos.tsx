@@ -286,10 +286,10 @@ function PhotoDialog({ photo: initial, spaces, onClose }: { photo: Photo; spaces
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/80 p-4 backdrop-blur-sm" onClick={onClose} role="dialog" aria-modal>
 			<div className="flex max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white md:flex-row" onClick={(e) => e.stopPropagation()}>
-				<div className="flex min-h-0 flex-1 items-center justify-center bg-ink-900">
-					<img src={photo.url} alt={photo.caption ?? ""} className="max-h-[60vh] w-full object-contain md:max-h-[80vh]" />
+				<div className="flex shrink-0 items-center justify-center bg-ink-900 md:min-w-0 md:flex-1">
+					<img src={photo.url} alt={photo.caption ?? ""} className="max-h-[40dvh] w-full object-contain md:max-h-[85dvh]" />
 				</div>
-				<div className="flex w-full flex-col gap-4 p-6 md:w-80">
+				<div className="flex min-h-0 w-full flex-col gap-4 overflow-y-auto overscroll-contain p-6 md:w-80 md:shrink-0">
 					<div className="flex items-start justify-between">
 						<h2 className="font-display font-bold tracking-tight text-2xl">Photo</h2>
 						<button type="button" onClick={onClose} className="rounded-full p-1 text-ink-500 hover:bg-surface-100" aria-label="Close">

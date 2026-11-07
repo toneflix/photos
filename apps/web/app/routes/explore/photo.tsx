@@ -54,33 +54,12 @@ export default function ExplorePhoto({ loaderData }: Route.ComponentProps) {
 	const [downloading, setDownloading] = useState(false);
 
 	return (
-		<main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-			<div className="flex flex-wrap items-center justify-between gap-3">
-				<div className="flex min-w-0 items-center gap-2">
-					<Owner owner={photo.owner} />
-					{photo.space && (
-						<Link prefetch="intent" to={`/spaces/${photo.space.slug}`} className="truncate text-sm text-ink-500 hover:text-ink-900">
-							in <span className="font-semibold text-brand-700">{photo.space.name}</span>
-						</Link>
-					)}
-				</div>
-				<div className="flex items-center gap-4">
-					<Link prefetch="intent" to={photo.space ? `/spaces/${photo.space.slug}` : "/explore"} className="text-sm font-medium text-ink-500 hover:text-ink-900">
-						{photo.space ? `Back to ${photo.space.name}` : "Back to Explore"}
-					</Link>
-					{license.downloadable && (
-						<button type="button" onClick={() => setDownloading(true)} className={buttonClass("primary")}>
-							<IconDownload /> Download
-						</button>
-					)}
-				</div>
-			</div>
-
-			<div className="mt-5 flex justify-center rounded-xl bg-surface-100">
+		<main className="mx-auto grid max-w-7xl gap-6 px-4 pb-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_25rem] lg:items-start lg:gap-8">
+			<div className="sticky top-[var(--header-height)] z-10 -mx-4 bg-canvas px-4 py-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:flex lg:h-[calc(100dvh-var(--header-height))] lg:items-center lg:justify-center lg:px-0 lg:py-6">
 				<img
 					src={photo.url}
 					alt={photo.caption ?? ""}
-					className="max-h-[78vh] w-auto max-w-full rounded-xl object-contain select-none"
+					className="mx-auto max-h-[45dvh] w-auto max-w-full rounded-xl object-contain select-none lg:max-h-full"
 					{...guardImage(license)}
 					style={{
 						aspectRatio: photo.width && photo.height ? `${photo.width} / ${photo.height}` : undefined,
@@ -88,48 +67,68 @@ export default function ExplorePhoto({ loaderData }: Route.ComponentProps) {
 				/>
 			</div>
 
-			<div className="mt-5 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-				<div className="min-w-0">
-					{photo.caption && <p className="max-w-2xl text-lg text-ink-900">{photo.caption}</p>}
+			<div className="min-w-0 space-y-6 lg:py-6">
+				<div className="flex flex-wrap items-center justify-between gap-3">
+					<div className="flex min-w-0 items-center gap-2">
+						<Owner owner={photo.owner} />
+						{photo.space && (
+							<Link prefetch="intent" to={`/spaces/${photo.space.slug}`} className="truncate text-sm text-ink-500 hover:text-ink-900">
+								in <span className="font-semibold text-brand-700">{photo.space.name}</span>
+							</Link>
+						)}
+					</div>
+					<div className="flex items-center gap-4">
+						<Link prefetch="intent" to={photo.space ? `/spaces/${photo.space.slug}` : "/explore"} className="text-sm font-medium text-ink-500 hover:text-ink-900">
+							{photo.space ? `Back to ${photo.space.name}` : "Back to Explore"}
+						</Link>
+						{license.downloadable && (
+							<button type="button" onClick={() => setDownloading(true)} className={buttonClass("primary")}>
+								<IconDownload /> Download
+							</button>
+						)}
+					</div>
+				</div>
+
+				<div>
+					{photo.caption && <p className="text-lg text-ink-900">{photo.caption}</p>}
 					<p className="mt-1 text-sm text-ink-500">
 						{photo.takenAt ? `Taken ${formatDate(photo.takenAt)} · ` : ""}Shared {formatDate(photo.publishedAt ?? photo.createdAt)}
 					</p>
 					<ContentCounts stats={photo.stats} className="mt-2" />
 				</div>
 
-				<div className="w-full shrink-0 space-y-6 md:w-80">
-					<LicensePanel photo={photo} />
+				<LicensePanel photo={photo} />
 
-					{photo.books.length > 0 && (
-						<div>
-							<p className="text-xs font-semibold tracking-widest text-ink-500 uppercase">In {photo.books.length === 1 ? "a book" : "books"}</p>
-							<ul className="mt-2 space-y-2">
-								{photo.books.map((book) => (
-									<li key={book.id}>
-										<Link prefetch="intent"
-											to={`/books/${book.id}?page=${book.page}`}
-											className="flex items-center gap-3 rounded-lg border border-surface-200 bg-white p-3 transition hover:border-ink-500"
-										>
-											<span className={`h-12 w-9 shrink-0 rounded-sm shadow cover-${book.theme}`} aria-hidden />
-											<span className="min-w-0">
-												<span className="block truncate font-display font-bold text-ink-900">{book.title}</span>
-												<span className="text-sm text-brand-700">Open at page {book.page}</span>
-											</span>
-										</Link>
-									</li>
-								))}
-							</ul>
-						</div>
-					)}
-				</div>
+				{photo.books.length > 0 && (
+					<div>
+						<p className="text-xs font-semibold tracking-widest text-ink-500 uppercase">In {photo.books.length === 1 ? "a book" : "books"}</p>
+						<ul className="mt-2 space-y-2">
+							{photo.books.map((book) => (
+								<li key={book.id}>
+									<Link
+										prefetch="intent"
+										to={`/books/${book.id}?page=${book.page}`}
+										className="flex items-center gap-3 rounded-lg border border-surface-200 bg-white p-3 transition hover:border-ink-500"
+									>
+										<span className={`h-12 w-9 shrink-0 rounded-sm shadow cover-${book.theme}`} aria-hidden />
+										<span className="min-w-0">
+											<span className="block truncate font-display font-bold text-ink-900">{book.title}</span>
+											<span className="text-sm text-brand-700">Open at page {book.page}</span>
+										</span>
+									</Link>
+								</li>
+							))}
+						</ul>
+					</div>
+				)}
+
+				{more.length > 0 && (
+					<section className="pt-4">
+						<h2 className="mb-4 font-display text-xl font-bold tracking-tight text-ink-900">More to explore</h2>
+						<PublicPhotoGrid photos={more} className="columns-2 md:columns-3 lg:columns-2" />
+					</section>
+				)}
 			</div>
-
-			{more.length > 0 && (
-				<section className="mt-14">
-					<h2 className="mb-5 font-display text-2xl font-bold tracking-tight text-ink-900">More to explore</h2>
-					<PublicPhotoGrid photos={more} />
-				</section>
-			)}
 			{downloading && <DownloadDialog photo={photo} href={`/explore/photos/${photo.id}/download`} onClose={() => setDownloading(false)} />}
 		</main>
 	);
