@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, View, useWindowDimensions } from 'react-native'
+import { ActivityIndicator, StyleSheet, Switch, View } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
-import { Image } from 'expo-image'
-import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRequest } from 'alova/client'
 import { LICENSES, licenseFor, type Photo, type PhotoLicense } from '@photos/types'
 import { DownloadSheet } from '@/components/DownloadSheet'
+import { PhotoScreen } from '@/components/PhotoScreen'
 import { Button, Callout, Field, Input, Select, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { confirm } from '@/lib/confirm'
@@ -22,7 +21,6 @@ const LICENSE_OPTIONS = LICENSES.map((license) => ({ value: license.value, label
 /** One of your photos: who can see it, its space and licence, its caption, and deleting it. */
 export default function PhotoDetail() {
   const { id } = useLocalSearchParams<{ id: string }>()
-  const { width } = useWindowDimensions()
   const insets = useSafeAreaInsets()
   const spaces = useSpaces()
   const [caption, setCaption] = useState('')
@@ -58,24 +56,11 @@ export default function PhotoDetail() {
     )
   }
 
-  const ratio = photo.width && photo.height ? photo.width / photo.height : 4 / 3
   const license = licenseFor(photo.license)
   const isPublic = photo.visibility === 'public'
 
   return (
-    <ScrollView style={styles.page} contentContainerStyle={{ paddingBottom: insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
-      <View style={[styles.stage, { paddingTop: insets.top }]}>
-        <Image
-          source={{ uri: photo.url }}
-          style={{ width, height: Math.min(width / ratio, width * 1.25) }}
-          contentFit="contain"
-          accessibilityLabel={photo.caption ?? 'Photo'}
-        />
-        <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={() => router.back()} style={[styles.close, { top: insets.top + 12 }]}>
-          <Ionicons name="close" size={22} color={colors.white} />
-        </Pressable>
-      </View>
-
+    <PhotoScreen photo={photo} leave="close">
       <View style={styles.body}>
         <View style={styles.meta}>
           {photo.width && photo.height ? (
@@ -151,25 +136,13 @@ export default function PhotoDetail() {
         <Button title={remove.loading ? 'Deleting…' : 'Delete photo'} variant="danger" loading={remove.loading} onPress={destroy} style={styles.delete} />
       </View>
       {downloading && <DownloadSheet photo={photo} owned onClose={() => setDownloading(false)} />}
-    </ScrollView>
+    </PhotoScreen>
   )
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.canvas },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   flex: { flex: 1, gap: 2 },
-  stage: { backgroundColor: colors.ink900, alignItems: 'center' },
-  close: {
-    position: 'absolute',
-    right: 12,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   body: { padding: 20, gap: 18 },
   meta: { gap: 2 },
   panel: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.lg, borderWidth: 1.5, borderColor: colors.surface200, backgroundColor: colors.white },

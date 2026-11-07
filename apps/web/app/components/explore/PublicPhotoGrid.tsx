@@ -2,15 +2,18 @@ import { Link } from "react-router";
 import type { PublicPhoto } from "@photos/types";
 import { Owner } from "./Owner";
 import { guardImage, licenseFor } from "~/lib/licenses";
+import { usePhotoLink } from "~/lib/photo-dialog";
 
-/** A masonry wall of public photos. Hovering shows who took each one. */
-export function PublicPhotoGrid({ photos }: { photos: PublicPhoto[] }) {
+/** A masonry wall of public photos. Hovering shows who took each one. Inside Explore a photo opens in the photo dialog. */
+export function PublicPhotoGrid({ photos, className = "columns-2 sm:columns-3 lg:columns-4" }: { photos: PublicPhoto[]; className?: string }) {
+	const linkTo = usePhotoLink();
+
 	return (
-		<ul className="columns-2 gap-4 sm:columns-3 lg:columns-4">
+		<ul className={`gap-4 ${className}`}>
 			{photos.map((photo) => (
 				<li key={photo.id} className="mb-4 break-inside-avoid">
 					<Link
-						to={`/explore/photos/${photo.id}`}
+						{...linkTo(photo.id)}
 						className="group relative block overflow-hidden rounded-lg bg-surface-200"
 						style={{ aspectRatio: photo.width && photo.height ? `${photo.width} / ${photo.height}` : "4 / 3" }}
 					>

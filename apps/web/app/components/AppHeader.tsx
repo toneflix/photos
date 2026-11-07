@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Link, NavLink, useLocation } from "react-router";
 import type { User } from "@photos/types";
 import { Logo, buttonClass } from "~/components/ui";
@@ -6,12 +7,26 @@ import { AccountMenu } from "~/components/AccountMenu";
 const tab = ({ isActive }: { isActive: boolean }) =>
 	`rounded-full px-2.5 py-2 text-center text-sm font-semibold transition max-sm:flex-1 sm:px-4 ${isActive ? "bg-brand-600 text-white" : "text-ink-700 hover:bg-white"}`;
 
-/** The top bar. Signed-in people get their library tabs, on a row of their own on phones; visitors get Explore and a way in. */
+/** The top bar. Signed-in people get their library tabs, on a row of their own on phones; visitors get Explore and a way in. Its height is kept in `--header-height` for content that sticks below it. */
 export function AppHeader({ user }: { user: User | null }) {
 	const { pathname } = useLocation();
+	const header = useRef<HTMLElement>(null);
+
+	useEffect(() => {
+		const element = header.current;
+
+		if (!element) return;
+
+		const root = document.documentElement;
+		const observer = new ResizeObserver(() => root.style.setProperty("--header-height", `${element.offsetHeight}px`));
+
+		observer.observe(element);
+
+		return () => observer.disconnect();
+	}, []);
 
 	return (
-		<header className="sticky top-0 z-20 border-b-[1.5px] border-surface-200 bg-white/95 backdrop-blur">
+		<header ref={header} className="sticky top-0 z-20 border-b-[1.5px] border-surface-200 bg-white/95 backdrop-blur">
 			<div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3 sm:px-6">
 				<Logo to={user ? "/books" : "/"} compact />
 				<nav className={`flex items-center gap-1 rounded-full border-[1.5px] border-surface-200 bg-surface-100 p-1 ${user ? "max-sm:order-last max-sm:w-full" : ""}`}>

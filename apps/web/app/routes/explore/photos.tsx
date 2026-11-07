@@ -7,6 +7,7 @@ import { Empty } from "~/components/explore/Empty";
 import { Spinner } from "~/components/ui";
 import { ORIENTATION_FILTER, SORT_FILTER, SearchFilters, filterParam, searchText } from "~/components/SearchFilters";
 import { parentMeta, type NestedMetaArgs } from "~/lib/nested-meta";
+import { PhotoDialog } from "~/lib/photo-dialog";
 import type { Route } from "./+types/photos";
 
 /** On a space's page or a maker's profile, the space or maker names the tab instead. */
@@ -31,6 +32,8 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 
 	return { items, page: meta.current_page, lastPage: meta.last_page, total: meta.total, filtered: Object.values(filters).some(Boolean) };
 }
+
+export const shouldRevalidate = PhotoDialog.shouldRevalidate;
 
 export default function ExplorePhotos({ loaderData }: Route.ComponentProps) {
 	const { items: photos, hasMore, loading, sentinel } = useInfiniteList(loaderData, useLocation().pathname);

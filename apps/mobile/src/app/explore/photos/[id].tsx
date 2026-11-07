@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native'
-import { Link, router, useLocalSearchParams } from 'expo-router'
-import { Image } from 'expo-image'
+import { ActivityIndicator, StyleSheet, View } from 'react-native'
+import { Link, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRequest } from 'alova/client'
@@ -9,6 +8,7 @@ import { creditLine, licenseFor, type PublicPhotoDetail } from '@photos/types'
 import { COVERS } from '@/components/BookCover'
 import { Owner } from '@/components/explore/Owner'
 import { ContentCounts } from '@/components/ContentCounts'
+import { PhotoScreen } from '@/components/PhotoScreen'
 import { Button, Callout, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { DownloadSheet } from '@/components/DownloadSheet'
@@ -21,7 +21,6 @@ const formatDate = (value: string) => new Date(value).toLocaleDateString(undefin
 /** A public photo: who shared it, its licence and credit line, the books it's in, and a download when the licence allows. */
 export default function ExplorePhoto() {
   const { id } = useLocalSearchParams<{ id: string }>()
-  const { width } = useWindowDimensions()
   const insets = useSafeAreaInsets()
   const { data, error, loading } = useRequest(() => api.explore.photo(id))
   const photo: PublicPhotoDetail | undefined = data?.data
@@ -34,22 +33,8 @@ export default function ExplorePhoto() {
     )
   }
 
-  const ratio = photo.width && photo.height ? photo.width / photo.height : 4 / 3
-
   return (
-    <ScrollView style={styles.page} contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}>
-      <View style={[styles.stage, { paddingTop: insets.top }]}>
-        <Image
-          source={{ uri: photo.url }}
-          style={{ width, height: Math.min(width / ratio, width * 1.3) }}
-          contentFit="contain"
-          accessibilityLabel={photo.caption ?? 'Photo'}
-        />
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} style={[styles.back, { top: insets.top + 12 }]}>
-          <Ionicons name="chevron-back" size={22} color={colors.white} />
-        </Pressable>
-      </View>
-
+    <PhotoScreen photo={photo} leave="back">
       <View style={styles.body}>
         <View style={styles.byline}>
           <Owner owner={photo.owner} />
@@ -87,7 +72,7 @@ export default function ExplorePhoto() {
           </View>
         )}
       </View>
-    </ScrollView>
+    </PhotoScreen>
   )
 }
 
@@ -124,20 +109,8 @@ function LicensePanel({ photo }: { photo: PublicPhotoDetail }) {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.canvas },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   flex: { flex: 1 },
-  stage: { backgroundColor: colors.ink900, alignItems: 'center' },
-  back: {
-    position: 'absolute',
-    left: 12,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   body: { padding: 20, gap: 14 },
   byline: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
   caption: { fontSize: 18, lineHeight: 26 },
