@@ -8,10 +8,16 @@ import '@arkstack/lang/setup'
 import * as express from 'express'
 
 import Application from '../core/app'
+import { Arkorm } from 'arkormx'
 import { Validator } from 'kanun'
 import { View } from '@arkstack/view'
 import { fileValidatorPlugin } from '@kanun-hq/plugin-file'
-import { interopDefault } from '@arkstack/common'
+import { importFile, interopDefault, resolveRuntimeModule } from '@arkstack/common'
+
+// Packages that look models up by name, like auth's `User`, get the classes the routes use.
+const models = await importFile<typeof import('../app/models')>(resolveRuntimeModule('src/app/models/index.ts'))
+
+Arkorm.registerModels(...Object.values(models))
 
 View.boot()
 Validator.use(fileValidatorPlugin)
