@@ -26,7 +26,11 @@ export class ExchangeRates {
       if (config('payments.exchange_rates.key')) Exchange.setApiKey(String(config('payments.exchange_rates.key')))
 
       return Number(await Exchange.from(from as CurrencyCode).to(to as CurrencyCode).rate()) || 0
-    }).catch(() => 0)
+    }).catch((error) => {
+      console.error(`Exchange rate ${from} to ${to} from ${provider} failed`, error)
+
+      return 0
+    })
 
     if (rate > 0) return rate
 
