@@ -30,7 +30,7 @@ export interface BookBranding {
 export class Limits {
   static readonly KICKER = 'A Toneflix photo book'
   static readonly IMPRINT = 'Toneflix Photos'
-  static readonly COLOPHON = 'Preserved for all time with Toneflix Photos.'
+  static readonly COLOPHON = 'Made with Toneflix Photos.'
 
   private static readonly BRANDING_MESSAGES: Record<BrandingField, string> = {
     kicker: 'Your own cover line is not included in your plan.',
