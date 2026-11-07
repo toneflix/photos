@@ -42,6 +42,11 @@ export function ToastHost() {
   )
 }
 
+/** The toast for a Modal's content on Android and web, where the Modal covers the root toast. */
+export function ModalToastHost() {
+  return Platform.OS === 'ios' ? null : <ToastHost />
+}
+
 const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: 16, right: 16, alignItems: 'center' },
   toast: { maxWidth: 480, borderRadius: radius.field, backgroundColor: colors.ink900, paddingHorizontal: 16, paddingVertical: 12 },
