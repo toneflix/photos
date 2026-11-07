@@ -22,7 +22,7 @@ export default function StatsOverview({ loaderData }: Route.ComponentProps) {
 		<main className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 sm:py-12">
 			<div>
 				<h1 className="font-display text-4xl font-bold tracking-tight text-ink-900">Your stats</h1>
-				<p className="mt-1 max-w-xl text-ink-500">How often people open and download your photos, books and spaces. Your own visits don’t count.</p>
+				<p className="mt-1 max-w-xl text-ink-500">How often people view and download your photos, books and spaces.</p>
 			</div>
 
 			<StatTiles

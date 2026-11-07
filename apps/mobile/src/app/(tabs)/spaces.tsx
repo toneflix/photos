@@ -12,7 +12,7 @@ import { FormProblem } from '@/lib/forms'
 import { spaceLists } from '@/lib/lists'
 import { colors, fonts, radius } from '@/theme'
 
-/** Your spaces: keep work for different clients, events or brands apart. */
+/** Your spaces and the spaces shared with you. */
 export default function Spaces() {
   const list = usePagination((page, pageSize) => api.spaces.list({ page, per_page: pageSize }), {
     append: true,
@@ -52,7 +52,7 @@ export default function Spaces() {
       ListHeaderComponent={
         <View style={styles.header}>
           <Text variant="display">Your spaces</Text>
-          <Text variant="muted">Keep work for different clients, events or brands apart. Each space has its own page, private until you make it public.</Text>
+          <Text variant="muted">A home for each brand, studio or project.</Text>
           <Button title="New space" onPress={() => router.push('/space-form')} />
           {list.error ? <Callout>{FormProblem.from(list.error).message}</Callout> : null}
           {waiting > 0 && (

@@ -86,10 +86,12 @@ export default function Photos() {
           <Text variant="display">Your photos</Text>
           <Text variant="muted">
             {filters.active
-              ? `${total} ${total === 1 ? 'photo' : 'photos'} found.${space ? ' New uploads go into this space.' : ''}`
+              ? space
+                ? `${total} ${total === 1 ? 'photo' : 'photos'} in ${space.name}.`
+                : `${total} ${total === 1 ? 'photo matches' : 'photos match'}.`
               : total === 0
-                ? 'Everything you upload is kept safe here.'
-                : `${total} ${total === 1 ? 'photo' : 'photos'} kept safe.`}
+                ? 'Upload the photos you want in your books.'
+                : `${total} ${total === 1 ? 'photo' : 'photos'} in your library.`}
           </Text>
         </View>
       </View>

@@ -17,7 +17,7 @@ export function AuthFrame({ title, subtitle, children }: { title: string; subtit
           <Mosaic columns={4} style={styles.mosaic} />
           <LinearGradient colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.8)']} style={StyleSheet.absoluteFill} />
           <Logo light />
-          <Text style={styles.tagline}>Every photo you keep here is kept for all time.</Text>
+          <Text style={styles.tagline}>Your photos, bound into books you can page through.</Text>
         </View>
         <View style={[styles.sheet, { paddingBottom: insets.bottom + 32 }]}>
           <Text variant="display">{title}</Text>

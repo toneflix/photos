@@ -12,7 +12,7 @@ export function meta(_: Route.MetaArgs) {
 		{ title: "Toneflix Photos — photo books for all time" },
 		{
 			name: "description",
-			content: "Bind your photos into beautiful books you can page through and keep for all time.",
+			content: "Bind your photos into beautiful books you can page through.",
 		},
 	];
 }
@@ -61,8 +61,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 						Your photos, bound into books that last for all time.
 					</h1>
 					<p className="mx-auto mt-5 max-w-xl text-lg text-white/80">
-						Upload your favourite moments, lay them out page by page, and turn through them like a real album. On your phone,
-						turn it sideways and the book opens across two pages.
+						Lay out your favourite moments page by page, then turn through them like a real album.
 					</p>
 					<div className="mt-9 flex flex-wrap justify-center gap-3">
 						<Link prefetch="intent" to="/signup" className={buttonClass("primary", "px-6 py-3.5 text-base")}>
@@ -106,7 +105,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 }
 
 const FEATURES = [
-	{ title: "Keep every original", text: "Your photos are stored at full quality, and you can download all of them whenever you like." },
-	{ title: "Lay out real pages", text: "Full-bleed, framed, pairs, grids and pages of words, on ivory, white, kraft or charcoal paper." },
+	{ title: "Turn real pages", text: "Every book opens and turns like a printed album, on your phone or your desk." },
+	{ title: "Lay out every page", text: "Full-bleed, framed, pairs, grids and pages of words, on ivory, white, kraft or charcoal paper." },
 	{ title: "Share only what you choose", text: "Books are private until you share them, with a link or with everyone." },
 ];

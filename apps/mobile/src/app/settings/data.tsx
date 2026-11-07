@@ -12,7 +12,7 @@ export default function Data() {
   const download = useAction()
 
   return (
-    <SettingsPage title="Your data" description="Everything you've kept here is yours. Take a copy whenever you like.">
+    <SettingsPage title="Your data" description="Download a copy of your photos, books and account.">
       <Section>
         {INCLUDED.map((item) => (
           <View key={item} style={styles.item}>

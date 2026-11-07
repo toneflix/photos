@@ -17,7 +17,7 @@ export default function StatsOverview() {
   const stats: MakerStats | undefined = data?.data
 
   return (
-    <SettingsPage title="Your stats" description="How often people open and download your work. Your own visits don't count.">
+    <SettingsPage title="Your stats" description="How often people view and download your photos, books and spaces.">
       {error ? <Callout>{FormProblem.from(error).message}</Callout> : null}
       {!stats && loading ? <ActivityIndicator color={colors.ink500} /> : null}
       {stats ? (

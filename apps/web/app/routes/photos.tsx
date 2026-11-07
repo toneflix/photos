@@ -92,12 +92,12 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 					<h1 className="font-display font-bold tracking-tight text-4xl text-ink-900">Your photos</h1>
 					<p className="mt-1 text-ink-500">
 						{filtered
-							? `${total} ${total === 1 ? "photo" : "photos"} found.`
+							? `${total} ${total === 1 ? "photo matches" : "photos match"}.`
 							: space
-								? `${total} ${total === 1 ? "photo" : "photos"} in ${space.name}. New uploads go here too.`
+								? `${total} ${total === 1 ? "photo" : "photos"} in ${space.name}.`
 								: total === 0
-									? "Everything you upload is kept safe here."
-									: `${total} ${total === 1 ? "photo" : "photos"} kept safe.`}
+									? "Upload the photos you want in your books."
+									: `${total} ${total === 1 ? "photo" : "photos"} in your library.`}
 						{space && (
 							<>
 								{" "}

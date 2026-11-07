@@ -9,7 +9,7 @@ export class AccountMail {
       user,
       'Confirm your email address',
       `<p>Hi ${AccountMail.escape(user.name)},</p>
-      <p>Confirm that this is your email address to keep your Toneflix Photos account safe.</p>
+      <p>Confirm this is your email address for Toneflix Photos.</p>
       ${AccountMail.button('Confirm email', link)}
       <p>The link works for 24 hours. If you didn't create an account, you can ignore this email.</p>`,
     )

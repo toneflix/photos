@@ -11,7 +11,7 @@ export function AuthFrame({ title, subtitle, children }: { title: string; subtit
 				<div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
 				<div className="flex h-full flex-col justify-between p-10">
 					<Logo light />
-					<p className="max-w-sm font-display text-3xl leading-tight font-bold text-white">Every photo you keep here is kept for all time.</p>
+					<p className="max-w-sm font-display text-3xl leading-tight font-bold text-white">Your photos, bound into books you can page through.</p>
 				</div>
 			</aside>
 			<main className="flex flex-1 flex-col px-4 py-5 sm:px-10">

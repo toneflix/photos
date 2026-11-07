@@ -72,7 +72,7 @@ export default function Books({ loaderData, actionData }: Route.ComponentProps) 
 					<h1 className="font-display font-bold tracking-tight text-4xl text-ink-900">Your books</h1>
 					<p className="mt-1 text-ink-500">
 						{filtered
-							? `${total} ${total === 1 ? "book" : "books"} found.`
+							? `${total} ${total === 1 ? "book matches" : "books match"}.`
 							: space
 								? `${total} ${total === 1 ? "book" : "books"} in ${space.name}.`
 								: total === 0

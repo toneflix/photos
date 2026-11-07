@@ -61,7 +61,7 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 
 	return (
 		<>
-			<PageHeader title="Sharing" description="Who can open your books and reuse your photos. Each book and photo also has its own setting; these are the starting point." />
+			<PageHeader title="Sharing" description="Who can open your new books and reuse your new photos." />
 			<div className="space-y-6">
 				<Section>
 					<Form method="post" className="space-y-6">
@@ -92,7 +92,7 @@ export default function Sharing({ loaderData, actionData }: Route.ComponentProps
 						<fieldset>
 							<legend className="mb-1 text-sm font-medium text-ink-700">Licence for new photos</legend>
 							<p className="mb-3 text-xs text-ink-500">
-								What people may do with your photos once they're on Explore. You can change it for any photo from your library.{" "}
+								What people may do with your photos on Explore.{" "}
 								<Link prefetch="intent" to="/licenses" className="font-medium text-brand-700 hover:underline">
 									About licences
 								</Link>
