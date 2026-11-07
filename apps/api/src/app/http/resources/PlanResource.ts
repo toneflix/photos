@@ -29,6 +29,7 @@ export class PlanResource extends Resource {
       billing: plan.billing().map((option) => ({ ...option, charge: options.charge(option.price) })),
       chargeCurrency: options.currency,
       isDefault: plan.isDefault,
+      isHighlighted: plan.isHighlighted,
       features: (await plan.listedFeatures()).map(({ key, title, description, type, unit, value }) => ({ key, title, description, type, unit, value })),
     }
   }

@@ -27,6 +27,7 @@ interface PlanForm {
 	isDefault: boolean;
 	active: boolean;
 	isHidden: boolean;
+	isHighlighted: boolean;
 	sort: string;
 	features: Record<FeatureKey, FeatureForm>;
 }
@@ -100,6 +101,7 @@ export default function AdminPlans({ loaderData }: Route.ComponentProps) {
 												{plan.isDefault && <Badge>Default</Badge>}
 												{!plan.active && <Badge>Off</Badge>}
 												{plan.isHidden && <Badge>Hidden</Badge>}
+												{plan.isHighlighted && <Badge>Highlighted</Badge>}
 											</span>
 											<span className="block text-sm text-ink-500">
 												{plan.price > 0 ? `${formatMoney(plan.price, plan.currency)} / ${periodLabel(plan)}` : "Free"} · {plan.subscriberCount}{" "}
@@ -153,6 +155,7 @@ function startingForm(plan: AdminPlan | null, catalogue: FeatureDefinition[]): P
 		isDefault: plan?.isDefault ?? false,
 		active: plan?.active ?? true,
 		isHidden: plan?.isHidden ?? false,
+		isHighlighted: plan?.isHighlighted ?? false,
 		sort: String(plan?.sort ?? 0),
 		features,
 	};
@@ -173,6 +176,7 @@ function toInput(form: PlanForm): PlanInput {
 		isDefault: form.isDefault,
 		active: form.active,
 		isHidden: form.isHidden,
+		isHighlighted: form.isHighlighted,
 		sort: Number(form.sort) || 0,
 		features: form.features,
 	};
@@ -332,7 +336,7 @@ function PlanEditor({ plan, catalogue }: { plan: AdminPlan | null; catalogue: Fe
 					</Button>
 				</fieldset>
 
-				<fieldset className="grid gap-3 sm:grid-cols-3">
+				<fieldset className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
 					<legend className="mb-3 font-semibold text-ink-900">Availability</legend>
 					<Check
 						label="Default plan"
@@ -357,6 +361,13 @@ function PlanEditor({ plan, catalogue }: { plan: AdminPlan | null; catalogue: Fe
 						disabled={form.isDefault}
 						onChange={(isHidden) => change({ isHidden })}
 						error={errors.isHidden}
+					/>
+					<Check
+						label="Highlighted"
+						hint="Stands out on the pricing page. Only one plan can be."
+						checked={form.isHighlighted}
+						onChange={(isHighlighted) => change({ isHighlighted })}
+						error={errors.isHighlighted}
 					/>
 				</fieldset>
 

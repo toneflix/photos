@@ -136,6 +136,20 @@ describe('Plans admin and checkout', () => {
     expect(admin.at(-1)).toBe('order-test')
   })
 
+  it('highlights one plan at a time, taking it from the plan that had it', async () => {
+    const highlighted = async () => (await api('get', '/plans', undefined, null)).body.data.filter((item: { isHighlighted: boolean }) => item.isHighlighted)
+    const before = await highlighted()
+    const created = await api('post', '/admin/plans', { name: 'Highlight test', price: 7000, isHighlighted: true })
+    const after = await highlighted()
+
+    await api('delete', `/admin/plans/${created.body.data.id}`)
+
+    for (const plan of before) await api('put', `/admin/plans/${plan.id}`, { isHighlighted: true })
+
+    expect(created.body.data.isHighlighted).toBe(true)
+    expect(after.map((item: { slug: string }) => item.slug)).toEqual(['highlight-test'])
+  })
+
   it('prices plans in the currency of the payer’s region', async () => {
     const region = await api('post', '/admin/payment-regions', { name: 'Ghana test', countries: ['qz'], currency: 'ghs', exchangeRate: 0.0123 })
     const overlap = await api('post', '/admin/payment-regions', { name: 'West Africa test', countries: ['QZ', 'QY'], currency: 'XOF' })

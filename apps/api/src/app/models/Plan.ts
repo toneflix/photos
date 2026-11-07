@@ -37,6 +37,7 @@ export interface PlanDetails {
   isDefault?: boolean
   active?: boolean
   isHidden?: boolean
+  isHighlighted?: boolean
   sort?: number
 }
 
@@ -67,6 +68,7 @@ export class Plan extends Model {
   declare isDefault: boolean
   declare active: boolean
   declare isHidden: boolean
+  declare isHighlighted: boolean
   declare sort: number
   declare createdAt: Date
   declare updatedAt: Date
@@ -83,6 +85,7 @@ export class Plan extends Model {
     billingOptions: 'billing_options',
     isDefault: 'is_default',
     isHidden: 'is_hidden',
+    isHighlighted: 'is_highlighted',
   }
 
   protected override casts = {
@@ -93,6 +96,7 @@ export class Plan extends Model {
     isDefault: 'boolean',
     active: 'boolean',
     isHidden: 'boolean',
+    isHighlighted: 'boolean',
     sort: 'number',
   } as never
 
@@ -109,7 +113,7 @@ export class Plan extends Model {
 
   /** Make a plan. Its slug comes from the name unless one is given. */
   static async open(details: PlanDetails & { name: string; price: number }): Promise<Plan> {
-    const plan = new Plan({ currency: 'NGN', interval: 'month', intervalCount: 1, features: {}, isDefault: false, active: true, isHidden: false, sort: 0 })
+    const plan = new Plan({ currency: 'NGN', interval: 'month', intervalCount: 1, features: {}, isDefault: false, active: true, isHidden: false, isHighlighted: false, sort: 0 })
 
     plan.slug = details.slug || (await Plan.freeSlug(details.name))
 
@@ -136,10 +140,12 @@ export class Plan extends Model {
 
   /**
    * Change the plan. The default plan is free and always on offer; making a plan the
-   * default takes that from the plan that had it.
+   * default takes that from the plan that had it. Only one plan is highlighted on the
+   * pricing page, so highlighting this one takes it from the plan that had it.
    */
   async revise(details: PlanDetails): Promise<void> {
     const isDefault = details.isDefault ?? !!this.isDefault
+    const isHighlighted = details.isHighlighted ?? !!this.isHighlighted
     const price = details.price ?? Number(this.price ?? 0)
     const fail = (field: string, message: string) => {
       throw ValidationException.withMessages({ [field]: message })
@@ -163,6 +169,7 @@ export class Plan extends Model {
 
     this.price = price
     this.isDefault = isDefault
+    this.isHighlighted = isHighlighted
 
     if (isDefault) {
       this.active = true
@@ -170,10 +177,8 @@ export class Plan extends Model {
     }
 
     await Plan.transaction(async () => {
-      const others = Plan.query().where({ isDefault: true })
-
-      if (this.id) others.whereNot({ id: this.id })
-      if (isDefault) await others.updateFrom({ isDefault: false })
+      if (isDefault) await this.others().where({ isDefault: true }).updateFrom({ isDefault: false })
+      if (isHighlighted) await this.others().where({ isHighlighted: true }).updateFrom({ isHighlighted: false })
 
       await this.save()
     })
@@ -200,6 +205,15 @@ export class Plan extends Model {
     await Plan.forget()
 
     return !used
+  }
+
+  /** Every plan but this one. */
+  private others(): QueryBuilder<Plan> {
+    const query = Plan.query()
+
+    if (this.id) query.whereNot({ id: this.id })
+
+    return query
   }
 
   /** Billing options with whole cycles over one, each once, shortest first. */
