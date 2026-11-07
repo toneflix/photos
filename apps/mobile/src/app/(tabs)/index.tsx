@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   headerActions: { flexDirection: 'row', gap: 10 },
   row: { gap: GAP, marginBottom: 24 },
   cover: { borderRadius: radius.md, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' },
-  badge: { position: 'absolute', bottom: 8, left: 8, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: 'rgba(0,0,0,0.55)' },
+  badge: { position: 'absolute', top: 8, left: 8, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: 'rgba(0,0,0,0.55)' },
   badgeText: { color: colors.white, fontSize: 11, fontFamily: fonts.medium },
   title: { marginTop: 10, fontFamily: fonts.display, fontSize: 15 },
   spinner: { marginVertical: 24 },

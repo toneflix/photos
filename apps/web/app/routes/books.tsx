@@ -156,7 +156,7 @@ function BookCard({ book }: { book: Book }) {
 					)}
 				</div>
 				{book.visibility !== "private" && (
-					<span className="absolute bottom-2 left-2 rounded-md bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur">
+					<span className="absolute top-2 left-2 rounded-md bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur">
 						{book.visibility === "public" ? "Public" : "Shared"}
 					</span>
 				)}
