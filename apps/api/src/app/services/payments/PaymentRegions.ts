@@ -1,6 +1,7 @@
 import { PaymentOptions } from './PaymentOptions'
 import { PaymentRegion } from '@app/models/PaymentRegion'
 import { ExchangeRates } from './ExchangeRates'
+import { ValidationException } from 'kanun'
 
 /**
  * Decides what currency each payer pays in. A country in an active region pays in that
@@ -26,6 +27,17 @@ export class PaymentRegions {
     if (!region) return new PaymentOptions(country, currency)
 
     return new PaymentOptions(country, region.currency, await PaymentRegions.rate(region, currency), region)
+  }
+
+  /** What to show a payer before they pay: the plan's own currency while the region's rate can't be had. */
+  static async shown(country: string | null, currency: string): Promise<PaymentOptions> {
+    try {
+      return await PaymentRegions.for(country, currency)
+    } catch (error) {
+      if (error instanceof ValidationException) return new PaymentOptions(country, currency)
+
+      throw error
+    }
   }
 
   /** How much one unit of `currency` is worth in the region's currency. */
