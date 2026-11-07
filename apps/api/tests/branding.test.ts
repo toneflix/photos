@@ -16,7 +16,7 @@ const api = (method: 'get' | 'post' | 'put', path: string, body?: Record<string,
   return body ? call.send(body) : call
 }
 
-const TONEFLIX = { kicker: 'A Toneflix photo book', brand: null, imprint: 'Toneflix Photos', colophon: 'Made with Toneflix Photos.' }
+const TONEFLIX = { kicker: 'A Toneflix photo book', brand: null, imprint: 'Toneflix Photos', colophon: 'Preserved for all time with Toneflix Photos.' }
 
 describe('Book branding', () => {
   let freeBook = ''
