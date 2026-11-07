@@ -244,9 +244,14 @@ export class Plan extends Model {
     await Cache.forget(Plan.LARGEST_PHOTO_CACHE_KEY)
   }
 
-  /** Active plans anyone can see and buy, cheapest first. Hidden plans are only given by admins. */
+  /** Active plans anyone can see and buy, in the order admins set. Hidden plans are only given by admins. */
   scopeOnOffer(query: QueryBuilder<Plan>): QueryBuilder<Plan> {
-    return query.where({ active: true, isHidden: false }).orderBy([{ sort: 'asc' }, { price: 'asc' }])
+    return query.where({ active: true, isHidden: false }).scope('ordered')
+  }
+
+  /** Plans in the order admins set, then cheapest and oldest first. */
+  scopeOrdered(query: QueryBuilder<Plan>): QueryBuilder<Plan> {
+    return query.orderBy([{ sort: 'asc' }, { price: 'asc' }, { createdAt: 'asc' }])
   }
 
   /** What this plan stores for `key`, filled in with the defaults for anything it doesn't say. */

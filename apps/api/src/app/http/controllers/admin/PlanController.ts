@@ -54,9 +54,9 @@ const details = (data: Record<string, any>): PlanDetails =>
 
 /** Admins make plans out of the feature catalogue and choose what each grants or limits. */
 export default class PlanController extends BaseController {
-  /** Every plan, the default first, with the catalogue of features to choose from. */
+  /** Every plan in the order admins set, with the catalogue of features to choose from. */
   async index() {
-    const plans = (await Plan.query().orderBy([{ sort: 'asc' }, { price: 'asc' }]).get()).all()
+    const plans = (await Plan.scope('ordered').get()).all()
 
     return new AdminPlanCollection(plans).additional({ status: 'success', message: 'OK', code: 200, features: Feature.ALL })
   }

@@ -109,6 +109,24 @@ describe('Plans admin and checkout', () => {
     expect(removed.body.deleted).toBe(true)
   })
 
+  it('lists plans in the order admins set, even before cheaper ones', async () => {
+    const created = await api('post', '/admin/plans', { name: 'Order test', price: 99999, sort: 0 })
+    const plan = created.body.data
+    const slugs = async (path: string) => (await api('get', path, undefined, path.startsWith('/admin') ? 'admin' : null)).body.data.map((item: { slug: string }) => item.slug)
+    const before = await slugs('/plans')
+
+    await api('put', `/admin/plans/${plan.id}`, { sort: 1000 })
+
+    const after = await slugs('/plans')
+    const admin = await slugs('/admin/plans')
+
+    await api('delete', `/admin/plans/${plan.id}`)
+
+    expect(before.indexOf('order-test')).toBeLessThan(before.indexOf('premium'))
+    expect(after.at(-1)).toBe('order-test')
+    expect(admin.at(-1)).toBe('order-test')
+  })
+
   it('prices plans in the currency of the payer’s region', async () => {
     const region = await api('post', '/admin/payment-regions', { name: 'Ghana test', countries: ['qz'], currency: 'ghs', exchangeRate: 0.0123 })
     const overlap = await api('post', '/admin/payment-regions', { name: 'West Africa test', countries: ['QZ', 'QY'], currency: 'XOF' })

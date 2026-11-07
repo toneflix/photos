@@ -221,7 +221,7 @@ export class ListUsersCommand extends Command {
 
   /** Put the account on a plan without payment. The default plan ends any paid time. */
   async changePlan(user: User): Promise<void> {
-    const plans = (await Plan.query().get()).all()
+    const plans = (await Plan.scope('ordered').get()).all()
 
     if (!plans.length) {
       this.error('There are no plans yet. Run `ark seed PlanSeeder` first.')

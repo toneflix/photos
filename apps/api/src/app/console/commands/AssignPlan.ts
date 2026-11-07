@@ -18,7 +18,7 @@ export class AssignPlanCommand extends Command {
     const plan = await Plan.query().where({ slug: String(this.argument('plan')) }).first()
 
     if (!plan) {
-      const slugs = (await Plan.query().get()).all().map((known) => known.slug)
+      const slugs = (await Plan.scope('ordered').get()).all().map((known) => known.slug)
 
       this.error(slugs.length ? `Pick a plan from ${slugs.join(', ')}.` : 'There are no plans yet. Run `ark seed PlanSeeder` first.')
 
