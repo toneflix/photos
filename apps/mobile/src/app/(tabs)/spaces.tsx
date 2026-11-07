@@ -52,7 +52,7 @@ export default function Spaces() {
       ListHeaderComponent={
         <View style={styles.header}>
           <Text variant="display">Your spaces</Text>
-          <Text variant="muted">A home for each brand, studio or project, with its own photos, books and page.</Text>
+          <Text variant="muted">A home for each brand, studio or project.</Text>
           <Button title="New space" onPress={() => router.push('/space-form')} />
           {list.error ? <Callout>{FormProblem.from(list.error).message}</Callout> : null}
           {waiting > 0 && (

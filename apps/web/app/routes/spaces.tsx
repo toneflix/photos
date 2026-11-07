@@ -63,7 +63,7 @@ export default function Spaces({ loaderData, actionData }: Route.ComponentProps)
 				<div>
 					<h1 className="font-display text-4xl font-bold tracking-tight text-ink-900">Your spaces</h1>
 					<p className="mt-1 max-w-xl text-ink-500">
-						A home for each brand, studio or project, with its own photos, books and page.
+						A home for each brand, studio or project.
 					</p>
 				</div>
 				{!creating && <Button onClick={() => setCreating(true)}>New space</Button>}
