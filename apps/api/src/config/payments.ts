@@ -30,10 +30,10 @@ export default () => {
 
     /**
      * Live exchange rates through @toneflix/money, for regions without a fixed rate.
-     * `provider` is exchangerate-api (needs `key`) or frankfurter. Rates are kept for `hours`.
+     * `provider` is frankfurter or exchangerate-api (needs `key`). Rates are kept for `hours`.
      */
     exchange_rates: {
-      provider: String(env('EXCHANGE_RATES_PROVIDER', 'exchangerate-api')),
+      provider: String(env('EXCHANGE_RATES_PROVIDER', 'frankfurter')),
       key: String(env('EXCHANGERATE_API_KEY', '')),
       hours: Number(env('EXCHANGE_RATE_HOURS', 6)),
     },
