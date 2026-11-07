@@ -13,6 +13,11 @@ export default () => {
      */
     relay_secret: String(env('PAYMENT_RELAY_SECRET', '')),
 
+    /**
+     * The name Photos is registered under on the payment relay, sent with each payment.
+     */
+    relay_app: String(env('PAYMENT_RELAY_APP', 'photos')),
+
     flutterwave: {
       public_key: String(env('FLUTTERWAVE_PUBLIC_KEY', '')),
       secret_key: String(env('FLUTTERWAVE_SECRET_KEY', '')),
