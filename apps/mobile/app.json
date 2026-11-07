@@ -8,7 +8,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "net.toneflix.photos"
+      "bundleIdentifier": "com.toneflix.photos.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +18,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "net.toneflix.photos"
+      "package": "com.toneflix.photos.app"
     },
     "web": {
       "favicon": "./assets/favicon.png",

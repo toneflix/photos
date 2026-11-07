@@ -51,7 +51,7 @@ One-time setup:
 2. Create the Android signing key on EAS: in `apps/mobile`, run `npx eas-cli@latest credentials --platform android`, then choose to generate a new keystore. EAS keeps it, and both builders use it. Back it up from the same menu; Play App Signing needs the same upload key for every release.
 3. Create an Expo access token (expo.dev → Account settings → Access tokens) and save it as the `EXPO_TOKEN` secret.
 4. For Google Play:
-   - Create the app in Play Console with package name `net.toneflix.photos`.
+   - Create the app in Play Console with package name `com.toneflix.photos.app`.
    - Google requires the very first App Bundle to be uploaded by hand. Run the workflow once with `play_store` on and `play_store_release_status` = `draft`, download the build from expo.dev, and upload it in Play Console, or upload the bundle from a local `eas build --profile production`.
    - Create a Google Cloud service account with access to the Play Console app (Users and permissions → Invite → release permissions). Either upload its JSON key to EAS (`eas credentials` → Android → Google Service Account), or save the JSON as the `GOOGLE_SERVICE_ACCOUNT_JSON` secret.
 
