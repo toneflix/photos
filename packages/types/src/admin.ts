@@ -7,10 +7,14 @@ export interface AppLimits {
   maxAvatarMb: number
   maxBookPages: number
   registrationOpen: boolean
+  /** The cover line books print when their maker has none of their own. */
+  bookKicker: string
+  /** The back cover name books print when their maker has none of their own. */
+  bookImprint: string
 }
 
 /** Used when the API can't be reached; the API still enforces its own limits. */
-export const DEFAULT_LIMITS: AppLimits = { maxPhotoMb: 25, maxAvatarMb: 10, maxBookPages: 500, registrationOpen: true }
+export const DEFAULT_LIMITS: AppLimits = { maxPhotoMb: 25, maxAvatarMb: 10, maxBookPages: 500, registrationOpen: true, bookKicker: 'A Toneflix photo book', bookImprint: 'Toneflix Photos' }
 
 /** An account as admins see it. */
 export interface AdminUser {
@@ -96,7 +100,7 @@ export interface ModerationItemDetail extends ModerationItem {
 
 export type ModerationSort = 'latest' | 'views' | 'downloads'
 
-export type SettingType = 'number' | 'boolean' | 'select'
+export type SettingType = 'number' | 'boolean' | 'select' | 'text'
 
 /** One app setting admins can change. Until it is saved, `value` is the `.env` default. */
 export interface SettingField {

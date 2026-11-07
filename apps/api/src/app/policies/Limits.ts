@@ -8,6 +8,7 @@ import { ValidationException } from 'kanun'
 import { abortIf } from '@arkstack/common'
 import { where } from 'arkormx'
 import { Cache } from '@arkstack/cache'
+import { Settings } from '@app/support/Settings'
 
 const MB = 1024 * 1024
 
@@ -28,10 +29,6 @@ export interface BookBranding {
  * Every plan limit is enforced here. A limit of 0 means no limit.
  */
 export class Limits {
-  static readonly KICKER = 'A Toneflix photo book'
-  static readonly IMPRINT = 'Toneflix Photos'
-  static readonly COLOPHON = 'Preserved for all time with Toneflix Photos.'
-
   private static readonly BRANDING_MESSAGES: Record<BrandingField, string> = {
     kicker: 'Your own cover line is not included in your plan.',
     brand: 'Your brand on the back cover is not included in your plan.',
@@ -173,13 +170,24 @@ export class Limits {
 
   /** The cover line, brand and back cover a book prints. Saved text shows only while the plan of the book's maker includes it. */
   async branding(book: Book): Promise<BookBranding> {
+    const defaults = await Limits.defaultBranding()
     const customImprint = (await this.allows('custom_imprint')) && !!book.imprint
 
     return {
-      kicker: ((await this.allows('custom_kicker')) && book.kicker) || Limits.KICKER,
+      kicker: ((await this.allows('custom_kicker')) && book.kicker) || defaults.kicker,
       brand: ((await this.allows('brand_imprint')) || (await this.allows('custom_imprint'))) && book.brand ? book.brand : null,
-      imprint: customImprint ? book.imprint! : Limits.IMPRINT,
-      colophon: customImprint ? null : Limits.COLOPHON,
+      imprint: customImprint ? book.imprint! : defaults.imprint,
+      colophon: customImprint ? null : defaults.colophon,
+    }
+  }
+
+  /** The branding admins set for books whose maker has none of their own. */
+  static async defaultBranding(): Promise<BookBranding> {
+    return {
+      kicker: await Settings.get<string>('books.branding.kicker'),
+      brand: null,
+      imprint: await Settings.get<string>('books.branding.imprint'),
+      colophon: await Settings.get<string>('books.branding.colophon'),
     }
   }
 

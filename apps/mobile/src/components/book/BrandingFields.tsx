@@ -1,19 +1,23 @@
 import { StyleSheet, View } from 'react-native'
-import type { BookBrandingInput, BookWithPages } from '@photos/types'
+import type { AppLimits, BookBrandingInput, BookWithPages } from '@photos/types'
 import { Field, Input, Text } from '@/components/ui'
+import { useLimits } from '@/lib/limits'
 
-export const DEFAULT_KICKER = 'A Toneflix photo book'
+const BRANDING_KEYS = ['kicker', 'brand', 'imprint'] as const
 
-const BRANDING_FIELDS: { key: keyof BookBrandingInput; label: string; placeholder: string; hint: string }[] = [
-  { key: 'kicker', label: 'Cover line', placeholder: DEFAULT_KICKER, hint: 'Small capitals above the title on the cover.' },
-  { key: 'brand', label: 'Your brand', placeholder: 'Ada Studio', hint: 'Printed on the back cover, above the imprint.' },
-  { key: 'imprint', label: 'Back cover name', placeholder: 'Toneflix Photos', hint: 'Printed on the back cover in place of Toneflix Photos.' },
-]
+/** The branding inputs, with the defaults admins set as placeholders. */
+function brandingFields({ bookKicker, bookImprint }: AppLimits): { key: keyof BookBrandingInput; label: string; placeholder: string; hint: string }[] {
+  return [
+    { key: 'kicker', label: 'Cover line', placeholder: bookKicker, hint: 'Small capitals above the title on the cover.' },
+    { key: 'brand', label: 'Your brand', placeholder: 'Ada Studio', hint: 'Printed on the back cover, above the imprint.' },
+    { key: 'imprint', label: 'Back cover name', placeholder: bookImprint, hint: `Printed on the back cover in place of ${bookImprint}.` },
+  ]
+}
 
 /** Branding fields that changed and the plan allows, so a save never sends text the plan would refuse. */
 export function brandingChanges(book: BookWithPages, branding: BookBrandingInput): Partial<BookBrandingInput> {
   return Object.fromEntries(
-    BRANDING_FIELDS.filter(({ key }) => book.brandingAllowed?.[key] && (branding[key]?.trim() || null) !== (book.customBranding?.[key] ?? null)).map(({ key }) => [
+    BRANDING_KEYS.filter((key) => book.brandingAllowed?.[key] && (branding[key]?.trim() || null) !== (book.customBranding?.[key] ?? null)).map((key) => [
       key,
       branding[key]?.trim() || null,
     ]),
@@ -30,10 +34,12 @@ export function BrandingFields({
   value: BookBrandingInput
   onChange: (value: BookBrandingInput) => void
 }) {
+  const fields = brandingFields(useLimits())
+
   return (
     <View style={styles.group}>
       <Text variant="label">Branding</Text>
-      {BRANDING_FIELDS.map(({ key, label, placeholder, hint }) => (
+      {fields.map(({ key, label, placeholder, hint }) => (
         <Field key={key} label={label} hint={allowed?.[key] ? hint : `${hint} Included with Premium.`}>
           <Input
             value={value[key] ?? ''}

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { data, Link, redirect, useFetcher, type ShouldRevalidateFunctionArgs } from "react-router";
-import type { BookBrandingInput, BookPageInput, BookPagePhoto, BookTheme, BookWithPages, FrameStyle, PageLayout, PaperColor, Photo, PhotoPosition, Space, Visibility } from "@photos/types";
+import type { AppLimits, BookBrandingInput, BookPageInput, BookPagePhoto, BookTheme, BookWithPages, FrameStyle, PageLayout, PaperColor, Photo, PhotoPosition, Space, Visibility } from "@photos/types";
 import { coverHasText, FlipbookModel, FRAME_STYLES, PAGE_LAYOUTS, PAPER_COLORS, type CoverDesign } from "@photos/types";
 import { BookLookProvider, CoverView, PageView, PHOTO_DRAG_TYPE, PLACED_LAYOUTS, PrintedPhoto, TitlePageView, usePhotoPositioner } from "@toneflix/flipbook-react";
 import { cloudflareContext } from "~/lib/cloudflare";
@@ -15,6 +15,7 @@ import { ClothPicker, CoverDesignPicker } from "~/components/book/CoverPickers";
 import { jsonPosition, PhotoPositionControls, storedPosition } from "~/components/book/PhotoPositionControls";
 import { Button, Field, Input, Textarea, buttonClass, Spinner } from "~/components/ui";
 import { copyText } from "~/lib/toast";
+import { useLimits } from "~/lib/limits";
 import type { Route } from "./+types/book-edit";
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -770,7 +771,8 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 	const saving = fetcher.state !== "idle";
 	const uniquePhotos = useMemo(() => [...new Map(bookPhotos.map((p) => [p.id, p])).values()], [bookPhotos]);
 	const coverPhoto = uniquePhotos.find((p) => p.id === coverPhotoId) ?? uniquePhotos[0] ?? null;
-	const kicker = (book.brandingAllowed?.kicker && branding.kicker?.trim()) || DEFAULT_KICKER;
+	const { bookKicker } = useLimits();
+	const kicker = (book.brandingAllowed?.kicker && branding.kicker?.trim()) || bookKicker;
 	const cover = { ...book, title: title || "Untitled", description, theme, coverDesign, coverText, coverPhoto, coverPosition, branding: { ...book.branding, kicker } };
 	const positioner = usePhotoPositioner(coverPosition, coverPhoto ? (position) => setCoverPosition(storedPosition(position)) : undefined);
 	const titled = coverHasText(FlipbookModel.cover(cover));
@@ -942,18 +944,21 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 	);
 }
 
-const DEFAULT_KICKER = "A Toneflix photo book";
+const BRANDING_KEYS = ["kicker", "brand", "imprint"] as const;
 
-const BRANDING_FIELDS: { key: keyof BookBrandingInput; label: string; placeholder: string; hint: string }[] = [
-	{ key: "kicker", label: "Cover line", placeholder: DEFAULT_KICKER, hint: "Small capitals above the title on the cover." },
-	{ key: "brand", label: "Your brand", placeholder: "Ada Studio", hint: "Printed on the back cover, above the imprint." },
-	{ key: "imprint", label: "Back cover name", placeholder: "Toneflix Photos", hint: "Printed on the back cover in place of Toneflix Photos." },
-];
+/** The branding inputs, with the defaults admins set as placeholders. */
+function brandingFields({ bookKicker, bookImprint }: AppLimits): { key: keyof BookBrandingInput; label: string; placeholder: string; hint: string }[] {
+	return [
+		{ key: "kicker", label: "Cover line", placeholder: bookKicker, hint: "Small capitals above the title on the cover." },
+		{ key: "brand", label: "Your brand", placeholder: "Ada Studio", hint: "Printed on the back cover, above the imprint." },
+		{ key: "imprint", label: "Back cover name", placeholder: bookImprint, hint: `Printed on the back cover in place of ${bookImprint}.` },
+	];
+}
 
 /** Branding fields that changed and the plan allows, so a save never sends text the plan would refuse. */
 function brandingChanges(book: BookWithPages, branding: BookBrandingInput): Partial<BookBrandingInput> {
 	return Object.fromEntries(
-		BRANDING_FIELDS.filter(({ key }) => book.brandingAllowed?.[key] && (branding[key]?.trim() || null) !== (book.customBranding?.[key] ?? null)).map(({ key }) => [
+		BRANDING_KEYS.filter((key) => book.brandingAllowed?.[key] && (branding[key]?.trim() || null) !== (book.customBranding?.[key] ?? null)).map((key) => [
 			key,
 			branding[key]?.trim() || null,
 		]),
@@ -970,10 +975,12 @@ function BrandingFields({
 	value: BookBrandingInput;
 	onChange: (value: BookBrandingInput) => void;
 }) {
+	const fields = brandingFields(useLimits());
+
 	return (
 		<fieldset className="space-y-4">
 			<legend className="mb-1.5 text-sm font-medium text-ink-700">Branding</legend>
-			{BRANDING_FIELDS.map(({ key, label, placeholder, hint }) => (
+			{fields.map(({ key, label, placeholder, hint }) => (
 				<Field key={key} label={label} hint={allowed?.[key] ? hint : `${hint} Included with Premium.`}>
 					<Input
 						value={value[key] ?? ""}

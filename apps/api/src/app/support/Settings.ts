@@ -2,7 +2,7 @@ import { Cache } from '@arkstack/cache'
 import { Setting } from '@app/models/Setting'
 import { abortIf } from '@arkstack/common'
 
-export type SettingType = 'number' | 'boolean' | 'select'
+export type SettingType = 'number' | 'boolean' | 'select' | 'text'
 
 export interface SettingOption {
   value: string
@@ -22,6 +22,7 @@ export interface SettingField {
   help?: string
   unit?: string
   min?: number
+  /** The largest number, or the most characters for text. */
   max?: number
   options?: SettingOption[]
 }
@@ -55,12 +56,13 @@ export class Settings {
     return group!
   }
 
-  /** Every saved value, by config key. */
+  /** Every saved value, by config key, in its field's type. */
   static async saved(): Promise<Record<string, unknown>> {
     return Cache.remember(Settings.CACHE_KEY, Number(config('settings.cache_seconds', 60)), async () => {
       const rows = (await Setting.query().get()).all()
+      const fields = new Map(Settings.groups().flatMap((group) => group.fields.map((field) => [field.key, field] as const)))
 
-      return Object.fromEntries(rows.map((row) => [row.key, row.value]))
+      return Object.fromEntries(rows.map((row) => [row.key, fields.has(row.key) ? Settings.cast(fields.get(row.key)!, row.value) : row.value]))
     })
   }
 
@@ -81,6 +83,7 @@ export class Settings {
       group.fields.map((field) => {
         if (field.type === 'boolean') return [field.name, 'nullable|boolean']
         if (field.type === 'select') return [field.name, `nullable|in:${field.options!.map((option) => option.value).join(',')}`]
+        if (field.type === 'text') return [field.name, `nullable|string|max:${field.max ?? 255}`]
 
         return [field.name, `nullable|integer|min:${field.min ?? 0}|max:${field.max ?? Number.MAX_SAFE_INTEGER}`]
       }),
@@ -88,8 +91,8 @@ export class Settings {
   }
 
   /**
-   * Save the fields of `group` present in `values`. A value that is null or matches the
-   * config value is removed, so the field follows .env again.
+   * Save the fields of `group` present in `values`, as JSON. A value that is null or matches
+   * the config value is removed, so the field follows .env again.
    */
   static async update(group: SettingGroup, values: Record<string, unknown>): Promise<void> {
     for (const field of group.fields) {
@@ -102,7 +105,7 @@ export class Settings {
         continue
       }
 
-      await Setting.query().updateOrCreate({ key: field.key }, { value })
+      await Setting.query().updateOrCreate({ key: field.key }, { value: JSON.stringify(value) })
     }
 
     await Cache.forget(Settings.CACHE_KEY)
@@ -110,6 +113,7 @@ export class Settings {
 
   /** A submitted value in the field's own type. */
   static cast(field: SettingField, value: unknown): unknown {
+    if (typeof value === 'string') value = value.trim()
     if (value === null || value === undefined || value === '') return null
     if (field.type === 'boolean') return value === true || value === 'true' || value === 1 || value === '1' || value === 'on'
     if (field.type === 'number') return Number(value)

@@ -181,6 +181,41 @@ export default () => {
           },
         ],
       },
+      {
+        id: 'branding',
+        title: 'Book branding',
+        description: 'What books print when their plan has no branding of its own.',
+        icon: 'tag',
+        fields: [
+          {
+            name: 'kicker',
+            key: 'books.branding.kicker',
+            env: 'BOOK_KICKER',
+            type: 'text',
+            label: 'Cover line',
+            help: 'Small capitals above the title on the cover.',
+            max: 60,
+          },
+          {
+            name: 'imprint',
+            key: 'books.branding.imprint',
+            env: 'BOOK_IMPRINT',
+            type: 'text',
+            label: 'Back cover name',
+            help: 'Printed on the back cover.',
+            max: 60,
+          },
+          {
+            name: 'colophon',
+            key: 'books.branding.colophon',
+            env: 'BOOK_COLOPHON',
+            type: 'text',
+            label: 'Back cover line',
+            help: 'Printed under the back cover name. Books with their own back cover name leave it out.',
+            max: 120,
+          },
+        ],
+      },
     ],
   }
 }
