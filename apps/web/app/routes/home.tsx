@@ -5,6 +5,7 @@ import { optionalUser } from "~/lib/session.server";
 import { PublicPhotoGrid } from "~/components/explore/PublicPhotoGrid";
 import { Logo, buttonClass } from "~/components/ui";
 import { Mosaic } from "~/components/Mosaic";
+import { SiteFooter } from "~/components/SiteFooter";
 import type { Route } from "./+types/home";
 
 export function meta(_: Route.MetaArgs) {
@@ -100,6 +101,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 					</section>
 				)}
 			</main>
+			<SiteFooter />
 		</div>
 	);
 }

@@ -19,6 +19,7 @@
     "@toneflix/flipbook-react": "^0.3.6",
     "alova": "^3.5.5",
     "isbot": "^5.2.2",
+    "marked": "^18.1.3",
     "qrcode": "^1.5.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

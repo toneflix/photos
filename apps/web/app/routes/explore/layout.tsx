@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Outlet } from "react-router";
 import { optionalUser } from "~/lib/session.server";
 import { AppHeader } from "~/components/AppHeader";
+import { SiteFooter } from "~/components/SiteFooter";
 import { ExplorePhotoDialog } from "~/components/explore/ExplorePhotoDialog";
 import { PhotoDialogHost, PhotoTrail } from "~/lib/photo-dialog";
 import { revalidateOnSubmit } from "~/lib/revalidate";
@@ -18,12 +19,15 @@ export default function ExploreLayout({ loaderData }: Route.ComponentProps) {
 	const [trail] = useState(() => new PhotoTrail());
 
 	return (
-		<div className="min-h-dvh bg-canvas">
+		<div className="flex min-h-dvh flex-col bg-canvas">
 			<AppHeader user={loaderData.user} />
-			<PhotoDialogHost value={trail}>
-				<Outlet />
-				<ExplorePhotoDialog />
-			</PhotoDialogHost>
+			<div className="flex-1">
+				<PhotoDialogHost value={trail}>
+					<Outlet />
+					<ExplorePhotoDialog />
+				</PhotoDialogHost>
+			</div>
+			<SiteFooter />
 		</div>
 	);
 }
