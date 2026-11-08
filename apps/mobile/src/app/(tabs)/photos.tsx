@@ -12,6 +12,7 @@ import { api } from '@/lib/api'
 import { ORIENTATION_FILTER, PHOTO_VISIBILITY_FILTER, SORT_FILTER, spaceFilter, useFilters } from '@/lib/filters'
 import { FormProblem } from '@/lib/forms'
 import { bookLists, photoLists } from '@/lib/lists'
+import { libraryPhotos } from '@/lib/photo-sequence'
 import { useSpaces } from '@/lib/spaces'
 import { uploads, useUploads } from '@/lib/uploads'
 import { colors, fonts, radius } from '@/theme'
@@ -71,6 +72,11 @@ export default function Photos() {
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsMultipleSelection: true, orderedSelection: true, selectionLimit: 50, exif: true, quality: 1 })
 
     if (!result.canceled) await uploads.add(result.assets, space?.id)
+  }
+
+  const open = (photo: Photo) => {
+    libraryPhotos.follow(groups.flatMap((group) => group.photos))
+    router.push({ pathname: '/photo/[id]', params: { id: photo.id } })
   }
 
   const toggle = (id: string) => setPicked((current) => (current.includes(id) ? current.filter((x) => x !== id) : [...current, id]))
@@ -152,7 +158,7 @@ export default function Photos() {
                 size={tile}
                 selecting={selecting}
                 order={picked.indexOf(photo.id)}
-                onPress={() => (selecting ? toggle(photo.id) : router.push({ pathname: '/photo/[id]', params: { id: photo.id } }))}
+                onPress={() => (selecting ? toggle(photo.id) : open(photo))}
               />
             ))}
           </View>

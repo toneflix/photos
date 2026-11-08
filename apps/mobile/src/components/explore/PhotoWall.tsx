@@ -4,6 +4,7 @@ import { router } from 'expo-router'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import type { PublicPhoto } from '@photos/types'
+import { explorePhotos } from '@/lib/photo-sequence'
 import { colors, radius } from '@/theme'
 import { Owner } from './Owner'
 
@@ -26,7 +27,7 @@ function columns(photos: PublicPhoto[]) {
   return cols
 }
 
-/** A two-column wall of public photos, with who took each one. Opening one shows its page. */
+/** A two-column wall of public photos, with who took each one. Opening one shows its page, which swipes through the wall. */
 export function PhotoWall({
   photos,
   header,
@@ -61,7 +62,10 @@ export function PhotoWall({
                 key={photo.id}
                 accessibilityRole="imagebutton"
                 accessibilityLabel={photo.caption ?? `Photo by ${photo.owner.name ?? 'a Toneflix member'}`}
-                onPress={() => router.push({ pathname: '/explore/photos/[id]', params: { id: photo.id } })}
+                onPress={() => {
+                  explorePhotos.follow(photos)
+                  router.push({ pathname: '/explore/photos/[id]', params: { id: photo.id } })
+                }}
                 style={[styles.tile, { height: column * (photo.width && photo.height ? photo.height / photo.width : 0.75) }]}
               >
                 <Image source={{ uri: photo.thumbnailUrl ?? photo.url }} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} recyclingKey={photo.id} />

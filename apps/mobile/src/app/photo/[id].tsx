@@ -11,6 +11,7 @@ import { api } from '@/lib/api'
 import { confirm } from '@/lib/confirm'
 import { FormProblem } from '@/lib/forms'
 import { photoLists } from '@/lib/lists'
+import { libraryPhotos, usePhotoNeighbours, type PhotoNeighbours, type SequencePhoto } from '@/lib/photo-sequence'
 import { spaceOptions, useSpaces } from '@/lib/spaces'
 import { colors, radius } from '@/theme'
 
@@ -18,9 +19,16 @@ type PhotoChanges = Parameters<typeof api.photos.update>[1]
 
 const LICENSE_OPTIONS = LICENSES.map((license) => ({ value: license.value, label: license.label, description: license.forCreators }))
 
-/** One of your photos: who can see it, its space and licence, its caption, and deleting it. */
+/** One of your photos opened from your library, swiping to the photos beside it. */
 export default function PhotoDetail() {
   const { id } = useLocalSearchParams<{ id: string }>()
+  const { preview, neighbours } = usePhotoNeighbours(libraryPhotos, id)
+
+  return <LibraryPhoto key={id} id={id} preview={preview} neighbours={neighbours} />
+}
+
+/** One of your photos: who can see it, its space and licence, its caption, and deleting it. */
+function LibraryPhoto({ id, preview, neighbours }: { id: string; preview?: SequencePhoto; neighbours: PhotoNeighbours }) {
   const insets = useSafeAreaInsets()
   const spaces = useSpaces()
   const [caption, setCaption] = useState('')
@@ -48,6 +56,14 @@ export default function PhotoDetail() {
     if (await confirm('Delete this photo?', 'It will also be removed from any books.', 'Delete')) remove.send().catch(() => undefined)
   }
 
+  if (!photo && preview && !loaded.error) {
+    return (
+      <PhotoScreen photo={preview} leave="close" neighbours={neighbours}>
+        <ActivityIndicator style={styles.loading} color={colors.ink500} />
+      </PhotoScreen>
+    )
+  }
+
   if (!photo) {
     return (
       <View style={[styles.center, { paddingTop: insets.top }]}>
@@ -60,7 +76,7 @@ export default function PhotoDetail() {
   const isPublic = photo.visibility === 'public'
 
   return (
-    <PhotoScreen photo={photo} leave="close">
+    <PhotoScreen photo={photo} leave="close" neighbours={neighbours}>
       <View style={styles.body}>
         <View style={styles.meta}>
           {photo.width && photo.height ? (
@@ -142,6 +158,7 @@ export default function PhotoDetail() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  loading: { marginTop: 32 },
   flex: { flex: 1, gap: 2 },
   body: { padding: 20, gap: 18 },
   meta: { gap: 2 },
