@@ -1,6 +1,7 @@
 export { Book } from './Book'
 export { BookAccessCode } from './BookAccessCode'
 export { BookPage } from './BookPage'
+export { Document } from './Document'
 export { PasswordReset } from './PasswordReset'
 export { Payment } from './Payment'
 export { PaymentRegion } from './PaymentRegion'
