@@ -35,44 +35,46 @@ export default function RootLayout() {
   })
   const ready = status === 'ready' && (fontsLoaded || !!fontError)
 
-  if (!ready) return <BrandSplash done={false} />
-
   return (
     <>
-      <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas } }}>
-        <Stack.Protected guard={!!user} redirectTo="/welcome">
-          <Stack.Screen name="(tabs)" />
-        </Stack.Protected>
-        <Stack.Protected guard={!user} redirectTo="/">
-          <Stack.Screen name="welcome" />
-          <Stack.Screen name="signin" />
-          <Stack.Screen name="signup" />
-          <Stack.Screen name="forgot-password" />
-          <Stack.Screen name="discover" />
-        </Stack.Protected>
-        <Stack.Protected guard={!!user}>
-          <Stack.Screen name="photo/[id]" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="books/new" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="space-form" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="books/[id]/access" />
-          <Stack.Screen name="space-members" />
-          <Stack.Screen name="invites" />
-          <Stack.Screen name="settings" />
-          <Stack.Screen name="stats/index" />
-          <Stack.Screen name="stats/[kind]/[id]" />
-        </Stack.Protected>
-        <Stack.Screen name="explore/photos/[id]" />
-        <Stack.Screen name="spaces/[slug]" />
-        <Stack.Screen name="licenses" />
-        <Stack.Screen name="unlock" />
-        <Stack.Screen name="books/[id]/index" />
-        <Stack.Screen name="books/[id]/edit" />
-        <Stack.Screen name="reset-password" />
-        <Stack.Screen name="verify-email" />
-      </Stack>
-      <ToastHost />
-      <BrandSplash done />
+      {ready && (
+        <>
+          <StatusBar style="dark" />
+          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas } }}>
+            <Stack.Protected guard={!!user} redirectTo="/welcome">
+              <Stack.Screen name="(tabs)" />
+            </Stack.Protected>
+            <Stack.Protected guard={!user} redirectTo="/">
+              <Stack.Screen name="welcome" />
+              <Stack.Screen name="signin" />
+              <Stack.Screen name="signup" />
+              <Stack.Screen name="forgot-password" />
+              <Stack.Screen name="discover" />
+            </Stack.Protected>
+            <Stack.Protected guard={!!user}>
+              <Stack.Screen name="photo/[id]" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="books/new" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="space-form" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="books/[id]/access" />
+              <Stack.Screen name="space-members" />
+              <Stack.Screen name="invites" />
+              <Stack.Screen name="settings" />
+              <Stack.Screen name="stats/index" />
+              <Stack.Screen name="stats/[kind]/[id]" />
+            </Stack.Protected>
+            <Stack.Screen name="explore/photos/[id]" />
+            <Stack.Screen name="spaces/[slug]" />
+            <Stack.Screen name="licenses" />
+            <Stack.Screen name="unlock" />
+            <Stack.Screen name="books/[id]/index" />
+            <Stack.Screen name="books/[id]/edit" />
+            <Stack.Screen name="reset-password" />
+            <Stack.Screen name="verify-email" />
+          </Stack>
+          <ToastHost />
+        </>
+      )}
+      <BrandSplash done={ready} />
     </>
   )
 }
