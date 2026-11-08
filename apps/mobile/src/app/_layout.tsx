@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { SplashScreen, Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { useFonts } from 'expo-font'
@@ -11,6 +10,7 @@ import { PlusJakartaSans_700Bold } from '@expo-google-fonts/plus-jakarta-sans/70
 import { PlusJakartaSans_800ExtraBold } from '@expo-google-fonts/plus-jakarta-sans/800ExtraBold'
 import { Fraunces_500Medium } from '@expo-google-fonts/fraunces/500Medium'
 import { Fraunces_400Regular_Italic } from '@expo-google-fonts/fraunces/400Regular_Italic'
+import { BrandSplash } from '@/components/BrandSplash'
 import { ToastHost } from '@/components/ui'
 import { api } from '@/lib/api'
 import { session, useSession } from '@/lib/session'
@@ -35,11 +35,7 @@ export default function RootLayout() {
   })
   const ready = status === 'ready' && (fontsLoaded || !!fontError)
 
-  useEffect(() => {
-    if (ready) SplashScreen.hideAsync()
-  }, [ready])
-
-  if (!ready) return null
+  if (!ready) return <BrandSplash done={false} />
 
   return (
     <>
@@ -76,6 +72,7 @@ export default function RootLayout() {
         <Stack.Screen name="verify-email" />
       </Stack>
       <ToastHost />
+      <BrandSplash done />
     </>
   )
 }

@@ -5,6 +5,7 @@ import {
 	Outlet,
 	Scripts,
 	ScrollRestoration,
+	useMatches,
 } from "react-router";
 
 import { DEFAULT_LIMITS } from "@photos/types";
@@ -13,12 +14,15 @@ import { NavigationProgress } from "./components/NavigationProgress";
 import { Toaster } from "./components/Toaster";
 import { cloudflareContext } from "./lib/cloudflare";
 import { getServerApi } from "./lib/api.server";
+import { PreviewImage } from "./lib/preview-image";
 import "@toneflix/flipbook-react/style.css";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
-	{ rel: "icon", href: "/favicon.png", type: "image/png" },
+	{ rel: "icon", href: "/favicon.ico", sizes: "48x48" },
+	{ rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
 	{ rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+	{ rel: "manifest", href: "/site.webmanifest" },
 	{ rel: "preconnect", href: "https://fonts.googleapis.com" },
 	{
 		rel: "preconnect",
@@ -44,6 +48,28 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export const shouldRevalidate = () => false;
 
+/** Share tags every page carries, with the site's logo card where a page has no image of its own. */
+function ShareDefaults() {
+	const matches = useMatches();
+	const image = PreviewImage.ownedBy(matches) ? null : PreviewImage.from(matches).site();
+
+	return (
+		<>
+			<meta property="og:site_name" content="Toneflix Photos" />
+			<meta name="twitter:card" content="summary_large_image" />
+			{image && (
+				<>
+					<meta property="og:image" content={image} />
+					<meta property="og:image:width" content="1200" />
+					<meta property="og:image:height" content="630" />
+					<meta property="og:image:alt" content="Toneflix Photos" />
+					<meta name="twitter:image" content={image} />
+				</>
+			)}
+		</>
+	);
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang="en">
@@ -52,6 +78,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 				<meta name="theme-color" content="#ffffff" />
 				<Meta />
+				<ShareDefaults />
 				<Links />
 			</head>
 			<body>

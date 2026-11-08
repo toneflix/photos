@@ -1,10 +1,12 @@
 import { data } from "react-router";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { getServerApi, PhotosApiError } from "~/lib/api.server";
-import { PreviewImage } from "~/lib/preview-image";
+import { PreviewImage, type ShareImageHandle } from "~/lib/preview-image";
 import { PhotoDialog } from "~/lib/photo-dialog";
 import { PhotoView } from "~/components/explore/PhotoView";
 import type { Route } from "./+types/photo";
+
+export const handle: ShareImageHandle = { shareImage: true };
 
 export function meta({ loaderData, matches }: Route.MetaArgs) {
 	const photo = loaderData?.photo;

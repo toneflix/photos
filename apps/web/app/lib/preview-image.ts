@@ -2,6 +2,11 @@ import type { loader as rootLoader } from "~/root";
 
 type Match = { id: string; loaderData?: unknown } | undefined;
 
+/** Route handle for pages whose meta sets their own `og:image`; the site's default image is left out there. */
+export interface ShareImageHandle {
+	shareImage: true;
+}
+
 /**
  * Stable image links for share previews. Sites that render link previews keep the
  * image URL for days, longer than a signed storage URL lives, so previews point at
@@ -23,6 +28,16 @@ export class PreviewImage {
 
 	book(id: string) {
 		return `${this.origin}/books/${encodeURIComponent(id)}/cover`;
+	}
+
+	/** The Toneflix Photos logo card, for pages without an image of their own. */
+	site() {
+		return `${this.origin}/og-image.png`;
+	}
+
+	/** Whether a matched route's meta sets its own share image. */
+	static ownedBy(matches: readonly { handle?: unknown }[]) {
+		return matches.some((match) => (match.handle as Partial<ShareImageHandle> | undefined)?.shareImage);
 	}
 
 	/** Redirects to a signed URL, cached well inside the URL's lifetime. */
