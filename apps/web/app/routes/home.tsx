@@ -9,10 +9,10 @@ import type { Route } from "./+types/home";
 
 export function meta(_: Route.MetaArgs) {
 	return [
-		{ title: "Toneflix Photos — photo books for all time" },
+		{ title: "Toneflix Photos · Personalised, interactive photo books" },
 		{
 			name: "description",
-			content: "Bind your photos into beautiful books you can page through.",
+			content: "Personalised and interactive photo books for the moments you love, to turn through and share.",
 		},
 	];
 }

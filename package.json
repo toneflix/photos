@@ -1,7 +1,7 @@
 {
   "name": "toneflix-photos",
   "private": true,
-  "description": "Toneflix Photos: a digital photo book for preserving photos for all time.",
+  "description": "Toneflix Photos: personalised and interactive photo books.",
   "packageManager": "pnpm@10.28.0",
   "engines": {
     "node": ">=22"
