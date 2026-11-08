@@ -4,6 +4,7 @@ import { router } from 'expo-router'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import type { PublicPhoto } from '@photos/types'
+import { useTabBarInset } from '@/components/GlassTabBar'
 import { explorePhotos } from '@/lib/photo-sequence'
 import { colors, radius } from '@/theme'
 import { Owner } from './Owner'
@@ -42,11 +43,12 @@ export function PhotoWall({
   onRefresh?: () => void
 }) {
   const { width } = useWindowDimensions()
+  const inset = useTabBarInset()
   const column = (width - PADDING * 2 - GAP) / 2
 
   return (
     <ScrollView
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingBottom: 32 + inset }]}
       scrollEventThrottle={200}
       onScroll={({ nativeEvent: { layoutMeasurement, contentOffset, contentSize } }) => {
         if (layoutMeasurement.height + contentOffset.y > contentSize.height - layoutMeasurement.height) onEndReached?.()
@@ -84,7 +86,7 @@ export function PhotoWall({
 }
 
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: PADDING, paddingBottom: 32 },
+  content: { paddingHorizontal: PADDING },
   wall: { flexDirection: 'row', gap: GAP },
   column: { gap: GAP },
   tile: { borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.surface200 },

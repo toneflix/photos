@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { usePagination } from 'alova/client'
 import type { Book } from '@photos/types'
 import { BookCover } from '@/components/BookCover'
+import { useTabBarInset } from '@/components/GlassTabBar'
 import { SearchFilters } from '@/components/SearchFilters'
 import { Button, Callout, Text } from '@/components/ui'
 import { api } from '@/lib/api'
@@ -22,6 +23,7 @@ export default function Books() {
   const params = useLocalSearchParams<{ space?: string }>()
   const filters = useFilters(params.space ? { space: params.space } : undefined)
   const spaces = useSpaces()
+  const inset = useTabBarInset()
   const cover = (width - PADDING * 2 - GAP * (COLUMNS - 1)) / COLUMNS
 
   const list = usePagination((page, pageSize) => api.books.list({ ...filters.query, page, per_page: pageSize }), {
@@ -72,7 +74,7 @@ export default function Books() {
       numColumns={COLUMNS}
       ListHeaderComponent={header}
       columnWrapperStyle={styles.row}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingBottom: 32 + inset }]}
       renderItem={({ item: book }) => (
         <Pressable
           style={{ width: cover }}
@@ -108,7 +110,7 @@ export default function Books() {
 }
 
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: PADDING, paddingBottom: 32 },
+  content: { paddingHorizontal: PADDING },
   header: { gap: 12, paddingTop: 20, paddingBottom: 20 },
   flex: { flex: 1 },
   headerActions: { flexDirection: 'row', gap: 10 },

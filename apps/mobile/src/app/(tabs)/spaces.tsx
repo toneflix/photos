@@ -4,6 +4,7 @@ import { router, useFocusEffect } from 'expo-router'
 import { usePagination, useRequest } from 'alova/client'
 import { spacePermissionLabels, type SharedSpace, type Space } from '@photos/types'
 import { Ionicons } from '@expo/vector-icons'
+import { useTabBarInset } from '@/components/GlassTabBar'
 import { SpaceCard } from '@/components/spaces/SpaceCard'
 import { Button, Callout, Text } from '@/components/ui'
 import { api } from '@/lib/api'
@@ -14,6 +15,7 @@ import { colors, fonts, radius } from '@/theme'
 
 /** Your spaces and the spaces shared with you. */
 export default function Spaces() {
+  const inset = useTabBarInset()
   const list = usePagination((page, pageSize) => api.spaces.list({ page, per_page: pageSize }), {
     append: true,
     initialPageSize: 24,
@@ -47,7 +49,7 @@ export default function Spaces() {
     <FlatList
       data={spaces}
       keyExtractor={(space) => space.id}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingBottom: 32 + inset }]}
       ItemSeparatorComponent={() => <View style={styles.gap} />}
       ListHeaderComponent={
         <View style={styles.header}>
@@ -128,7 +130,7 @@ function Chip({ label, onPress }: { label: string; onPress: () => void }) {
 }
 
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: 16, paddingBottom: 32 },
+  content: { paddingHorizontal: 16 },
   header: { gap: 10, paddingTop: 20, paddingBottom: 20 },
   gap: { height: 28 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },

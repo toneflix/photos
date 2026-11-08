@@ -13,6 +13,7 @@
     "@toneflix/flipbook-native": "^0.3.7",
     "alova": "^3.5.5",
     "expo": "~58.0.23",
+    "expo-blur": "~58.0.5",
     "expo-clipboard": "~58.0.4",
     "expo-constants": "~58.0.15",
     "expo-device": "~58.0.5",

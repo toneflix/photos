@@ -3,6 +3,7 @@ import { ActivityIndicator, FlatList, StyleSheet, View, useWindowDimensions } fr
 import { usePagination } from 'alova/client'
 import type { PublicBook, PublicPhoto, PublicSpace } from '@photos/types'
 import { BookCover } from '@/components/BookCover'
+import { useTabBarInset } from '@/components/GlassTabBar'
 import { SearchFilters } from '@/components/SearchFilters'
 import { SpaceCard } from '@/components/spaces/SpaceCard'
 import { Callout, Text } from '@/components/ui'
@@ -90,6 +91,7 @@ export function PublicBooks({ header, space, maker }: { header?: ReactElement; s
     watchingStates: [filters.key, space, maker],
   })
   const books = list.data as PublicBook[]
+  const inset = useTabBarInset()
   const cover = (width - 32 - 16) / 2
 
   return (
@@ -98,7 +100,7 @@ export function PublicBooks({ header, space, maker }: { header?: ReactElement; s
       keyExtractor={(book) => book.id}
       numColumns={2}
       columnWrapperStyle={styles.bookRow}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingBottom: 32 + inset }]}
       ListHeaderComponent={
         <ListTop
           header={header}
@@ -145,12 +147,13 @@ export function PublicSpaces({ header, maker }: { header?: ReactElement; maker?:
     watchingStates: [filters.key, maker],
   })
   const spaces = list.data as PublicSpace[]
+  const inset = useTabBarInset()
 
   return (
     <FlatList
       data={spaces}
       keyExtractor={(space) => space.id}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingBottom: 32 + inset }]}
       ItemSeparatorComponent={() => <View style={styles.gap} />}
       ListHeaderComponent={
         <ListTop
@@ -184,7 +187,7 @@ export function PublicSpaces({ header, maker }: { header?: ReactElement; maker?:
 
 const styles = StyleSheet.create({
   top: { gap: 12, paddingBottom: 16 },
-  content: { paddingHorizontal: 16, paddingBottom: 32 },
+  content: { paddingHorizontal: 16 },
   bookRow: { gap: 16, marginBottom: 24 },
   cover: { borderRadius: radius.md, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' },
   title: { marginTop: 10, fontFamily: fonts.display, fontSize: 15 },
