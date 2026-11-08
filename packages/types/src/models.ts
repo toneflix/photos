@@ -19,7 +19,7 @@ export type Visibility = 'private' | 'shared' | 'public'
 export type UserRole = string
 
 /** Something a role can be allowed to do in the admin dashboard. */
-export type Permission = 'dashboard.view' | 'users.view' | 'users.manage' | 'content.moderate' | 'settings.manage' | 'roles.manage' | 'plans.manage'
+export type Permission = 'dashboard.view' | 'users.view' | 'users.manage' | 'content.moderate' | 'settings.manage' | 'roles.manage' | 'plans.manage' | 'pages.manage'
 
 export interface User {
   id: ID

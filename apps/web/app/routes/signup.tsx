@@ -45,7 +45,8 @@ export default function SignUp({ loaderData, actionData }: Route.ComponentProps)
 			subtitle={
 				<>
 					Already have an account?{" "}
-					<Link prefetch="intent"
+					<Link
+						prefetch="intent"
 						to={loaderData?.next ? `/signin?next=${encodeURIComponent(loaderData.next)}` : "/signin"}
 						className="font-medium text-brand-700 hover:underline"
 					>
@@ -70,6 +71,17 @@ export default function SignUp({ loaderData, actionData }: Route.ComponentProps)
 				<Button type="submit" className="w-full py-3" disabled={busy}>
 					{busy ? "Creating your account…" : "Create account"}
 				</Button>
+				<p className="text-center text-sm text-ink-500">
+					By creating an account you agree to the{" "}
+					<Link prefetch="intent" to="/terms" className="font-medium text-brand-700 hover:underline">
+						terms of use
+					</Link>{" "}
+					and{" "}
+					<Link prefetch="intent" to="/privacy" className="font-medium text-brand-700 hover:underline">
+						privacy policy
+					</Link>
+					.
+				</p>
 			</Form>
 		</AuthFrame>
 	);

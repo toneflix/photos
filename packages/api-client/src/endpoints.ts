@@ -14,6 +14,9 @@ import type {
   BookBrandingInput,
   BookPageInput,
   BookWithPages,
+  DocumentInput,
+  DocumentSummary,
+  DocumentType,
   ID,
   FeatureDefinition,
   MakerItemStats,
@@ -46,6 +49,7 @@ import type {
   SettingGroup,
   SignedIn,
   SharedSpace,
+  SiteDocument,
   Space,
   SpaceInvite,
   SpaceMember,
@@ -75,6 +79,11 @@ export function createEndpoints(alova: PhotosAlova) {
   return {
     /** Upload sizes and other limits to check before sending anything. Works signed out. */
     limits: () => alova.Get<ApiResponse<AppLimits>>('/limits', { cacheFor: null }),
+
+    /** Published pages and policies, in the order admins set. Works signed out. */
+    documents: (params: PageQuery & { type?: DocumentType } = {}) => alova.Get<PaginatedResponse<DocumentSummary>>('/documents', { params, cacheFor: null }),
+    /** One published page or policy by slug, e.g. `privacy`. Works signed out. */
+    document: (slug: string) => alova.Get<ApiResponse<SiteDocument>>(`/documents/${slug}`, { cacheFor: null }),
 
     /** Plans on offer, cheapest first, priced in the visitor's currency when their region has one. Works signed out. */
     plans: (country?: string | null) => alova.Get<ApiResponse<Plan[]>>('/plans', { params: country ? { country } : {}, cacheFor: null }),
@@ -286,6 +295,13 @@ export function createEndpoints(alova: PhotosAlova) {
       createPaymentRegion: (data: PaymentRegionInput) => alova.Post<ApiResponse<PaymentRegion>>('/admin/payment-regions', data),
       updatePaymentRegion: (id: ID, data: PaymentRegionInput) => alova.Put<ApiResponse<PaymentRegion>>(`/admin/payment-regions/${id}`, data),
       removePaymentRegion: (id: ID) => alova.Delete<ApiResponse<PaymentRegion>>(`/admin/payment-regions/${id}`),
+      /** Every page and policy, drafts too. */
+      documents: (params: PageQuery & { type?: DocumentType } = {}) => alova.Get<PaginatedResponse<DocumentSummary>>('/admin/documents', { params, cacheFor: null }),
+      document: (id: ID) => alova.Get<ApiResponse<SiteDocument>>(`/admin/documents/${id}`, { cacheFor: null }),
+      createDocument: (data: DocumentInput & { title: string; body: string }) => alova.Post<ApiResponse<SiteDocument>>('/admin/documents', data),
+      updateDocument: (id: ID, data: DocumentInput) => alova.Put<ApiResponse<SiteDocument>>(`/admin/documents/${id}`, data),
+      /** Refused for the built-in privacy policy, terms and about page. */
+      removeDocument: (id: ID) => alova.Delete<ApiResponse<SiteDocument>>(`/admin/documents/${id}`),
       settings: () => alova.Get<ApiResponse<SettingGroup[]>>('/admin/settings', { cacheFor: null }),
       /** Save a group's fields by name. Null puts a field back to its .env default. */
       updateSettings: (group: string, values: Record<string, number | boolean | string | null>) =>

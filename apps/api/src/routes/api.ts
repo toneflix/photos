@@ -10,9 +10,11 @@ import SpaceMemberController from 'src/app/http/controllers/SpaceMemberControlle
 import SessionController from 'src/app/http/controllers/SessionController'
 import TwoFactorController from 'src/app/http/controllers/TwoFactorController'
 import LimitsController from 'src/app/http/controllers/LimitsController'
+import DocumentController from 'src/app/http/controllers/DocumentController'
 import PlanController from 'src/app/http/controllers/PlanController'
 import PaymentController from 'src/app/http/controllers/PaymentController'
 import AdminPlanController from 'src/app/http/controllers/admin/PlanController'
+import AdminDocumentController from 'src/app/http/controllers/admin/DocumentController'
 import PaymentRegionController from 'src/app/http/controllers/admin/PaymentRegionController'
 import StatsController from 'src/app/http/controllers/StatsController'
 import ModerationController from 'src/app/http/controllers/admin/ModerationController'
@@ -30,6 +32,10 @@ Router.get('/', () => {
 
 // Upload sizes and other limits apps check up front
 Router.get('/limits', [LimitsController, 'show'], [limiter(120, 60)])
+
+// Privacy policy, terms, about and other pages admins publish
+Router.get('/documents', [DocumentController, 'index'], [limiter(120, 60)])
+Router.get('/documents/:document', [DocumentController, 'show'], [limiter(120, 60)])
 
 // Plans on offer and the signed-in account's own
 Router.get('/plans', [PlanController, 'index'], [limiter(120, 60)])
@@ -146,3 +152,8 @@ Router.get('/admin/payment-regions', [PaymentRegionController, 'index'], [auth, 
 Router.post('/admin/payment-regions', [PaymentRegionController, 'create'], [auth, Authorize.to('plans.manage')])
 Router.put('/admin/payment-regions/:region', [PaymentRegionController, 'update'], [auth, Authorize.to('plans.manage')])
 Router.delete('/admin/payment-regions/:region', [PaymentRegionController, 'destroy'], [auth, Authorize.to('plans.manage')])
+Router.get('/admin/documents', [AdminDocumentController, 'index'], [auth, Authorize.to('pages.manage')])
+Router.get('/admin/documents/:document', [AdminDocumentController, 'show'], [auth, Authorize.to('pages.manage')])
+Router.post('/admin/documents', [AdminDocumentController, 'create'], [auth, Authorize.to('pages.manage')])
+Router.put('/admin/documents/:document', [AdminDocumentController, 'update'], [auth, Authorize.to('pages.manage')])
+Router.delete('/admin/documents/:document', [AdminDocumentController, 'destroy'], [auth, Authorize.to('pages.manage')])

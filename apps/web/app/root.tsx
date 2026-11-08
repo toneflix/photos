@@ -38,12 +38,18 @@ export const links: Route.LinksFunction = () => [
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const { env } = context.get(cloudflareContext);
 	const api = await getServerApi(request, env, null);
-	const limits = await api
-		.limits()
-		.then(({ data }) => data)
-		.catch(() => DEFAULT_LIMITS);
+	const [limits, documents] = await Promise.all([
+		api
+			.limits()
+			.then(({ data }) => data)
+			.catch(() => DEFAULT_LIMITS),
+		api
+			.documents({ per_page: 100 })
+			.then(({ data }) => data)
+			.catch(() => []),
+	]);
 
-	return { origin: new URL(request.url).origin, limits };
+	return { origin: new URL(request.url).origin, limits, documents };
 }
 
 export const shouldRevalidate = () => false;
