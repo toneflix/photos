@@ -46,7 +46,7 @@ class AndroidStudio {
     ]
   }
 
-  onPath (names) {
+  onPath(names) {
     const dirs = (this.env.PATH ?? this.env.Path ?? '').split(delimiter).filter(Boolean)
 
     return dirs.flatMap((dir) => names.map((name) => join(dir, name)))
