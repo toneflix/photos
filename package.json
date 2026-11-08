@@ -10,6 +10,7 @@
     "dev:api": "pnpm --filter @photos/api dev",
     "dev:web": "pnpm --filter @photos/web dev",
     "dev:mobile": "pnpm --filter @photos/mobile start",
+    "android:studio": "pnpm --filter @photos/mobile android:studio",
     "ark": "pnpm --filter @photos/api exec ark",
     "build": "pnpm -r --if-present build",
     "typecheck": "pnpm -r --if-present typecheck",

@@ -47,6 +47,7 @@
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
+    "android:studio": "expo prebuild -p android && node scripts/open-android-studio.mjs",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit"
