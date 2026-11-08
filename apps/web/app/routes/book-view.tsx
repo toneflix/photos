@@ -4,7 +4,7 @@ import { data, Form, Link, redirect, useLocation, useNavigation } from "react-ro
 import { cloudflareContext } from "~/lib/cloudflare";
 import { formError, getServerApi, PhotosApiError } from "~/lib/api.server";
 import { BookCodes } from "~/lib/book-codes.server";
-import { PreviewImage } from "~/lib/preview-image";
+import { PreviewImage, type ShareImageHandle } from "~/lib/preview-image";
 import { readToken } from "~/lib/session.server";
 import { Flipbook } from "@toneflix/flipbook-react";
 import { PhotoUploader } from "~/components/PhotoUploader";
@@ -14,14 +14,19 @@ import { FlipbookModel, type BookWithPages } from "@photos/types";
 import { licenseFor } from "~/lib/licenses";
 import type { Route } from "./+types/book-view";
 
+export const handle: ShareImageHandle = { shareImage: true };
+
 export function meta({ loaderData, matches }: Route.MetaArgs) {
 	const book = loaderData?.book;
-	if (!book) return [{ title: "Locked book · Toneflix Photos" }];
+	const preview = PreviewImage.from(matches);
+
+	if (!book) return [{ title: "Locked book · Toneflix Photos" }, { property: "og:image", content: preview.site() }];
+
 	return [
 		{ title: `${book.title} · Toneflix Photos` },
 		{ name: "description", content: book.description ?? `A photo book by ${book.owner.name}.` },
 		{ property: "og:title", content: book.title },
-		...(book.coverPhoto ? [{ property: "og:image", content: PreviewImage.from(matches).book(book.id) }] : []),
+		{ property: "og:image", content: book.coverPhoto ? preview.book(book.id) : preview.site() },
 	];
 }
 

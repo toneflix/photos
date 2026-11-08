@@ -1,0 +1,62 @@
+<svg
+   viewBox="0 0 829.18001 829.17996"
+   version="1.1"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg">
+  <defs
+     id="defs87">
+    <linearGradient
+       id="linearGradient20">
+      <stop
+         style="stop-color:#00afff;stop-opacity:1;"
+         offset="0"
+         id="stop20" />
+      <stop
+         style="stop-color:#00dfff;stop-opacity:0.99607843;"
+         offset="1"
+         id="stop21" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient1032-3-7">
+      <stop
+         style="stop-color:#00afff;stop-opacity:1;"
+         offset="0"
+         id="stop1028" />
+      <stop
+         style="stop-color:#00eaff;stop-opacity:1"
+         offset="1"
+         id="stop1030" />
+    </linearGradient>
+    <linearGradient
+       xlink:href="#linearGradient1032-3-7"
+       id="linearGradient4"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.9751611,0,0,1.9751611,1235.3652,-1633.0164)"
+       x1="217.55739"
+       y1="707.90869"
+       x2="344.77231"
+       y2="223.60364" />
+    <linearGradient
+       xlink:href="#linearGradient20"
+       id="linearGradient21"
+       x1="1576.825"
+       y1="-839.08893"
+       x2="1896.2659"
+       y2="-616.71051"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-0.03689798,39.322041)" />
+  </defs>
+  <g
+     id="g6525-2"
+     transform="matrix(0.86681712,0,0,0.86681712,-1260.5334,1030.7294)"
+     style="display:inline">
+    <path
+       id="leaf-bowl"
+       style="display:inline;opacity:0.99;fill:url(#linearGradient21);fill-opacity:1;stroke:none"
+       d="m 1529.9631,-1151.678 h 470 c 185.0155,0 334.9999,149.9846 334.9999,335.00003 0,185.0154 -149.9844,335.00002 -334.9999,335.00002 -60.7,-2.2 -315.722,16.70339 -379.322,-261.79661 l 379.322,11.79661 c 46.9216,1.45922 85,-38.0558 85,-85 0,-46.9442 -38.0558,-85 -85,-85 -193.3,0 -399.8,-11.5 -470,-250.00005 z" />
+    <path
+       d="m 1916.3461,-1191.3631 c -239.7332,85.8245 -251.27,350.52635 -251.27,587.00253 v 369.57805 c 278.7148,-122.08094 247.9851,-536.06417 250.2248,-652.7054 z"
+       style="display:inline;opacity:0.99;fill:url(#linearGradient4);fill-opacity:1;stroke:none;stroke-width:11.4594;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path6504-2" />
+  </g>
+</svg>
