@@ -1,6 +1,6 @@
 # Toneflix Photos
 
-A digital photo book for viewing and preserving photos for all time.
+Personalised and interactive photo books.
 
 ## Repository layout
 
