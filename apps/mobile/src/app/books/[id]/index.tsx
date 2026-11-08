@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native'
-import { router, useLocalSearchParams } from 'expo-router'
+import { router, useLocalSearchParams, type ErrorBoundaryProps } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { Ionicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
@@ -56,6 +56,21 @@ export default function BookScreen() {
   if (saved === undefined || redeeming) return <View style={styles.center} />
 
   return <LoadBook key={saved ?? 'none'} id={id} code={saved} startPage={Number(page) || undefined} shareError={shareError} />
+}
+
+/** Shows what went wrong in the reader, with a way to try again or leave, instead of closing the app. */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  return (
+    <View style={styles.center}>
+      <View style={styles.problem}>
+        <Callout>{`This book couldn't open: ${error.message}`}</Callout>
+        <View style={styles.row}>
+          <Button title="Go back" variant="secondary" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={styles.flex} />
+          <Button title="Try again" onPress={retry} style={styles.flex} />
+        </View>
+      </View>
+    </View>
+  )
 }
 
 function LoadBook({ id, code, startPage, shareError }: { id: string; code: string | null; startPage?: number; shareError: string | null }) {
@@ -272,6 +287,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: colors.canvas },
   flex: { flex: 1 },
   row: { flexDirection: 'row', gap: 8 },
+  problem: { width: '100%', maxWidth: 420, gap: 16 },
   topLeft: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   round: { padding: 10, borderRadius: radius.full, backgroundColor: 'rgba(255,255,255,0.1)' },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.full, backgroundColor: 'rgba(255,255,255,0.1)' },
