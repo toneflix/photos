@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { router, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useRequest } from 'alova/client'
-import type { Session, TwoFactorStatus } from '@photos/types'
+import type { DocumentSummary, Session, TwoFactorStatus } from '@photos/types'
 import { Avatar } from '@/components/Avatar'
 import { SETTINGS_GROUPS, VISIBILITY } from '@/components/settings/groups'
 import { Button, Text } from '@/components/ui'
@@ -19,8 +19,16 @@ export default function Account() {
   const logout = useRequest(() => api.auth.logout(), { immediate: false })
   const twoFactor = useRequest(() => api.account.twoFactor(), { immediate: false })
   const devices = useRequest(() => api.account.sessions(), { immediate: false })
+  const documents = useRequest(() => api.documents({ per_page: 100 }))
   const twoFactorOn = (twoFactor.data?.data as TwoFactorStatus | undefined)?.enabled
   const deviceCount = (devices.data?.data as Session[] | undefined)?.length
+  const about: { label: string; open: () => void }[] = [
+    ...((documents.data?.data as DocumentSummary[] | undefined) ?? []).map((document) => ({
+      label: document.title,
+      open: () => router.push({ pathname: '/pages/[slug]', params: { slug: document.slug } }),
+    })),
+    { label: 'Photo licences', open: () => router.push('/licenses') },
+  ]
 
   const status: Record<string, Status | undefined> = {
     '/settings/profile': { text: user.name },
@@ -108,6 +116,18 @@ export default function Account() {
           </View>
         </View>
       ))}
+
+      <View style={styles.group}>
+        <Text style={styles.groupLabel}>ABOUT</Text>
+        <View style={styles.list}>
+          {about.map((page, i) => (
+            <Pressable key={page.label} accessibilityRole="link" onPress={page.open} style={({ pressed }) => [styles.row, i > 0 && styles.divided, pressed && styles.pressed]}>
+              <Text style={[styles.label, styles.flex]}>{page.label}</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.ink500} />
+            </Pressable>
+          ))}
+        </View>
+      </View>
 
       <Button title={logout.loading ? 'Signing out…' : 'Sign out'} variant="secondary" size="lg" loading={logout.loading} onPress={signOut} />
     </ScrollView>

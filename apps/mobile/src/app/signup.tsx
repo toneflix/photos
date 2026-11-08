@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { StyleSheet } from 'react-native'
 import { Link } from 'expo-router'
 import { useRequest } from 'alova/client'
 import { AuthFrame } from '@/components/AuthFrame'
 import { Button, Callout, Field, Input, Text } from '@/components/ui'
 import { api } from '@/lib/api'
+import { openDocumentLink } from '@/lib/documents'
 import { FormProblem } from '@/lib/forms'
 import { useLimits } from '@/lib/limits'
 import { session } from '@/lib/session'
@@ -71,8 +73,23 @@ export default function SignUp() {
             loading={register.loading}
             onPress={() => submit().catch(() => undefined)}
           />
+          <Text variant="muted" style={styles.agree}>
+            By creating an account you agree to the{' '}
+            <Text variant="link" onPress={() => openDocumentLink('/terms')}>
+              terms of use
+            </Text>{' '}
+            and{' '}
+            <Text variant="link" onPress={() => openDocumentLink('/privacy')}>
+              privacy policy
+            </Text>
+            .
+          </Text>
         </>
       )}
     </AuthFrame>
   )
 }
+
+const styles = StyleSheet.create({
+  agree: { textAlign: 'center' },
+})

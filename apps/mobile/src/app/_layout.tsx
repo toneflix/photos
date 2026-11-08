@@ -65,6 +65,7 @@ export default function RootLayout() {
             <Stack.Screen name="explore/photos/[id]" />
             <Stack.Screen name="spaces/[slug]" />
             <Stack.Screen name="licenses" />
+            <Stack.Screen name="pages/[slug]" />
             <Stack.Screen name="unlock" />
             <Stack.Screen name="books/[id]/index" />
             <Stack.Screen name="books/[id]/edit" />
