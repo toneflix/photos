@@ -4,7 +4,7 @@ import type { DocumentInput, DocumentType, SiteDocument } from "@photos/types";
 import { AdminHeader } from "~/components/admin/AdminHeader";
 import { Icon } from "~/components/admin/Icon";
 import { MarkdownEditor } from "~/components/admin/MarkdownEditor";
-import { Alert, Button, Select, buttonClass } from "~/components/ui";
+import { Alert, Button, buttonClass } from "~/components/ui";
 import { documentPath } from "~/lib/documents";
 import { formError } from "~/lib/api.server";
 import { requireAdmin } from "~/lib/admin.server";
@@ -201,15 +201,19 @@ function PageEditor({ document }: { document: SiteDocument | null }) {
 							placeholder="One line under the title, also used by search engines"
 						/>
 					</div>
-					<label className="flex flex-col gap-1.5">
-						<span className="px-1 text-xs font-medium text-ink-500">Kind</span>
-						<Select value={form.type} onChange={(event) => change({ type: event.target.value as DocumentType })}>
+					<label className="field flex-col !items-stretch px-3.5 pt-2 pb-2.5">
+						<span className="text-xs font-medium text-ink-500">Kind</span>
+						<select
+							value={form.type}
+							onChange={(event) => change({ type: event.target.value as DocumentType })}
+							className="field-input -ml-1 cursor-pointer text-base text-ink-900"
+						>
 							{TYPES.map((type) => (
 								<option key={type.value} value={type.value}>
 									{type.label}
 								</option>
 							))}
-						</Select>
+						</select>
 					</label>
 					<TextField
 						label="Order"
