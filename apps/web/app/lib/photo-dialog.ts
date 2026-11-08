@@ -1,8 +1,28 @@
 import { createContext, useContext } from "react";
-import { useLocation, type Location, type LinkProps, type ShouldRevalidateFunctionArgs } from "react-router";
+import { useLocation, type Location, type LinkProps, type NavigateOptions, type ShouldRevalidateFunctionArgs, type To } from "react-router";
+import type { PublicPhoto } from "@photos/types";
 
-/** True inside a layout that shows Explore photos in a dialog over the page. */
-export const PhotoDialogHost = createContext(false);
+/** The photos of the list the open photo came from, in the order the list shows them. */
+export class PhotoTrail {
+	private photos: PublicPhoto[] = [];
+
+	/** Remembers the list before one of its photos opens. */
+	follow(photos: PublicPhoto[]) {
+		this.photos = photos;
+	}
+
+	/** The photos just before and after `id` in its list. */
+	beside(id: string): { previous?: PublicPhoto; next?: PublicPhoto } {
+		const index = this.photos.findIndex((photo) => photo.id === id);
+
+		if (index < 0) return {};
+
+		return { previous: this.photos[index - 1], next: this.photos[index + 1] };
+	}
+}
+
+/** Set inside a layout that shows Explore photos in a dialog over the page. */
+export const PhotoDialogHost = createContext<PhotoTrail | null>(null);
 
 /**
  * Explore photos opened from a list: the page stays underneath with `?photo=<id>`,
@@ -39,6 +59,13 @@ export class PhotoDialog {
 		};
 	}
 
+	/** Navigation that swaps the open photo for another from its list, so closing still returns to the page underneath. */
+	static swap(location: Location, id: string): [To, NavigateOptions] {
+		const { to, mask, state } = PhotoDialog.link(location, id, true);
+
+		return [to, { mask, state: { photoDepth: PhotoDialog.depth(location) }, replace: true, preventScrollReset: true }];
+	}
+
 	/** The page underneath, without the open photo. */
 	static underneath(location: Location): string {
 		const search = new URLSearchParams(location.search);
@@ -65,10 +92,13 @@ export class PhotoDialog {
 	}
 }
 
-/** Link props for a photo in a list. */
-export function usePhotoLink() {
+/** Link props for a photo in a list. Opening one in the dialog lets it move through `photos`. */
+export function usePhotoLink(photos: PublicPhoto[]) {
 	const location = useLocation();
-	const hosted = useContext(PhotoDialogHost);
+	const trail = useContext(PhotoDialogHost);
 
-	return (id: string) => PhotoDialog.link(location, id, hosted);
+	return (id: string): Pick<LinkProps, "to" | "mask" | "state" | "preventScrollReset" | "onClick"> => ({
+		...PhotoDialog.link(location, id, !!trail),
+		onClick: () => trail?.follow(photos),
+	});
 }

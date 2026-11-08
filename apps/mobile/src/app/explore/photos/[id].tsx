@@ -13,17 +13,33 @@ import { Button, Callout, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { DownloadSheet } from '@/components/DownloadSheet'
 import { FormProblem } from '@/lib/forms'
+import { explorePhotos, usePhotoNeighbours, type PhotoNeighbours, type SequencePhoto } from '@/lib/photo-sequence'
 import { toast } from '@/lib/toast'
 import { colors, fonts, radius } from '@/theme'
 
 const formatDate = (value: string) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 
-/** A public photo: who shared it, its licence and credit line, the books it's in, and a download when the licence allows. */
+/** A public photo opened from a list, swiping to the photos beside it. */
 export default function ExplorePhoto() {
   const { id } = useLocalSearchParams<{ id: string }>()
+  const { preview, neighbours } = usePhotoNeighbours(explorePhotos, id)
+
+  return <PublicPhotoPage key={id} id={id} preview={preview} neighbours={neighbours} />
+}
+
+/** A public photo: who shared it, its licence and credit line, the books it's in, and a download when the licence allows. */
+function PublicPhotoPage({ id, preview, neighbours }: { id: string; preview?: SequencePhoto; neighbours: PhotoNeighbours }) {
   const insets = useSafeAreaInsets()
   const { data, error, loading } = useRequest(() => api.explore.photo(id))
   const photo: PublicPhotoDetail | undefined = data?.data
+
+  if (!photo && preview && loading) {
+    return (
+      <PhotoScreen photo={preview} leave="back" neighbours={neighbours}>
+        <ActivityIndicator style={styles.loading} color={colors.ink500} />
+      </PhotoScreen>
+    )
+  }
 
   if (!photo) {
     return (
@@ -34,7 +50,7 @@ export default function ExplorePhoto() {
   }
 
   return (
-    <PhotoScreen photo={photo} leave="back">
+    <PhotoScreen photo={photo} leave="back" neighbours={neighbours}>
       <View style={styles.body}>
         <View style={styles.byline}>
           <Owner owner={photo.owner} />
@@ -110,6 +126,7 @@ function LicensePanel({ photo }: { photo: PublicPhotoDetail }) {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  loading: { marginTop: 32 },
   flex: { flex: 1 },
   body: { padding: 20, gap: 14 },
   byline: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },

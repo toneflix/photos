@@ -2,33 +2,42 @@ import { useState } from "react";
 import { Link } from "react-router";
 import type { PublicPhoto, PublicPhotoDetail } from "@photos/types";
 import { DownloadDialog } from "~/components/DownloadDialog";
+import { PhotoArrows } from "~/components/PhotoArrows";
 import { Owner } from "~/components/explore/Owner";
 import { ContentCounts } from "~/components/ContentCounts";
 import { PublicPhotoGrid } from "~/components/explore/PublicPhotoGrid";
 import { buttonClass } from "~/components/ui";
 import { creditLine, guardImage, licenseFor } from "~/lib/licenses";
+import { useSwipe, type SwipeMoves } from "~/lib/swipe";
 import { copyText } from "~/lib/toast";
 
 /**
  * A public photo held still beside its details, or above them on phones, while the details and
- * more photos scroll. `onClose` turns the way back into a close button, for the photo dialog.
+ * more photos scroll. `onClose` turns the way back into a close button, for the photo dialog, and
+ * `moves` lets a swipe across the photo, or its arrow buttons, show the one before or after it.
  */
-export function PhotoView({ photo, more, onClose }: { photo: PublicPhotoDetail; more: PublicPhoto[]; onClose?: () => void }) {
+export function PhotoView({ photo, more, onClose, moves = {} }: { photo: PublicPhotoDetail; more: PublicPhoto[]; onClose?: () => void; moves?: SwipeMoves }) {
 	const license = licenseFor(photo.license);
 	const [downloading, setDownloading] = useState(false);
+	const swipe = useSwipe(moves);
 
 	return (
 		<div className="mx-auto grid max-w-7xl gap-6 px-4 pb-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_25rem] lg:items-start lg:gap-8">
-			<div className="sticky top-[var(--photo-top)] z-10 -mx-4 bg-canvas px-4 py-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:flex lg:h-[var(--photo-height)] lg:items-center lg:justify-center lg:px-0 lg:py-6">
+			<div
+				{...swipe.handlers}
+				className="sticky top-[var(--photo-top)] z-10 -mx-4 overflow-hidden bg-canvas px-4 py-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:flex lg:h-[var(--photo-height)] lg:items-center lg:justify-center lg:px-0 lg:py-6"
+			>
 				<img
 					src={photo.url}
 					alt={photo.caption ?? ""}
 					className="mx-auto max-h-[45dvh] w-auto max-w-full rounded-xl object-contain select-none lg:max-h-full"
 					{...guardImage(license)}
 					style={{
+						...swipe.style,
 						aspectRatio: photo.width && photo.height ? `${photo.width} / ${photo.height}` : undefined,
 					}}
 				/>
+				<PhotoArrows {...moves} />
 			</div>
 
 			<div className="min-w-0 space-y-6 lg:py-6">

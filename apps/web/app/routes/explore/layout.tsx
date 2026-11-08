@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { Outlet } from "react-router";
 import { optionalUser } from "~/lib/session.server";
 import { AppHeader } from "~/components/AppHeader";
 import { ExplorePhotoDialog } from "~/components/explore/ExplorePhotoDialog";
-import { PhotoDialogHost } from "~/lib/photo-dialog";
+import { PhotoDialogHost, PhotoTrail } from "~/lib/photo-dialog";
 import { revalidateOnSubmit } from "~/lib/revalidate";
 import type { Route } from "./+types/layout";
 
@@ -14,10 +15,12 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 export const shouldRevalidate = revalidateOnSubmit;
 
 export default function ExploreLayout({ loaderData }: Route.ComponentProps) {
+	const [trail] = useState(() => new PhotoTrail());
+
 	return (
 		<div className="min-h-dvh bg-canvas">
 			<AppHeader user={loaderData.user} />
-			<PhotoDialogHost value>
+			<PhotoDialogHost value={trail}>
 				<Outlet />
 				<ExplorePhotoDialog />
 			</PhotoDialogHost>

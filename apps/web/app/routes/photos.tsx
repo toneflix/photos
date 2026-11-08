@@ -5,6 +5,7 @@ import { requireSignIn } from "~/lib/session.server";
 import { spaceFiltered } from "~/lib/space-filter.server";
 import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { DownloadDialog } from "~/components/DownloadDialog";
+import { PhotoArrows } from "~/components/PhotoArrows";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
 import { Button, Input, Select, Textarea, buttonClass } from "~/components/ui";
@@ -18,6 +19,7 @@ import {
 	spaceFilter,
 } from "~/components/SearchFilters";
 import { LICENSES, licenseFor } from "~/lib/licenses";
+import { arrowMove, useSwipe, type SwipeMoves } from "~/lib/swipe";
 import type { Route } from "./+types/photos";
 
 export const meta = () => [{ title: "Your photos · Toneflix Photos" }];
@@ -70,10 +72,15 @@ function groupByMonth(photos: Photo[], oldest = false) {
 export default function Photos({ loaderData }: Route.ComponentProps) {
 	const { photos, total, pages, spaces, space, filtered, oldest } = loaderData;
 	const [params] = useSearchParams();
-	const [open, setOpen] = useState<Photo | null>(null);
+	const [openId, setOpenId] = useState<string | null>(null);
 	const [selecting, setSelecting] = useState(false);
 	const [picked, setPicked] = useState<string[]>([]);
 	const groups = useMemo(() => groupByMonth(photos, oldest), [photos, oldest]);
+	const shown = useMemo(() => groups.flatMap((group) => group.photos), [groups]);
+	const openIndex = shown.findIndex((photo) => photo.id === openId);
+	const open = openIndex >= 0 ? shown[openIndex] : undefined;
+	const previous = open ? shown[openIndex - 1] : undefined;
+	const next = open ? shown[openIndex + 1] : undefined;
 
 	const more = new URLSearchParams(params);
 
@@ -168,7 +175,7 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 								<li key={photo.id} className="mb-3 break-inside-avoid">
 									<button
 										type="button"
-										onClick={() => (selecting ? toggle(photo.id) : setOpen(photo))}
+										onClick={() => (selecting ? toggle(photo.id) : setOpenId(photo.id))}
 										className={`group relative block w-full overflow-hidden rounded-lg bg-surface-200 transition ${
 											order >= 0 ? "ring-4 ring-brand-500 ring-offset-2 ring-offset-surface-50" : ""
 										}`}
@@ -219,7 +226,15 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
 			)}
 
 			{selecting && <SelectionBar picked={picked} spaceId={space?.id} onClear={stopSelecting} />}
-			{open && <PhotoDialog photo={open} spaces={spaces} onClose={() => setOpen(null)} />}
+			{open && (
+				<PhotoDialog
+					key={open.id}
+					photo={open}
+					spaces={spaces}
+					moves={{ previous: previous && (() => setOpenId(previous.id)), next: next && (() => setOpenId(next.id)) }}
+					onClose={() => setOpenId(null)}
+				/>
+			)}
 		</main>
 	);
 }
@@ -255,7 +270,8 @@ function SelectionBar({ picked, spaceId, onClear }: { picked: string[]; spaceId?
 	);
 }
 
-function PhotoDialog({ photo: initial, spaces, onClose }: { photo: Photo; spaces: Space[]; onClose: () => void }) {
+/** One of your photos with its settings. Swiping the photo, its arrow buttons or the arrow keys move through the library. */
+function PhotoDialog({ photo: initial, spaces, moves, onClose }: { photo: Photo; spaces: Space[]; moves: SwipeMoves; onClose: () => void }) {
 	const fetcher = useFetcher<typeof action>();
 	const visibility = useFetcher<typeof action>();
 	const mover = useFetcher<typeof action>();
@@ -272,12 +288,18 @@ function PhotoDialog({ photo: initial, spaces, onClose }: { photo: Photo; spaces
 	const deleting = fetcher.state !== "idle" && fetcher.formData?.get("intent") === "delete";
 	const saving = fetcher.state !== "idle" && fetcher.formData?.get("intent") === "caption";
 	const [downloading, setDownloading] = useState(false);
+	const swipe = useSwipe(moves);
 
 	useEffect(() => {
-		const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+		const onKey = (event: KeyboardEvent) => {
+			if (event.key === "Escape") onClose();
+			else arrowMove(event, moves);
+		};
+
 		window.addEventListener("keydown", onKey);
+
 		return () => window.removeEventListener("keydown", onKey);
-	}, [onClose]);
+	}, [onClose, moves]);
 
 	useEffect(() => {
 		if (fetcher.state === "idle" && fetcher.data?.ok && !("photo" in fetcher.data && fetcher.data.photo)) onClose();
@@ -286,8 +308,9 @@ function PhotoDialog({ photo: initial, spaces, onClose }: { photo: Photo; spaces
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/80 p-4 backdrop-blur-sm" onClick={onClose} role="dialog" aria-modal>
 			<div className="flex max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white md:flex-row" onClick={(e) => e.stopPropagation()}>
-				<div className="flex shrink-0 items-center justify-center bg-ink-900 md:min-w-0 md:flex-1">
-					<img src={photo.url} alt={photo.caption ?? ""} className="max-h-[40dvh] w-full object-contain md:max-h-[85dvh]" />
+				<div {...swipe.handlers} className="relative flex shrink-0 items-center justify-center overflow-hidden bg-ink-900 md:min-w-0 md:flex-1">
+					<img src={photo.url} alt={photo.caption ?? ""} style={swipe.style} className="max-h-[40dvh] w-full object-contain select-none md:max-h-[85dvh]" />
+					<PhotoArrows {...moves} />
 				</div>
 				<div className="flex min-h-0 w-full flex-col gap-4 overflow-y-auto overscroll-contain p-6 md:w-80 md:shrink-0">
 					<div className="flex items-start justify-between">

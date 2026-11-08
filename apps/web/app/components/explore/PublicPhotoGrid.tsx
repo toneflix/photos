@@ -4,9 +4,9 @@ import { Owner } from "./Owner";
 import { guardImage, licenseFor } from "~/lib/licenses";
 import { usePhotoLink } from "~/lib/photo-dialog";
 
-/** A masonry wall of public photos. Hovering shows who took each one. Inside Explore a photo opens in the photo dialog. */
+/** A masonry wall of public photos. Hovering shows who took each one. Inside Explore a photo opens in the photo dialog, which swipes through the wall. */
 export function PublicPhotoGrid({ photos, className = "columns-2 sm:columns-3 lg:columns-4" }: { photos: PublicPhoto[]; className?: string }) {
-	const linkTo = usePhotoLink();
+	const linkTo = usePhotoLink(photos);
 
 	return (
 		<ul className={`gap-4 ${className}`}>
