@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Animated, Image, StyleSheet, View } from 'react-native'
+import { Animated, Image, StyleSheet } from 'react-native'
 import { SplashScreen } from 'expo-router'
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg'
 
@@ -12,13 +12,18 @@ const GLOW = [
 ]
 
 /**
- * The launch screen drawn in the app: the native splash's logo and wordmark at the same size
- * and place, over a radial gold glow. It takes over from the native splash once laid out and
- * fades away when `done` turns true.
+ * The launch screen drawn in the app. It takes over from the flat gold native splash with the
+ * logo and wordmark at the same size and place, fades the gold glow in, and fades away when
+ * `done` turns true.
  */
 export function BrandSplash({ done }: { done: boolean }) {
   const opacity = useRef(new Animated.Value(1)).current
+  const glow = useRef(new Animated.Value(0)).current
   const [gone, setGone] = useState(false)
+
+  useEffect(() => {
+    Animated.timing(glow, { toValue: 1, duration: 400, useNativeDriver: true }).start()
+  }, [glow])
 
   useEffect(() => {
     if (!done) return
@@ -34,7 +39,7 @@ export function BrandSplash({ done }: { done: boolean }) {
       style={[styles.screen, { opacity }]}
       onLayout={() => SplashScreen.hideAsync()}
     >
-      <View style={StyleSheet.absoluteFill}>
+      <Animated.View style={[StyleSheet.absoluteFill, { opacity: glow }]}>
         <Svg width="100%" height="100%">
           <Defs>
             <RadialGradient id="glow" cx="50%" cy="50%" r="70.7%">
@@ -45,7 +50,7 @@ export function BrandSplash({ done }: { done: boolean }) {
           </Defs>
           <Rect width="100%" height="100%" fill="url(#glow)" />
         </Svg>
-      </View>
+      </Animated.View>
       <Image source={require('../../assets/splash-icon.png')} style={styles.mark} />
     </Animated.View>
   )
@@ -56,6 +61,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
+    // The native splash's background colour in app.json.
     backgroundColor: '#eebb00',
   },
   // Matches `imageWidth` of the expo-splash-screen plugin in app.json.
