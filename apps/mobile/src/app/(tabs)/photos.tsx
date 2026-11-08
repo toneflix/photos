@@ -5,6 +5,7 @@ import * as ImagePicker from 'expo-image-picker'
 import { usePagination } from 'alova/client'
 import { autoLayout, type Photo } from '@photos/types'
 import { PhotoTile } from '@/components/PhotoTile'
+import { useTabBarInset } from '@/components/GlassTabBar'
 import { SearchFilters } from '@/components/SearchFilters'
 import { UploadProgress } from '@/components/UploadProgress'
 import { Button, Callout, Text } from '@/components/ui'
@@ -49,6 +50,7 @@ export default function Photos() {
   const filters = useFilters(params.space ? { space: params.space } : undefined)
   const spaces = useSpaces()
   const { items: uploading } = useUploads()
+  const inset = useTabBarInset()
   const [selecting, setSelecting] = useState(false)
   const [picked, setPicked] = useState<string[]>([])
   const tile = (width - PADDING * 2 - GAP * (COLUMNS - 1)) / COLUMNS
@@ -170,15 +172,15 @@ export default function Photos() {
         refreshing={false}
         onRefresh={() => list.reload()}
         ListFooterComponent={list.loading ? <ActivityIndicator style={styles.spinner} color={colors.ink500} /> : undefined}
-        contentContainerStyle={[styles.content, selecting && styles.roomForBar]}
+        contentContainerStyle={[styles.content, { paddingBottom: (selecting ? 180 : 32) + inset }]}
       />
-      {selecting && <SelectionBar picked={picked} spaceId={space?.id} onDone={stopSelecting} />}
+      {selecting && <SelectionBar picked={picked} spaceId={space?.id} bottom={12 + inset} onDone={stopSelecting} />}
     </View>
   )
 }
 
 /** Floating bar for turning the picked photos into a new book. */
-function SelectionBar({ picked, spaceId, onDone }: { picked: string[]; spaceId?: string; onDone: () => void }) {
+function SelectionBar({ picked, spaceId, bottom, onDone }: { picked: string[]; spaceId?: string; bottom: number; onDone: () => void }) {
   const [title, setTitle] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<unknown>(null)
@@ -202,7 +204,7 @@ function SelectionBar({ picked, spaceId, onDone }: { picked: string[]; spaceId?:
   }
 
   return (
-    <View style={styles.bar}>
+    <View style={[styles.bar, { bottom }]}>
       <Text style={styles.barText}>
         <Text style={[styles.barText, styles.bold]}>{picked.length}</Text> {picked.length === 1 ? 'photo' : 'photos'} picked
       </Text>
@@ -230,15 +232,14 @@ function SelectionBar({ picked, spaceId, onDone }: { picked: string[]; spaceId?:
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  content: { paddingHorizontal: PADDING, paddingBottom: 32 },
-  roomForBar: { paddingBottom: 180 },
+  content: { paddingHorizontal: PADDING },
   header: { gap: 14, paddingTop: 20, paddingBottom: 8 },
   titleRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
   actions: { flexDirection: 'row', gap: 10 },
   month: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, backgroundColor: 'rgba(244,247,252,0.94)' },
   row: { flexDirection: 'row', gap: GAP, marginBottom: GAP },
   spinner: { marginVertical: 24 },
-  bar: { position: 'absolute', left: 12, right: 12, bottom: 12, gap: 10, padding: 14, borderRadius: radius.lg, backgroundColor: colors.ink900, boxShadow: '0 12px 32px rgba(0,0,0,0.3)' },
+  bar: { position: 'absolute', left: 12, right: 12, gap: 10, padding: 14, borderRadius: radius.lg, backgroundColor: colors.ink900, boxShadow: '0 12px 32px rgba(0,0,0,0.3)' },
   barText: { color: colors.white, fontSize: 14 },
   bold: { fontFamily: fonts.semibold },
   barError: { color: '#fca5a5', fontSize: 13 },

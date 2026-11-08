@@ -6,6 +6,7 @@ import { useRequest } from 'alova/client'
 import type { DocumentSummary, Session, TwoFactorStatus } from '@photos/types'
 import { Avatar } from '@/components/Avatar'
 import { SETTINGS_GROUPS, VISIBILITY } from '@/components/settings/groups'
+import { useTabBarInset } from '@/components/GlassTabBar'
 import { Button, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { session, useUser } from '@/lib/session'
@@ -16,6 +17,7 @@ type Status = { text: string; tone?: 'good' | 'warn' }
 /** Who is signed in, every setting grouped like the web's, and a way out. */
 export default function Account() {
   const user = useUser()
+  const inset = useTabBarInset()
   const logout = useRequest(() => api.auth.logout(), { immediate: false })
   const twoFactor = useRequest(() => api.account.twoFactor(), { immediate: false })
   const devices = useRequest(() => api.account.sessions(), { immediate: false })
@@ -51,7 +53,7 @@ export default function Account() {
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.page}>
+    <ScrollView style={styles.screen} contentContainerStyle={[styles.page, { paddingBottom: 40 + inset }]}>
       <Pressable accessibilityRole="button" onPress={() => router.push('/settings/profile')} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
         <Avatar user={user} size={56} />
         <View style={styles.flex}>
@@ -136,7 +138,7 @@ export default function Account() {
 
 const styles = StyleSheet.create({
   screen: { backgroundColor: colors.canvas },
-  page: { padding: 16, gap: 24, paddingBottom: 40 },
+  page: { padding: 16, gap: 24 },
   flex: { flex: 1, gap: 2 },
   card: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: radius.xl, borderWidth: 1.5, borderColor: colors.surface200, backgroundColor: colors.white },
   pressed: { backgroundColor: colors.surface100 },
