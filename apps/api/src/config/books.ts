@@ -1,5 +1,5 @@
 /**
- * Limits and default branding for photo books. Admins can change these in the dashboard.
+ * Limits and default branding for photobooks. Admins can change these in the dashboard.
  */
 export default () => {
   return {
@@ -17,9 +17,9 @@ export default () => {
      * What books print when their maker's plan doesn't give them their own branding.
      */
     branding: {
-      kicker: String(env('BOOK_KICKER', 'A Toneflix photo book')),
+      kicker: String(env('BOOK_KICKER', 'A Toneflix photobook')),
       imprint: String(env('BOOK_IMPRINT', 'Toneflix Photos')),
-      colophon: String(env('BOOK_COLOPHON', 'Preserved for all time with Toneflix Photos.')),
+      colophon: String(env('BOOK_COLOPHON', 'Made with Toneflix Photos.')),
     },
   }
 }

@@ -63,7 +63,7 @@ export class Feature {
     },
     {
       key: 'max_books',
-      title: 'Photo books',
+      title: 'Photobooks',
       description: 'How many books you can make.',
       type: 'limit',
       fallback: 5,
@@ -129,7 +129,7 @@ export class Feature {
     {
       key: 'custom_kicker',
       title: 'Your own cover line',
-      description: 'Replace "A Toneflix photo book" on the cover with your own words.',
+      description: 'Replace "A Toneflix photobook" on the cover with your own words.',
       type: 'toggle',
       fallback: false,
     },

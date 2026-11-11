@@ -32,7 +32,7 @@ export default function Unlock({ actionData }: Route.ComponentProps) {
 			title="Open a book with a code"
 			subtitle={
 				<>
-					Someone shared a private photo book with you? Enter the code they gave you.{" "}
+					Someone shared a private photobook with you? Enter the code they gave you.{" "}
 					<Link prefetch="intent" to="/explore/books" className="font-medium text-brand-700 hover:underline">
 						Or browse public books
 					</Link>

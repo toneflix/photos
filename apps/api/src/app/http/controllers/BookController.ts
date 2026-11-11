@@ -29,7 +29,7 @@ const BRANDING = {
 const MAX_PAGES = 2000
 
 /**
- * Photo books and their pages.
+ * Photobooks and their pages.
  */
 export default class BookController extends BaseController {
   async index() {

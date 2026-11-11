@@ -41,7 +41,7 @@ export default function SignUp({ loaderData, actionData }: Route.ComponentProps)
 
 	return (
 		<AuthFrame
-			title="Start your first book"
+			title="Join Toneflix Photos"
 			subtitle={
 				<>
 					Already have an account?{" "}

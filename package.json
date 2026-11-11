@@ -1,7 +1,7 @@
 {
   "name": "toneflix-photos",
   "private": true,
-  "description": "Toneflix Photos: personalised and interactive photo books.",
+  "description": "Toneflix Photos: beautiful photos, taken by beautiful people.",
   "packageManager": "pnpm@10.28.0",
   "engines": {
     "node": ">=22"

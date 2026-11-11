@@ -15,7 +15,7 @@ import type { Route } from "./+types/books";
 export const meta = (args: NestedMetaArgs): MetaDescriptor[] =>
 	parentMeta(args) ?? [
 				{ title: "Explore books · Toneflix Photos" },
-				{ name: "description", content: "Photo books people chose to share with everyone. Open one and turn the pages." },
+				{ name: "description", content: "Photobooks people chose to share with everyone. Open one and turn the pages." },
 			];
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {

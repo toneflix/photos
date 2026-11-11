@@ -20,18 +20,18 @@ export default function Welcome() {
       <Logo light />
 
       <View style={styles.copy}>
-        <Text style={styles.headline}>Your photos, bound into books that last for all time.</Text>
+        <Text style={styles.headline}>Beautiful photos, taken by beautiful people.</Text>
         <Text style={styles.lede}>
-          Lay out your favourite moments page by page, then turn through them like a real album.
+          Find work you love and share your own.
         </Text>
         <View style={styles.actions}>
-          <Button title="Create your first book" size="lg" onPress={() => router.push('/signup')} />
+          <Button title="Get started free" size="lg" onPress={() => router.push('/signup')} />
           <Button title="I have an account" size="lg" variant="glass" onPress={() => router.push('/signin')} />
           <Text variant="link" accessibilityRole="button" style={styles.browse} onPress={() => router.push('/discover')}>
             Browse photos on Explore
           </Text>
           <Text variant="link" accessibilityRole="button" style={styles.browse} onPress={() => router.push('/unlock')}>
-            Have a code? Open a book
+            Have a code? Open a photobook
           </Text>
         </View>
       </View>

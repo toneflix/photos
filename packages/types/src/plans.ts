@@ -207,7 +207,7 @@ export function limitLabel(feature: Pick<PlanFeature, 'type' | 'unit' | 'value'>
 const limitPhrases: Partial<Record<FeatureKey, { unlimited: string; limited: (amount: string, one: boolean) => string }>> = {
   max_storage: { unlimited: 'Unlimited photo storage', limited: (amount) => `${amount} of photo storage` },
   max_photo_size: { unlimited: 'Photos of any size', limited: (amount) => `Photos up to ${amount} each` },
-  max_books: { unlimited: 'Unlimited photo books', limited: (amount, one) => (one ? '1 photo book' : `Up to ${amount} photo books`) },
+  max_books: { unlimited: 'Unlimited photobooks', limited: (amount, one) => (one ? '1 photobook' : `Up to ${amount} photobooks`) },
   max_book_pages: { unlimited: 'Books of any length', limited: (amount) => `Up to ${amount} per book` },
   max_spaces: { unlimited: 'Unlimited spaces', limited: (amount, one) => (one ? '1 space' : `Up to ${amount} spaces`) },
   space_members: { unlimited: 'Unlimited members in each space', limited: (amount, one) => (one ? '1 member in each space' : `Up to ${amount} members in each space`) },

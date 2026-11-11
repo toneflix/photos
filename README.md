@@ -1,6 +1,6 @@
 # Toneflix Photos
 
-Personalised and interactive photo books.
+Beautiful photos, taken by beautiful people.
 
 ## Repository layout
 

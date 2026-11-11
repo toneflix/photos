@@ -13,7 +13,7 @@ export default function Unlock() {
       title="Open a book with a code"
       subtitle={
         <>
-          Someone shared a private photo book with you? Enter the code they gave you.{' '}
+          Someone shared a private photobook with you? Enter the code they gave you.{' '}
           <Text variant="link" onPress={() => router.replace(user ? '/explore' : '/discover')}>
             Or browse public books
           </Text>
