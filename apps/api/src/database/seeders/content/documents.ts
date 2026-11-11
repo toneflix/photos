@@ -20,6 +20,10 @@ export const DOCUMENTS: DocumentSeed[] = [
     body: `
 Love photos? Browse beautiful photos, share your own, and turn your favourites into photobooks, on the web and on your phone.
 
+Some photos deserve more than a quick scroll. Here, every photo gets room to be seen, with the name of the person who took it right beside it. Find a sunset someone caught on the way home, a wedding you can turn through page by page, or a whole trip gathered in one space.
+
+Take photos on a phone or a camera, for fun or for work, or just love looking at them. Either way, there's a place for you here.
+
 ## Explore
 
 Explore photos, photobooks and spaces that people chose to share with everyone. Open anything that catches your eye and follow a photo back to the person who took it. No account needed to look around.
