@@ -18,15 +18,36 @@ export const DOCUMENTS: DocumentSeed[] = [
     summary: 'Beautiful photos, taken by beautiful people.',
     sort: 0,
     body: `
-Love photos? Toneflix Photos is for you. Browse beautiful photos, share your own, and turn your favourites into photobooks, on the web and on your phone.
+Love photos? Browse beautiful photos, share your own, and turn your favourites into photobooks, on the web and on your phone.
 
-## What you can do
+## Explore
 
-- **Share your photos.** Pick a licence for each one, keep it to yourself, or put it on Explore for everyone.
-- **Group photos in spaces.** Keep photos and photobooks from an event, a trip or a project in one place, and choose who sees it.
-- **Find new work.** Browse Explore for photos, photobooks and spaces people chose to share.
-- **Make photobooks.** Pick a cover, lay out the pages and turn them like paper. Keep a photobook to yourself, share a link, or lock it with codes that let people view it, add photos, edit it or take it over.
-- **Show your work.** Get a profile page with the photos, photobooks and spaces you share.
+Explore is a timeline of photos, photobooks and spaces that people chose to share with everyone. Scroll through it, open anything that catches your eye, and follow a photo back to the person who took it. You don't need an account to look around.
+
+## Share your photos
+
+Upload your photos and give each one a title, a description and a licence. Photos are "All rights reserved" by default, so people can look but not download. Pick a Creative Commons licence when you're happy for others to download and use your work. Keep a photo to yourself, or put it on Explore for everyone.
+
+## Spaces
+
+A space holds the photos and photobooks from one part of your life: an event, a trip, a project or a year. Spaces are private until you make them public, and you choose who you invite in and what they can do.
+
+## Photobooks
+
+Turn any set of photos into a photobook you read page by page, like a printed album.
+
+- Pick a cover and lay out each page: full-bleed, framed, pairs, grids or a page of words.
+- Print it on ivory, white, kraft or charcoal paper.
+- Turn the pages with a swipe on your phone, or with your mouse or keyboard on a computer. On a phone, turn it sideways to read it like an open album.
+- Keep a photobook to yourself, share a link, or lock it with codes. Each code lets people view it, add photos, edit it or take it over.
+
+## Your profile
+
+Your profile shows the photos, photobooks and spaces you share, under your own username. You can keep your name off what you share if you'd rather not have a public profile.
+
+## Free and Premium
+
+Toneflix Photos is free to use. Premium gives you more room for your photos, larger downloads, your own branding on your photobooks, insights on how often each photobook is opened, and photobooks you can hand over to someone else.
 
 ## Who makes it
 
