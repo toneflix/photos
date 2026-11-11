@@ -166,7 +166,7 @@ export default () => {
       {
         id: 'books',
         title: 'Books',
-        description: 'Limits for photo books.',
+        description: 'Limits for photobooks.',
         icon: 'book',
         fields: [
           {

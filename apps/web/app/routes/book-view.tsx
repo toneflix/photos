@@ -24,7 +24,7 @@ export function meta({ loaderData, matches }: Route.MetaArgs) {
 
 	return [
 		{ title: `${book.title} · Toneflix Photos` },
-		{ name: "description", content: book.description ?? `A photo book by ${book.owner.name}.` },
+		{ name: "description", content: book.description ?? `A photobook by ${book.owner.name}.` },
 		{ property: "og:title", content: book.title },
 		{ property: "og:image", content: book.coverPhoto ? preview.book(book.id) : preview.site() },
 	];

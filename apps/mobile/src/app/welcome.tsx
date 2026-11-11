@@ -31,7 +31,7 @@ export default function Welcome() {
             Browse photos on Explore
           </Text>
           <Text variant="link" accessibilityRole="button" style={styles.browse} onPress={() => router.push('/unlock')}>
-            Have a code? Open a book
+            Have a code? Open a photobook
           </Text>
         </View>
       </View>

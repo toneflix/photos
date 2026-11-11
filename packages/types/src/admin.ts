@@ -14,7 +14,7 @@ export interface AppLimits {
 }
 
 /** Used when the API can't be reached; the API still enforces its own limits. */
-export const DEFAULT_LIMITS: AppLimits = { maxPhotoMb: 25, maxAvatarMb: 10, maxBookPages: 500, registrationOpen: true, bookKicker: 'A Toneflix photo book', bookImprint: 'Toneflix Photos' }
+export const DEFAULT_LIMITS: AppLimits = { maxPhotoMb: 25, maxAvatarMb: 10, maxBookPages: 500, registrationOpen: true, bookKicker: 'A Toneflix photobook', bookImprint: 'Toneflix Photos' }
 
 /** An account as admins see it. */
 export interface AdminUser {

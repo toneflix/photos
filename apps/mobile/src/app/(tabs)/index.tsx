@@ -17,7 +17,7 @@ const COLUMNS = 2
 const GAP = 16
 const PADDING = 16
 
-/** Your shelf of photo books, with search and filters, and a way to start a new one. */
+/** Your shelf of photobooks, with search and filters, and a way to start a new one. */
 export default function Books() {
   const { width } = useWindowDimensions()
   const params = useLocalSearchParams<{ space?: string }>()

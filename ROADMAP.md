@@ -1,6 +1,6 @@
 # Roadmap
 
-Ideas we plan to build later. Each one keeps the rule every Toneflix photo book follows: a page should look and feel like printed paper, never like a solid object stuck onto it.
+Ideas we plan to build later. Each one keeps the rule every Toneflix photobook follows: a page should look and feel like printed paper, never like a solid object stuck onto it.
 
 ## Book pages
 

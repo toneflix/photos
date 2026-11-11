@@ -192,7 +192,7 @@ export interface ContentCounts {
 /** The cloth of a book's cover. */
 export type BookTheme = CoverTheme
 
-/** A photo book: an ordered collection of photos laid out on pages. */
+/** A photobook: an ordered collection of photos laid out on pages. */
 export interface Book {
   id: ID
   userId: ID

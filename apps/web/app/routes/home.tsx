@@ -108,7 +108,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
 const FEATURES = [
 	{ title: "Share your photos", text: "Post your best shots with the licence you pick, for a few people or for everyone on Explore." },
-	{ title: "Group photos in spaces", text: "Keep photos and books from an event, a trip or a project in one place, and choose who sees it." },
-	{ title: "Make photo books", text: "Lay out pages on real-looking paper and turn them like a printed album." },
-	{ title: "Get found", text: "Your profile shows the photos, books and spaces you share, so people can find more of your work." },
+	{ title: "Group photos in spaces", text: "Keep photos and photobooks from an event, a trip or a project in one place, and choose who sees it." },
+	{ title: "Make photobooks", text: "Lay out pages on real-looking paper and turn them like a printed album." },
+	{ title: "Get found", text: "Your profile shows the photos, photobooks and spaces you share, so people can find more of your work." },
 ];

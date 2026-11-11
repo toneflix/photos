@@ -33,7 +33,7 @@ export class FlipbookModel {
       theme: book.theme,
       coverDesign: book.coverDesign,
       coverText: book.coverText ?? undefined,
-      kicker: book.branding?.kicker ?? 'A Toneflix photo book',
+      kicker: book.branding?.kicker ?? 'A Toneflix photobook',
     } satisfies Partial<FlipbookBook>
   }
 

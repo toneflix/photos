@@ -18,15 +18,15 @@ export const DOCUMENTS: DocumentSeed[] = [
     summary: 'Beautiful photos, taken by beautiful people.',
     sort: 0,
     body: `
-Toneflix Photos is for anyone who loves taking photos, on a phone or a camera, for fun or for work. Share yours, find work you love, and turn the best of it into books, on the web and on your phone.
+Toneflix Photos is for anyone who loves taking photos, on a phone or a camera, for fun or for work. Share yours, find work you love, and turn the best of it into photobooks, on the web and on your phone.
 
 ## What you can do
 
 - **Share your photos.** Pick a licence for each one, keep it to yourself, or put it on Explore for everyone.
-- **Group photos in spaces.** Keep photos and books from an event, a trip or a project in one place, and choose who sees it.
-- **Find new work.** Browse Explore for photos, books and spaces people chose to share.
-- **Make photo books.** Pick a cover, lay out the pages and turn them like paper. Keep a book to yourself, share a link, or lock it with codes that let people view it, add photos, edit it or take it over.
-- **Show your work.** Get a profile page with the photos, books and spaces you share.
+- **Group photos in spaces.** Keep photos and photobooks from an event, a trip or a project in one place, and choose who sees it.
+- **Find new work.** Browse Explore for photos, photobooks and spaces people chose to share.
+- **Make photobooks.** Pick a cover, lay out the pages and turn them like paper. Keep a photobook to yourself, share a link, or lock it with codes that let people view it, add photos, edit it or take it over.
+- **Show your work.** Get a profile page with the photos, photobooks and spaces you share.
 
 ## Who makes it
 
