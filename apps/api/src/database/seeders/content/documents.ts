@@ -22,15 +22,15 @@ Love photos? Browse beautiful photos, share your own, and turn your favourites i
 
 ## Explore
 
-Explore is a timeline of photos, photobooks and spaces that people chose to share with everyone. Scroll through it, open anything that catches your eye, and follow a photo back to the person who took it. You don't need an account to look around.
+Explore photos, photobooks and spaces that people chose to share with everyone. Open anything that catches your eye and follow a photo back to the person who took it. No account needed to look around.
 
 ## Share your photos
 
-Upload your photos and give each one a title, a description and a licence. Photos are "All rights reserved" by default, so people can look but not download. Pick a Creative Commons licence when you're happy for others to download and use your work. Keep a photo to yourself, or put it on Explore for everyone.
+Share your photos with a title, a description and a licence. Keep a photo to yourself, or put it out for everyone to find. Your photos are "All rights reserved" by default, so people can look but not download. Choose a Creative Commons licence when you're happy for others to download and use your work.
 
 ## Spaces
 
-A space holds the photos and photobooks from one part of your life: an event, a trip, a project or a year. Spaces are private until you make them public, and you choose who you invite in and what they can do.
+Gather the photos and photobooks from an event, a trip, a project or a year into a space. Keep it private, make it public, and choose who you invite in and what they can do.
 
 ## Photobooks
 
@@ -43,11 +43,11 @@ Turn any set of photos into a photobook you read page by page, like a printed al
 
 ## Your profile
 
-Your profile shows the photos, photobooks and spaces you share, under your own username. You can keep your name off what you share if you'd rather not have a public profile.
+Show the photos, photobooks and spaces you share on a profile under your own username. Or keep your name off what you share if you'd rather not have one.
 
 ## Free and Premium
 
-Toneflix Photos is free to use. Premium gives you more room for your photos, larger downloads, your own branding on your photobooks, insights on how often each photobook is opened, and photobooks you can hand over to someone else.
+Use Toneflix Photos for free. Go Premium for more room for your photos, larger downloads, your own branding on your photobooks, insights on how often each photobook is opened, and photobooks you can hand over to someone else.
 
 ## Who makes it
 
