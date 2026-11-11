@@ -61,9 +61,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 					<h1 className="font-display text-4xl leading-tight font-extrabold tracking-tight text-white sm:text-6xl">
 						Beautiful photos, taken by beautiful people.
 					</h1>
-					<p className="mx-auto mt-5 max-w-xl text-lg text-white/80">
-						Find work you love and share your own.
-					</p>
+					<p className="mx-auto mt-5 max-w-xl text-lg text-white/80">Find work you love and share your own.</p>
 					<div className="mt-9 flex flex-wrap justify-center gap-3">
 						<Link prefetch="intent" to="/signup" className={buttonClass("primary", "px-6 py-3.5 text-base")}>
 							Get started free
