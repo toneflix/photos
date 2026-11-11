@@ -15,19 +15,20 @@ export const DOCUMENTS: DocumentSeed[] = [
     slug: 'about',
     type: 'page',
     title: 'About Toneflix Photos',
-    summary: 'Photo books you turn page by page, made by Toneflix.',
+    summary: 'A place to share photos, work together and make photo books, made by Toneflix.',
     sort: 0,
     body: `
-Toneflix Photos turns your photos into books you read page by page, on the web and on your phone.
+Toneflix Photos is where you share your photos, work on them with others and find new work, on the web and on your phone.
 
-Photographers make books for the people they work with. Families gather the photos from a wedding, a trip or a year. Anyone can share their best shots on Explore for others to find.
+Photographers show their work and hand finished shoots to clients. Teams and families gather the photos from a wedding, a trip or a year in one space. Anyone can put their best shots on Explore for others to find.
 
 ## What you can do
 
-- **Make photo books.** Pick a cover, lay out the pages and turn them like paper.
-- **Share them your way.** Keep a book to yourself, share a link, or lock it with codes that let people view it, add photos, edit it or take it over.
-- **Work together in spaces.** Group your photos and books into spaces and invite people in.
-- **Show your work.** Put photos, books and spaces on Explore, choose a licence for each photo, and get a profile page people can follow back to.
+- **Share your photos.** Pick a licence for each one, keep it to yourself, or put it on Explore for everyone.
+- **Work together in spaces.** Gather photos and books for a client, an event or a team, and invite people in.
+- **Find new work.** Browse Explore for photos, books and spaces people chose to share.
+- **Make photo books.** Pick a cover, lay out the pages and turn them like paper. Keep a book to yourself, share a link, or lock it with codes that let people view it, add photos, edit it or take it over.
+- **Show your work.** Get a profile page with the photos, books and spaces you share.
 
 ## Who makes it
 

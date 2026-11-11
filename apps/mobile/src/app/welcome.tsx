@@ -20,12 +20,12 @@ export default function Welcome() {
       <Logo light />
 
       <View style={styles.copy}>
-        <Text style={styles.headline}>Your photos, bound into books that last for all time.</Text>
+        <Text style={styles.headline}>Show your photos the way you see them.</Text>
         <Text style={styles.lede}>
-          Lay out your favourite moments page by page, then turn through them like a real album.
+          Share your best shots, work together in spaces, find photographers on Explore, and turn any set of photos into a book.
         </Text>
         <View style={styles.actions}>
-          <Button title="Create your first book" size="lg" onPress={() => router.push('/signup')} />
+          <Button title="Get started free" size="lg" onPress={() => router.push('/signup')} />
           <Button title="I have an account" size="lg" variant="glass" onPress={() => router.push('/signin')} />
           <Text variant="link" accessibilityRole="button" style={styles.browse} onPress={() => router.push('/discover')}>
             Browse photos on Explore

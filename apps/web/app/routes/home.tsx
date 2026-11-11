@@ -10,10 +10,10 @@ import type { Route } from "./+types/home";
 
 export function meta(_: Route.MetaArgs) {
 	return [
-		{ title: "Toneflix Photos · Personalised, interactive photo books" },
+		{ title: "Toneflix Photos · Share your photos and make photo books" },
 		{
 			name: "description",
-			content: "Personalised and interactive photo books for the moments you love, to turn through and share.",
+			content: "Share your photos, work together in spaces, find new work on Explore, and make photo books people turn page by page.",
 		},
 	];
 }
@@ -36,7 +36,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 		<div className="min-h-dvh bg-canvas">
 			{loaderData.deleted && (
 				<p className="bg-ink-900 px-6 py-3 text-center text-sm text-white">
-					Your account and everything in it was deleted. Thank you for keeping your memories with us.
+					Your account and everything in it was deleted. Thank you for sharing your photos with us.
 				</p>
 			)}
 
@@ -59,14 +59,14 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 				</header>
 				<div className="mx-auto max-w-3xl px-4 pt-20 pb-28 text-center sm:px-6 sm:pt-28 sm:pb-36">
 					<h1 className="font-display text-4xl leading-tight font-extrabold tracking-tight text-white sm:text-6xl">
-						Your photos, bound into books that last for all time.
+						Show your photos the way you see them.
 					</h1>
 					<p className="mx-auto mt-5 max-w-xl text-lg text-white/80">
-						Lay out your favourite moments page by page, then turn through them like a real album.
+						Share your best shots, work together in spaces, find photographers on Explore, and turn any set of photos into a book.
 					</p>
 					<div className="mt-9 flex flex-wrap justify-center gap-3">
 						<Link prefetch="intent" to="/signup" className={buttonClass("primary", "px-6 py-3.5 text-base")}>
-							Create your first book
+							Get started free
 						</Link>
 						<Link
 							prefetch="intent"
@@ -80,7 +80,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 			</section>
 
 			<main className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-				<div className="grid gap-6 sm:grid-cols-3">
+				<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
 					{FEATURES.map((feature) => (
 						<div key={feature.title} className="panel rounded-xl p-6">
 							<p className="font-display text-lg font-bold text-ink-900">{feature.title}</p>
@@ -107,7 +107,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 }
 
 const FEATURES = [
-	{ title: "Turn real pages", text: "Every book opens and turns like a printed album, on your phone or your desk." },
-	{ title: "Lay out every page", text: "Full-bleed, framed, pairs, grids and pages of words, on ivory, white, kraft or charcoal paper." },
-	{ title: "Share only what you choose", text: "Books are private until you share them, with a link or with everyone." },
+	{ title: "Share your photos", text: "Post your best shots with the licence you pick, for a few people or for everyone on Explore." },
+	{ title: "Work together in spaces", text: "Gather photos and books for a client, an event or a team, and invite people in." },
+	{ title: "Make photo books", text: "Lay out pages on real-looking paper and turn them like a printed album." },
+	{ title: "Get found", text: "Your profile shows the photos, books and spaces you share, so people can find more of your work." },
 ];

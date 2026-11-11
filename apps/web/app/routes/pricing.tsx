@@ -9,7 +9,7 @@ import type { Route } from "./+types/pricing";
 
 export const meta = () => [
 	{ title: "Plans · Toneflix Photos" },
-	{ name: "description", content: "Make photo books for free, or go Premium for more photos, your own branding and books you hand to clients." },
+	{ name: "description", content: "Share photos and make books for free, or go Premium for more photos, your own branding and books you hand to clients." },
 ];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -53,7 +53,7 @@ export default function Pricing({ loaderData, actionData }: Route.ComponentProps
 			<div className="text-center">
 				<h1 className="font-display text-4xl font-bold tracking-tight text-ink-900 sm:text-5xl">Plans</h1>
 				<p className="mx-auto mt-3 max-w-2xl text-lg text-ink-500">
-					Make photo books for free. Premium gives you room for every shoot, your own branding, and books you hand to your clients.
+					Share photos and make books for free. Premium gives you room for every shoot, your own branding, and books you hand to your clients.
 				</p>
 				<div className="mt-8">
 					<CycleSwitch options={options} value={chosen} onChange={setChosen} />

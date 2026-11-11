@@ -19,7 +19,7 @@ export default () => {
     branding: {
       kicker: String(env('BOOK_KICKER', 'A Toneflix photo book')),
       imprint: String(env('BOOK_IMPRINT', 'Toneflix Photos')),
-      colophon: String(env('BOOK_COLOPHON', 'Preserved for all time with Toneflix Photos.')),
+      colophon: String(env('BOOK_COLOPHON', 'Made with Toneflix Photos.')),
     },
   }
 }

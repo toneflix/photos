@@ -13,7 +13,7 @@ export class PlanSeeder extends Seeder {
     await this.plant({
       slug: 'free',
       name: 'Free',
-      description: 'Make photo books and share them.',
+      description: 'Share photos, make books and work together in spaces.',
       price: 0,
       isDefault: true,
       sort: 0,

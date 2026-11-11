@@ -26,7 +26,7 @@ export default function SignUp() {
 
   return (
     <AuthFrame
-      title="Start your first book"
+      title="Join Toneflix Photos"
       subtitle={
         <>
           Already have an account?{' '}

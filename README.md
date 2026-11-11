@@ -1,6 +1,6 @@
 # Toneflix Photos
 
-Personalised and interactive photo books.
+Share your photos, work together in spaces, find new work on Explore, and make photo books you turn page by page.
 
 ## Repository layout
 

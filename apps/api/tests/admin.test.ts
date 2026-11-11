@@ -222,7 +222,7 @@ describe('Admin dashboard', () => {
 
     await api('put', '/admin/settings/branding', { kicker: null, imprint: null, colophon: null })
 
-    expect((await api('get', `/books/${book}`, undefined, 'member')).body.data.branding.colophon).toBe('Preserved for all time with Toneflix Photos.')
+    expect((await api('get', `/books/${book}`, undefined, 'member')).body.data.branding.colophon).toBe('Made with Toneflix Photos.')
   })
 
   it('applies upload limits as soon as they are saved', async () => {
