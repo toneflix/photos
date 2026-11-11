@@ -13,7 +13,7 @@ export function meta(_: Route.MetaArgs) {
 		{ title: "Toneflix Photos · Share your photos and make photo books" },
 		{
 			name: "description",
-			content: "Share your photos, work together in spaces, find new work on Explore, and make photo books people turn page by page.",
+			content: "Share your photos, gather them in spaces, find new work on Explore, and make photo books people turn page by page.",
 		},
 	];
 }
@@ -62,7 +62,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 						Show your photos the way you see them.
 					</h1>
 					<p className="mx-auto mt-5 max-w-xl text-lg text-white/80">
-						Share your best shots, work together in spaces, find photographers on Explore, and turn any set of photos into a book.
+						Share your best shots, gather them in spaces, find photographers on Explore, and turn any set of photos into a book.
 					</p>
 					<div className="mt-9 flex flex-wrap justify-center gap-3">
 						<Link prefetch="intent" to="/signup" className={buttonClass("primary", "px-6 py-3.5 text-base")}>
@@ -108,7 +108,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
 const FEATURES = [
 	{ title: "Share your photos", text: "Post your best shots with the licence you pick, for a few people or for everyone on Explore." },
-	{ title: "Work together in spaces", text: "Gather photos and books for a client, an event or a team, and invite people in." },
+	{ title: "Group photos in spaces", text: "Keep photos and books from a client, an event or a trip in one place, and choose who sees it." },
 	{ title: "Make photo books", text: "Lay out pages on real-looking paper and turn them like a printed album." },
 	{ title: "Get found", text: "Your profile shows the photos, books and spaces you share, so people can find more of your work." },
 ];

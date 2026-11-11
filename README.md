@@ -1,6 +1,6 @@
 # Toneflix Photos
 
-Share your photos, work together in spaces, find new work on Explore, and make photo books you turn page by page.
+Share your photos, gather them in spaces, find new work on Explore, and make photo books you turn page by page.
 
 ## Repository layout
 
