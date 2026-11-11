@@ -41,7 +41,7 @@ export class PlanSeeder extends Seeder {
     await this.plant({
       slug: 'premium',
       name: 'Premium',
-      description: 'For photographers who make books for their clients.',
+      description: 'More room, your own branding, and books you can hand over.',
       price: 5000,
       isDefault: false,
       isHighlighted: true,
