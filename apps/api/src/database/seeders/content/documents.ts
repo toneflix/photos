@@ -18,7 +18,7 @@ export const DOCUMENTS: DocumentSeed[] = [
     summary: 'Beautiful photos, taken by beautiful people.',
     sort: 0,
     body: `
-Toneflix Photos is for anyone who loves taking photos, on a phone or a camera, for fun or for work. Share yours, find work you love, and turn the best of it into photobooks, on the web and on your phone.
+Love photos? Toneflix Photos is for you. Browse beautiful photos, share your own, and turn your favourites into photobooks, on the web and on your phone.
 
 ## What you can do
 
