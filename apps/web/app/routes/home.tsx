@@ -10,10 +10,10 @@ import type { Route } from "./+types/home";
 
 export function meta(_: Route.MetaArgs) {
 	return [
-		{ title: "Toneflix Photos · Beautiful photos, shared by the people who took them" },
+		{ title: "Toneflix Photos · Beautiful photos, taken by beautiful people" },
 		{
 			name: "description",
-			content: "Beautiful photos, shared by the people who took them. Find work you love and share your own.",
+			content: "Beautiful photos, taken by beautiful people. Find work you love and share your own.",
 		},
 	];
 }
@@ -59,7 +59,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 				</header>
 				<div className="mx-auto max-w-3xl px-4 pt-20 pb-28 text-center sm:px-6 sm:pt-28 sm:pb-36">
 					<h1 className="font-display text-4xl leading-tight font-extrabold tracking-tight text-white sm:text-6xl">
-						Beautiful photos, shared by the people who took them.
+						Beautiful photos, taken by beautiful people.
 					</h1>
 					<p className="mx-auto mt-5 max-w-xl text-lg text-white/80">
 						Find work you love and share your own.

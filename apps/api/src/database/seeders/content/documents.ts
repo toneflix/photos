@@ -15,10 +15,10 @@ export const DOCUMENTS: DocumentSeed[] = [
     slug: 'about',
     type: 'page',
     title: 'About Toneflix Photos',
-    summary: 'Beautiful photos, shared by the people who took them.',
+    summary: 'Beautiful photos, taken by beautiful people.',
     sort: 0,
     body: `
-Toneflix Photos is beautiful photos, shared by the people who took them, on the web and on your phone.
+Toneflix Photos is beautiful photos, taken by beautiful people, on the web and on your phone.
 
 Photographers show their work and hand finished shoots to clients. Families gather the photos from a wedding, a trip or a year in one space. Anyone can put their best shots on Explore for others to find.
 

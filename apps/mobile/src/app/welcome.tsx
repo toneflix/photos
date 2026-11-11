@@ -20,7 +20,7 @@ export default function Welcome() {
       <Logo light />
 
       <View style={styles.copy}>
-        <Text style={styles.headline}>Beautiful photos, shared by the people who took them.</Text>
+        <Text style={styles.headline}>Beautiful photos, taken by beautiful people.</Text>
         <Text style={styles.lede}>
           Find work you love and share your own.
         </Text>

@@ -1,6 +1,6 @@
 # Toneflix Photos
 
-Beautiful photos, shared by the people who took them.
+Beautiful photos, taken by beautiful people.
 
 ## Repository layout
 
