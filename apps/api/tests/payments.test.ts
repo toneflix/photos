@@ -41,8 +41,8 @@ const flutterwave = vi.spyOn(globalThis, 'fetch').mockImplementation(async (inpu
     return answer ? json({ status: 'success', data: { tx_ref: reference, ...answer } }) : json({ status: 'error', message: 'No transaction was found' }, 404)
   }
 
-  if (url === 'https://v6.exchangerate-api.com/v6/test-key/pair/NGN/KES/1') return json({ result: 'success', conversion_rate: 0.08, conversion_result: 0.08 })
-  if (url.startsWith('https://v6.exchangerate-api.com/v6/test-key/pair/NGN/USD')) return json({ result: 'error', 'error-type': 'quota-reached' }, 429)
+  if (url === 'https://api.frankfurter.dev/v2/rate/NGN/KES') return json({ date: '2026-11-11', base: 'NGN', quote: 'KES', rate: 0.08 })
+  if (url === 'https://api.frankfurter.dev/v2/rate/NGN/USD') return json({ message: 'not found' }, 404)
 
   return realFetch(input, init)
 })

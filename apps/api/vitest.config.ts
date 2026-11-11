@@ -20,8 +20,7 @@ export default defineConfig({
       FLUTTERWAVE_SECRET_KEY: 'FLWSECK_TEST-secret',
       FLUTTERWAVE_WEBHOOK_HASH: 'test-webhook-hash',
       FLUTTERWAVE_API_URL: 'https://flutterwave.test/v3',
-      EXCHANGE_RATES_PROVIDER: 'exchangerate-api',
-      EXCHANGERATE_API_KEY: 'test-key',
+      EXCHANGE_RATES_PROVIDER: 'frankfurter',
     },
   },
 })
