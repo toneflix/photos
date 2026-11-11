@@ -20,9 +20,9 @@ export default function Welcome() {
       <Logo light />
 
       <View style={styles.copy}>
-        <Text style={styles.headline}>Show your photos the way you see them.</Text>
+        <Text style={styles.headline}>Beautiful photos, shared by the people who took them.</Text>
         <Text style={styles.lede}>
-          Share your best shots, gather them in spaces, find photographers on Explore, and turn any set of photos into a book.
+          Find work you love and share your own.
         </Text>
         <View style={styles.actions}>
           <Button title="Get started free" size="lg" onPress={() => router.push('/signup')} />

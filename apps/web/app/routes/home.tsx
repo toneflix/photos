@@ -10,10 +10,10 @@ import type { Route } from "./+types/home";
 
 export function meta(_: Route.MetaArgs) {
 	return [
-		{ title: "Toneflix Photos · Share your photos and make photo books" },
+		{ title: "Toneflix Photos · Beautiful photos, shared by the people who took them" },
 		{
 			name: "description",
-			content: "Share your photos, gather them in spaces, find new work on Explore, and make photo books people turn page by page.",
+			content: "Beautiful photos, shared by the people who took them. Find work you love and share your own.",
 		},
 	];
 }
@@ -59,10 +59,10 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 				</header>
 				<div className="mx-auto max-w-3xl px-4 pt-20 pb-28 text-center sm:px-6 sm:pt-28 sm:pb-36">
 					<h1 className="font-display text-4xl leading-tight font-extrabold tracking-tight text-white sm:text-6xl">
-						Show your photos the way you see them.
+						Beautiful photos, shared by the people who took them.
 					</h1>
 					<p className="mx-auto mt-5 max-w-xl text-lg text-white/80">
-						Share your best shots, gather them in spaces, find photographers on Explore, and turn any set of photos into a book.
+						Find work you love and share your own.
 					</p>
 					<div className="mt-9 flex flex-wrap justify-center gap-3">
 						<Link prefetch="intent" to="/signup" className={buttonClass("primary", "px-6 py-3.5 text-base")}>
