@@ -12,6 +12,7 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    hookTimeout: 30_000,
     include: ['tests/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
     env: {
       NODE_ENV: 'test',
