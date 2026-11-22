@@ -1,0 +1,16 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.toneflix.photos.app",
+      "sha256_cert_fingerprints": [
+        "B6:63:8F:35:9F:E3:4A:04:05:69:EB:96:23:5A:03:2F:60:DF:E4:8E:98:6A:94:FE:1A:7A:B5:C2:3E:9E:EC:E9",
+        "DD:F6:10:89:9E:51:9E:2A:43:2F:44:D2:24:DB:D9:0C:89:8A:42:9E:D9:C2:F4:55:DF:28:23:CB:16:F9:35:BD",
+        "5A:C4:9C:30:99:12:16:41:CA:BF:5C:05:90:7A:B2:F7:23:CA:64:72:51:6A:43:26:83:F4:54:EA:44:75:78:0B"
+      ]
+    }
+  }
+]
