@@ -57,15 +57,23 @@ runs:
         java-version: 17
 
     - if: inputs.builder == 'runner'
+      id: abis
+      name: Cache key for the CPU architectures
+      shell: bash
+      env:
+        ANDROID_ARCHITECTURES: ${{ inputs.android-architectures }}
+      run: echo "key=$(echo "$ANDROID_ARCHITECTURES" | tr -s ', ' '-')" >> "$GITHUB_OUTPUT"
+
+    - if: inputs.builder == 'runner'
       uses: actions/cache@v5
       with:
         path: |
           ~/.gradle/caches
           ~/.gradle/wrapper
           ~/.cache/ccache
-        key: android-build-${{ runner.os }}-${{ inputs.android-architectures }}-${{ hashFiles('pnpm-lock.yaml', 'apps/mobile/app.json') }}
+        key: android-build-${{ runner.os }}-${{ steps.abis.outputs.key }}-${{ hashFiles('pnpm-lock.yaml', 'apps/mobile/app.json') }}
         restore-keys: |
-          android-build-${{ runner.os }}-${{ inputs.android-architectures }}-
+          android-build-${{ runner.os }}-${{ steps.abis.outputs.key }}-
           android-build-${{ runner.os }}-
 
     - if: inputs.builder == 'runner'
