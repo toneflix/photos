@@ -83,4 +83,24 @@ describe('Book downloads', () => {
   it('keeps private books hidden without a code', async () => {
     expect((await files(bookId, 'client')).status).toBe(404)
   })
+
+  it('tells each visitor whether the download button gives them a zip', async () => {
+    const canDownload = async (id: string, as?: keyof typeof tokens, code?: string) => (await api('get', `/books/${id}`, undefined, as, code)).body.data.canDownload
+
+    expect(await canDownload(bookId, 'photographer')).toBe(true)
+    expect(await canDownload(bookId, 'client', codes.view)).toBe(true)
+    expect(await canDownload(closedBookId)).toBe(false)
+  })
+
+  it('lets only the owner and transfer holders download once the owner turns downloads off', async () => {
+    expect((await api('put', `/books/${bookId}`, { allowDownloads: false }, 'client', codes.transfer)).status).toBe(403)
+    expect((await api('put', `/books/${bookId}`, { allowDownloads: false }, 'photographer')).body.data.allowDownloads).toBe(false)
+
+    expect((await files(bookId, 'photographer')).status).toBe(200)
+    expect((await files(bookId, undefined, codes.transfer)).status).toBe(200)
+    expect((await files(bookId, 'client', codes.view)).status).toBe(403)
+    expect((await api('get', `/books/${bookId}`, undefined, 'client', codes.view)).body.data.canDownload).toBe(false)
+
+    await api('put', `/books/${bookId}`, { allowDownloads: true }, 'photographer')
+  })
 })

@@ -230,7 +230,7 @@ export function createEndpoints(alova: PhotosAlova) {
         alova.Post<ApiResponse<Book>>('/books', data),
       update: (
         id: ID,
-        data: Partial<Pick<Book, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'spaceId' | 'theme' | 'coverDesign' | 'coverText' | 'paper' | 'frame'> & BookBrandingInput>,
+        data: Partial<Pick<Book, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'spaceId' | 'theme' | 'coverDesign' | 'coverText' | 'paper' | 'frame' | 'allowDownloads'> & BookBrandingInput>,
         code?: string | null,
       ) => alova.Put<ApiResponse<BookWithPages>>(`/books/${id}`, data, withCode(code)),
       /** Replace every page of the book, in order. */

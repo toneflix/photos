@@ -54,6 +54,8 @@ export class Book extends Model {
   declare brand: string | null
   /** The owner's own name on the back cover, in place of Toneflix Photos. */
   declare imprint: string | null
+  /** Whether visitors may download the book as a zip. */
+  declare allowDownloads: boolean
   declare publishedAt: Date | null
   declare viewCount: number
   declare downloadCount: number
@@ -77,6 +79,7 @@ export class Book extends Model {
     coverDesign: 'cover_design',
     coverText: 'cover_text',
     coverPosition: 'cover_position',
+    allowDownloads: 'allow_downloads',
     publishedAt: 'published_at',
     viewCount: 'view_count',
     downloadCount: 'download_count',
