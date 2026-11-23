@@ -35,6 +35,8 @@ export class Limits {
     imprint: 'Your own back cover is not included in your plan.',
   }
 
+  private static readonly EVERY_BRANDING_FIELD: Record<BrandingField, boolean> = { kicker: true, brand: true, imprint: true }
+
   private constructor(
     readonly user: User | null,
     readonly plan: Plan,
@@ -168,14 +170,15 @@ export class Limits {
     abortIf(original, `Full-size downloads are not included in your plan. Pick a size up to ${largest}px.`, 403)
   }
 
-  /** The cover line, brand and back cover a book prints. Saved text shows only while the plan of the book's maker includes it. */
+  /** The cover line, brand and back cover a book prints. Saved text stays after the maker's plan ends, unless admins turn that off. */
   async branding(book: Book): Promise<BookBranding> {
     const defaults = await Limits.defaultBranding()
-    const customImprint = (await this.allows('custom_imprint')) && !!book.imprint
+    const allowed = (await Settings.get<boolean>('books.branding.outlasts_plan')) ? Limits.EVERY_BRANDING_FIELD : await this.brandingAllowed()
+    const customImprint = allowed.imprint && !!book.imprint
 
     return {
-      kicker: ((await this.allows('custom_kicker')) && book.kicker) || defaults.kicker,
-      brand: ((await this.allows('brand_imprint')) || (await this.allows('custom_imprint'))) && book.brand ? book.brand : null,
+      kicker: (allowed.kicker && book.kicker) || defaults.kicker,
+      brand: allowed.brand && book.brand ? book.brand : null,
       imprint: customImprint ? book.imprint! : defaults.imprint,
       colophon: customImprint ? null : defaults.colophon,
     }

@@ -58,7 +58,7 @@ export function BookSettings({
   const natural = useNaturalSize(coverPhoto && { src: coverPhoto.url, width: coverPhoto.width, height: coverPhoto.height })
   const gestures = usePhotoGestures(coverPosition, COVER_SIZE, natural, coverPhoto ? setCoverPosition : undefined, setPositioning)
   const { bookKicker } = useLimits()
-  const kicker = (book.brandingAllowed?.kicker && branding.kicker?.trim()) || bookKicker
+  const kicker = book.brandingAllowed?.kicker ? branding.kicker?.trim() || bookKicker : book.branding.kicker
   const cover = {
     title: title || 'Untitled',
     description,

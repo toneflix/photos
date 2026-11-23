@@ -20,6 +20,11 @@ export default () => {
       kicker: String(env('BOOK_KICKER', 'A Toneflix photobook')),
       imprint: String(env('BOOK_IMPRINT', 'Toneflix Photos')),
       colophon: String(env('BOOK_COLOPHON', 'Made with Toneflix Photos.')),
+
+      /**
+       * Whether branding a maker saved under a plan that included it stays on the book after that plan ends.
+       */
+      outlasts_plan: Boolean(env('BOOK_BRANDING_OUTLASTS_PLAN', true)),
     },
   }
 }

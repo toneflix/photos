@@ -184,9 +184,17 @@ export default () => {
       {
         id: 'branding',
         title: 'Book branding',
-        description: 'What books print when their plan has no branding of its own.',
+        description: 'What books print when their maker has no branding of their own.',
         icon: 'tag',
         fields: [
+          {
+            name: 'outlasts_plan',
+            key: 'books.branding.outlasts_plan',
+            env: 'BOOK_BRANDING_OUTLASTS_PLAN',
+            type: 'boolean',
+            label: 'Keep branding after a plan ends',
+            help: 'Books keep the branding their maker added while their plan included it. When off, they print the lines below until the plan includes it again.',
+          },
           {
             name: 'kicker',
             key: 'books.branding.kicker',
