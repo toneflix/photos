@@ -13,7 +13,7 @@ import { colors, fonts, radius } from '@/theme'
  * download; without it the whole chip opens the list. Shown when there is anything to list.
  */
 export function DownloadChip({ book, onZip, onOptions }: { book: BookWithPages; onZip: () => void; onOptions: () => void }) {
-  const options = book.canDownloadPages || book.isOwner
+  const options = book.pageDownloads.pdf || book.pageDownloads.images || book.isOwner
 
   if (!book.canDownload && !options) return null
   if (!options) return <Part title="Download" onPress={onZip} />
@@ -42,18 +42,25 @@ function Part({ title, onPress, style }: { title: string; onPress: () => void; s
   )
 }
 
-/** Every download the visitor has for a book: the photos as a zip and, for owners, the pages to print. */
+type Kind = 'zip' | 'pdf' | 'images'
+
+const PAGE_FORMATS = [
+  { format: 'pdf', title: 'Pages as a PDF', detail: 'Every page as designed, ready to print', button: 'PDF' },
+  { format: 'images', title: 'Pages as images', detail: 'Each page as a PNG in a zip', button: 'Zip' },
+] as const
+
+/** Every download the visitor has for a book: the photos as a zip and, for owners, the pages as a PDF or images. */
 export function DownloadOptions({ book, code, onClose }: { book: BookWithPages; code: string | null; onClose: () => void }) {
-  const [busy, setBusy] = useState<'zip' | 'pages' | null>(null)
+  const [busy, setBusy] = useState<Kind | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
 
-  const run = async (kind: 'zip' | 'pages') => {
+  const run = async (kind: Kind) => {
     setBusy(kind)
     setProblem(null)
 
     try {
       if (kind === 'zip') await ApiDownload.book(book.id, code).share(`Save “${book.title}”`)
-      else await ApiDownload.bookPages(book.id).share(`Save the pages of “${book.title}”`, ApiDownload.PDF)
+      else await ApiDownload.bookPages(book.id, kind).share(`Save the pages of “${book.title}”`, kind === 'pdf' ? ApiDownload.PDF : ApiDownload.ZIP)
       onClose()
     } catch (error) {
       setProblem(error instanceof Error ? error.message : "We couldn't download it.")
@@ -70,16 +77,18 @@ export function DownloadOptions({ book, code, onClose }: { book: BookWithPages; 
           <Button title="Zip" variant="secondary" loading={busy === 'zip'} disabled={!!busy} onPress={() => run('zip')} />
         </Option>
       )}
-      {book.canDownloadPages ? (
-        <Option title="Pages to print" detail="Every page as designed, as a PDF">
-          <Button title="PDF" variant="secondary" loading={busy === 'pages'} disabled={!!busy} onPress={() => run('pages')} />
-        </Option>
-      ) : (
-        book.isOwner && (
-          <Option title="Pages to print" detail="Every page as designed, as a PDF, with Premium">
-            <Button title="See Premium" onPress={() => Linking.openURL(webUrl('/pricing')).catch(() => undefined)} />
+      {PAGE_FORMATS.map(({ format, title, detail, button }) =>
+        book.pageDownloads[format] ? (
+          <Option key={format} title={title} detail={detail}>
+            <Button title={button} variant="secondary" loading={busy === format} disabled={!!busy} onPress={() => run(format)} />
           </Option>
-        )
+        ) : (
+          book.isOwner && (
+            <Option key={format} title={title} detail={`${detail}, with Premium`}>
+              <Button title="See Premium" onPress={() => Linking.openURL(webUrl('/pricing')).catch(() => undefined)} />
+            </Option>
+          )
+        ),
       )}
     </Sheet>
   )

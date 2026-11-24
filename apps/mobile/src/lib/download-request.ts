@@ -26,9 +26,9 @@ export class DownloadRequest {
     return new this(`/books/${encodeURIComponent(id)}/download`, { ...DownloadRequest.auth(), ...(code ? { 'X-Access-Code': code } : {}) })
   }
 
-  /** A book's designed pages as a print-ready PDF, for its owner. */
-  static bookPages<T extends DownloadRequest>(this: RequestClass<T>, id: string): T {
-    return new this(`/books/${encodeURIComponent(id)}/pages/download`, DownloadRequest.auth())
+  /** A book's designed pages for its owner: one print-ready PDF, or a zip of page images. */
+  static bookPages<T extends DownloadRequest>(this: RequestClass<T>, id: string, format: 'pdf' | 'images'): T {
+    return new this(`/books/${encodeURIComponent(id)}/pages/download?format=${format}`, DownloadRequest.auth())
   }
 
   private static auth(): Record<string, string> {
