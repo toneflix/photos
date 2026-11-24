@@ -1,3 +1,4 @@
+import { PAGE_SHAPES, type PageShape } from '@toneflix/flipbook-core'
 import type { ID, Permission, UserRole } from './models'
 import type { PageQuery } from './api'
 
@@ -11,10 +12,12 @@ export interface AppLimits {
   bookKicker: string
   /** The back cover name books print when their maker has none of their own. */
   bookImprint: string
+  /** The page shapes new books may take on the account's plan. */
+  pageShapes: PageShape[]
 }
 
 /** Used when the API can't be reached; the API still enforces its own limits. */
-export const DEFAULT_LIMITS: AppLimits = { maxPhotoMb: 25, maxAvatarMb: 10, maxBookPages: 500, registrationOpen: true, bookKicker: 'A Toneflix photobook', bookImprint: 'Toneflix Photos' }
+export const DEFAULT_LIMITS: AppLimits = { maxPhotoMb: 25, maxAvatarMb: 10, maxBookPages: 500, registrationOpen: true, bookKicker: 'A Toneflix photobook', bookImprint: 'Toneflix Photos', pageShapes: Object.keys(PAGE_SHAPES) as PageShape[] }
 
 /** An account as admins see it. */
 export interface AdminUser {

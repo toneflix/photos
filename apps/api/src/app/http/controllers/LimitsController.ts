@@ -16,6 +16,7 @@ export default class LimitsController extends BaseController {
       registrationOpen: Boolean(await Settings.get('accounts.registration_open')),
       bookKicker: branding.kicker,
       bookImprint: branding.imprint,
+      pageShapes: await limits.designs('shape'),
     }).additional({ status: 'success', message: 'OK', code: 200 })
   }
 }

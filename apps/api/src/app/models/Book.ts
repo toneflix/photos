@@ -1,4 +1,4 @@
-import { COVER_DESIGNS, COVER_THEMES, FRAME_STYLES, PAGE_LAYOUTS, PAPER_COLORS, PhotoCrop } from '@toneflix/flipbook-core'
+import { COVER_DESIGNS, COVER_THEMES, FRAME_STYLES, PAGE_LAYOUTS, PAGE_SHAPES, PAPER_COLORS, PhotoCrop } from '@toneflix/flipbook-core'
 import { BookAccessCode } from './BookAccessCode'
 import { BookPage } from './BookPage'
 import { Model } from '@arkstack/database'
@@ -49,6 +49,8 @@ export class Book extends Model {
   declare coverPosition: PhotoPosition | null
   declare paper: string
   declare frame: string
+  /** The shape of every page and both covers: portrait, landscape, wide or square. */
+  declare pageShape: string
   /** The owner's own line above the cover title, in place of the Toneflix one. */
   declare kicker: string | null
   /** The owner's brand, printed on the back cover above the imprint. */
@@ -69,6 +71,7 @@ export class Book extends Model {
   static readonly PAPERS = Object.keys(PAPER_COLORS)
   static readonly FRAMES = Object.keys(FRAME_STYLES)
   static readonly LAYOUTS = Object.keys(PAGE_LAYOUTS)
+  static readonly SHAPES = Object.keys(PAGE_SHAPES)
 
   protected static override table = 'books'
 
@@ -80,6 +83,7 @@ export class Book extends Model {
     coverDesign: 'cover_design',
     coverText: 'cover_text',
     coverPosition: 'cover_position',
+    pageShape: 'page_shape',
     allowDownloads: 'allow_downloads',
     publishedAt: 'published_at',
     viewCount: 'view_count',

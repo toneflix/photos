@@ -228,11 +228,11 @@ export function createEndpoints(alova: PhotosAlova) {
       list: (params: BookQuery = {}) => alova.Get<PaginatedResponse<Book>>('/books', { params }),
       /** A book with every page. Works signed out for shared and public books, and for private ones with an access `code`. */
       get: (id: ID, code?: string | null) => alova.Get<ApiResponse<BookWithPages>>(`/books/${id}`, withCode(code)),
-      create: (data: Pick<Book, 'title'> & Partial<Pick<Book, 'description' | 'visibility' | 'theme' | 'coverDesign' | 'coverText' | 'paper' | 'frame' | 'spaceId'>>) =>
+      create: (data: Pick<Book, 'title'> & Partial<Pick<Book, 'description' | 'visibility' | 'theme' | 'coverDesign' | 'coverText' | 'paper' | 'frame' | 'pageShape' | 'spaceId'>>) =>
         alova.Post<ApiResponse<Book>>('/books', data),
       update: (
         id: ID,
-        data: Partial<Pick<Book, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'spaceId' | 'theme' | 'coverDesign' | 'coverText' | 'paper' | 'frame' | 'allowDownloads'> & BookBrandingInput>,
+        data: Partial<Pick<Book, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'spaceId' | 'theme' | 'coverDesign' | 'coverText' | 'paper' | 'frame' | 'pageShape' | 'allowDownloads'> & BookBrandingInput>,
         code?: string | null,
       ) => alova.Put<ApiResponse<BookWithPages>>(`/books/${id}`, data, withCode(code)),
       /** Replace every page of the book, in order. */

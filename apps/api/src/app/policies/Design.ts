@@ -1,9 +1,9 @@
-import { FRAME_STYLES, PAGE_LAYOUTS } from '@toneflix/flipbook-core'
+import { FRAME_STYLES, PAGE_LAYOUTS, PAGE_SHAPES } from '@toneflix/flipbook-core'
 import { Cache } from '@arkstack/cache'
 import { DesignRestriction } from '@app/models/DesignRestriction'
 import type { Plan } from '@app/models/Plan'
 
-export type DesignKind = 'layout' | 'frame'
+export type DesignKind = 'layout' | 'frame' | 'shape'
 
 export interface DesignKindDefinition {
   kind: DesignKind
@@ -30,6 +30,12 @@ export class Design {
       title: 'Frames',
       message: 'This frame is not included in your plan.',
       designs: FRAME_STYLES,
+    },
+    {
+      kind: 'shape',
+      title: 'Page shapes',
+      message: 'This page shape is not included in your plan.',
+      designs: PAGE_SHAPES,
     },
   ]
 

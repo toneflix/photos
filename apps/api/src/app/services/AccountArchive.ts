@@ -81,6 +81,7 @@ export class AccountArchive extends ZipArchive {
         coverText: book.coverText,
         paper: book.paper,
         frame: book.frame,
+        pageShape: book.pageShape,
         cover: book.coverPhotoId ? (files.get(book.coverPhotoId) ?? null) : null,
         coverPosition: book.coverPosition ?? null,
         createdAt: book.createdAt,
