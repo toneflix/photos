@@ -35,7 +35,7 @@ The Worker's other settings (compatibility date and flags, observability, source
 - **Automatic**: push to the production branch. The build log is under the Worker's Deployments tab, and GitHub shows a check run on the commit.
 - **Again without a push**: Deployments → the latest build → Retry build.
 - **Roll back**: Deployments → pick an earlier version → Rollback, or `pnpm exec wrangler rollback` from `apps/web`.
-- **From your machine**: `pnpm --filter @photos/web build && cd apps/web && pnpm exec wrangler deploy --var API_URL:https://api.photos.toneflix.net/api` (after `wrangler login`).
+- **From your machine**: `pnpm deploy:web` from the repository root (after `pnpm exec wrangler login` in `apps/web`). It builds the app and deploys it with `API_URL` from your environment, or `https://api.photos.toneflix.net/api` when it isn't set.
 
 ## Checking a deploy
 

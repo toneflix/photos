@@ -13,6 +13,7 @@
     "android:studio": "pnpm --filter @photos/mobile android:studio",
     "ark": "pnpm --filter @photos/api exec ark",
     "build": "pnpm -r --if-present build",
+    "deploy:web": "pnpm --filter @photos/web run deploy",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
     "lint": "pnpm -r --if-present lint"
