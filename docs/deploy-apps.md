@@ -36,6 +36,7 @@ Builds use the profiles in `apps/mobile/eas.json`:
 
 | Profile | Output | Used for |
 | --- | --- | --- |
+| `development` | APK with the development client | Local development (`pnpm dev:mobile`). |
 | `preview` | APK, internal distribution | The `android-apk` job: install directly on phones. |
 | `production` | App Bundle, version from `app.json` | The Android release workflow. |
 | `production-apk` | APK, version from `app.json` | The Android release workflow, attached to the GitHub release. |
@@ -103,7 +104,7 @@ CI (`.github/workflows/ci.yml`) runs the same checks on every pull request.
 
 ### Android app
 
-- **Locally**: `pnpm dev:mobile`, then open the app in Expo Go or an emulator. Set `EXPO_PUBLIC_API_URL` in `apps/mobile/.env` to an address the phone can reach.
+- **Locally**: the app uses a development build (`expo-dev-client`) rather than Expo Go. Install one with `pnpm --filter @photos/mobile exec expo run:android`, or build it on EAS with `eas build --profile development --platform android`, then run `pnpm dev:mobile`. Press `s` in the dev server to switch to Expo Go for a quick look. Set `EXPO_PUBLIC_API_URL` in `apps/mobile/.env` to an address the phone can reach.
 - **The APK from a workflow run**: for a cloud build, open the link in the run summary and scan the install QR code on expo.dev. For a runner build (or with `wait_for_eas`), download the `toneflix-photos-<sha>-apk` artifact (a zip), unzip it and install with `adb install app.apk`, or copy it to the phone and open it (allow installs from unknown sources).
 - **What to check**: sign up and sign in, upload from the camera roll, make a book, open it and turn the phone sideways for the flipbook, unlock a book with an access code, and open a `photos.toneflix.net/books/...` link on the phone to confirm it opens in the app.
 - **Google Play testing**: publish an `x.y.z-<id>` release (see [android-release.md](./android-release.md)), add testers under Play Console → Testing, and share the opt-in link.
