@@ -4,11 +4,12 @@ import path from 'node:path'
 import { Storage } from '@arkstack/filesystem'
 import { FlipbookModel, type BookWithPages } from '@photos/types'
 import type { FlipbookBook, FlipbookPhoto } from '@toneflix/flipbook-core'
-import { chromium, type Page, type Route } from 'playwright-core'
+import type { Page, Route } from 'playwright-core'
 import { BookDetailResource } from '@app/http/resources/BookDetailResource'
 import { Photo } from '@app/models/Photo'
 import type { BookAccess } from '@app/policies/BookAccess'
 import { PhotoImage } from '@app/support/PhotoImage'
+import { PrintBrowser } from '@app/support/PrintBrowser'
 import { BookArchive } from './BookArchive'
 
 /** The flipbook library's script build, as the print page loads it. */
@@ -19,7 +20,7 @@ declare const Flipbook: {
 const require = createRequire(import.meta.url)
 
 /**
- * A book's designed pages as a print-ready PDF or one image per page, drawn in headless Chromium by the flipbook library's
+ * A book's designed pages as a print-ready PDF or one image per page, drawn in headless Chromium (see `PrintBrowser`) by the flipbook library's
  * print layout, so every page matches the reader. Photos print from their originals at print size.
  * Books are drawn one at a time.
  */
@@ -104,10 +105,10 @@ export class BookPrint {
     const timeout = Number(config('print.timeout') ?? 180) * 1000
     const width = Number(config('print.page_width_mm') ?? 210)
     const scale = Number(config('print.image_dpi') ?? 300) / 96
-    const browser = await chromium.launch({ executablePath: String(config('print.chromium_path') ?? '') || undefined })
+    const browser = await PrintBrowser.open()
 
     try {
-      const page = await browser.newPage({ deviceScaleFactor: scale })
+      const page = await (await browser.newContext({ deviceScaleFactor: scale })).newPage()
 
       page.setDefaultTimeout(timeout)
       await page.route(`${BookPrint.ORIGIN}/**`, (route) => this.serve(route))

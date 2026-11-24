@@ -5,6 +5,7 @@ import { BookAccess, type PageFormat } from '@app/policies/BookAccess'
 import { BookArchive } from '@app/services/BookArchive'
 import { BookPageImages } from '@app/services/BookPageImages'
 import { BookPrint } from '@app/services/BookPrint'
+import { PrintBrowser } from '@app/support/PrintBrowser'
 import { BookCollection } from '@app/http/resources/BookCollection'
 import { BookDetailResource } from '@app/http/resources/BookDetailResource'
 import { Photo } from '@app/models/Photo'
@@ -262,6 +263,8 @@ export default class BookController extends BaseController {
       format === 'pdf' ? 'Downloading pages as a PDF is not included in your plan.' : 'Downloading pages as images is not included in your plan.',
       403,
     )
+
+    abortIf(!PrintBrowser.source(), 'Page downloads are not available right now. Please try again later.', 503)
 
     const print = await BookPrint.for(access)
 
