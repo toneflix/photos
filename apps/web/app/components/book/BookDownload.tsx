@@ -11,8 +11,8 @@ interface Option {
 
 /**
  * The book's Download button. With one file it downloads it; with more it is a split button whose
- * main part downloads the first and whose arrow lists them all. Owners whose plan lacks page
- * downloads see them in the list as a Premium feature.
+ * main part downloads the first and whose arrow lists them all. Owners whose plan lacks a page
+ * download see it in the list as a Premium feature.
  */
 export function BookDownload({ book, className }: { book: BookWithPages; className: string }) {
 	const options: Option[] = [];
@@ -23,8 +23,13 @@ export function BookDownload({ book, className }: { book: BookWithPages; classNa
 			detail: book.permissions.includes("transfer") ? "Every original photo, as a zip" : "Openly licensed photos, as a zip",
 			href: `/books/${book.id}/download`,
 		});
-	if (book.canDownloadPages) options.push({ label: "Pages to print", detail: "Every page as designed, as a PDF", href: `/books/${book.id}/pages.pdf` });
-	else if (book.isOwner) options.push({ label: "Pages to print", detail: "Every page as designed, as a PDF", href: "/pricing", upgrade: true });
+	for (const [format, label, detail] of [
+		["pdf", "Pages as a PDF", "Every page as designed, ready to print"],
+		["images", "Pages as images", "Each page as designed, as a PNG in a zip"],
+	] as const) {
+		if (book.pageDownloads[format]) options.push({ label, detail, href: `/books/${book.id}/pages/${format}` });
+		else if (book.isOwner) options.push({ label, detail, href: "/pricing", upgrade: true });
+	}
 
 	const files = options.filter((option) => !option.upgrade);
 	const main = files[0];
