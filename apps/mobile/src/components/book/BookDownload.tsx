@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { Linking, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import type { BookWithPages } from '@photos/types'
@@ -53,8 +53,12 @@ const PAGE_FORMATS = [
 export function DownloadOptions({ book, code, onClose }: { book: BookWithPages; code: string | null; onClose: () => void }) {
   const [busy, setBusy] = useState<Kind | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
+  const running = useRef(false)
 
   const run = async (kind: Kind) => {
+    if (running.current) return
+
+    running.current = true
     setBusy(kind)
     setProblem(null)
 
@@ -65,6 +69,7 @@ export function DownloadOptions({ book, code, onClose }: { book: BookWithPages; 
     } catch (error) {
       setProblem(error instanceof Error ? error.message : "We couldn't download it.")
     } finally {
+      running.current = false
       setBusy(null)
     }
   }
@@ -79,7 +84,7 @@ export function DownloadOptions({ book, code, onClose }: { book: BookWithPages; 
       )}
       {PAGE_FORMATS.map(({ format, title, detail, button }) =>
         book.pageDownloads[format] ? (
-          <Option key={format} title={title} detail={detail}>
+          <Option key={format} title={title} detail={busy === format ? 'Preparing your file. This can take a minute.' : detail}>
             <Button title={button} variant="secondary" loading={busy === format} disabled={!!busy} onPress={() => run(format)} />
           </Option>
         ) : (

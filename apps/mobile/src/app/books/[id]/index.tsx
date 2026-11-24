@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native'
 import { router, useLocalSearchParams, type ErrorBoundaryProps } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
@@ -161,8 +161,12 @@ function Chip({ title, onPress }: { title: string; onPress: () => void }) {
 /** A zip of the book's original photos: all of them for the owner and transfer-code holders, else the openly licensed ones. */
 function DownloadBook({ book, code, everything, onClose }: { book: BookWithPages; code: string | null; everything: boolean; onClose: () => void }) {
   const [state, setState] = useState<'idle' | 'busy' | Error>('idle')
+  const running = useRef(false)
 
   const download = async () => {
+    if (running.current) return
+
+    running.current = true
     setState('busy')
 
     try {
@@ -170,6 +174,8 @@ function DownloadBook({ book, code, everything, onClose }: { book: BookWithPages
       onClose()
     } catch (problem) {
       setState(problem instanceof Error ? problem : new Error("We couldn't make the zip."))
+    } finally {
+      running.current = false
     }
   }
 

@@ -1,5 +1,8 @@
 import { Link } from "react-router";
+import type { ReactNode } from "react";
 import type { BookWithPages } from "@photos/types";
+import { Spinner } from "~/components/ui";
+import { useFileDownload } from "~/lib/file-download";
 
 interface Option {
 	label: string;
@@ -7,6 +10,8 @@ interface Option {
 	href: string;
 	/** A plan upgrade rather than a file. */
 	upgrade?: boolean;
+	/** A file the API draws on request, which takes a while before it starts. */
+	prepared?: boolean;
 }
 
 /**
@@ -15,6 +20,7 @@ interface Option {
  * download see it in the list as a Premium feature.
  */
 export function BookDownload({ book, className }: { book: BookWithPages; className: string }) {
+	const download = useFileDownload();
 	const options: Option[] = [];
 
 	if (book.canDownload)
@@ -27,7 +33,7 @@ export function BookDownload({ book, className }: { book: BookWithPages; classNa
 		["pdf", "Pages as a PDF", "Every page as designed, ready to print"],
 		["images", "Pages as images", "Each page as designed, as a PNG in a zip"],
 	] as const) {
-		if (book.pageDownloads[format]) options.push({ label, detail, href: `/books/${book.id}/pages/${format}` });
+		if (book.pageDownloads[format]) options.push({ label, detail, href: `/books/${book.id}/pages/${format}`, prepared: true });
 		else if (book.isOwner) options.push({ label, detail, href: "/pricing", upgrade: true });
 	}
 
@@ -37,19 +43,24 @@ export function BookDownload({ book, className }: { book: BookWithPages; classNa
 	if (!options.length) return null;
 	if (options.length === 1 && main)
 		return (
-			<a href={main.href} download className={`${className} inline-flex items-center gap-2 max-sm:px-2`} title={main.detail}>
-				<DownloadIcon />
-				<span className="max-sm:sr-only">Download</span>
-			</a>
+			<FileLink option={main} download={download} className={`${className} inline-flex items-center gap-2 max-sm:px-2`} title={main.detail}>
+				<DownloadIcon busy={download.pending === main.href} />
+				<span className="max-sm:sr-only">{download.pending === main.href ? "Preparing…" : "Download"}</span>
+			</FileLink>
 		);
 
 	return (
 		<div className="relative inline-flex">
 			{main && (
-				<a href={main.href} download className={`${className} inline-flex items-center gap-2 rounded-r-none pr-3 max-sm:px-2`} title={main.detail}>
-					<DownloadIcon />
-					<span className="max-sm:sr-only">Download</span>
-				</a>
+				<FileLink
+					option={main}
+					download={download}
+					className={`${className} inline-flex items-center gap-2 rounded-r-none pr-3 max-sm:px-2`}
+					title={main.detail}
+				>
+					<DownloadIcon busy={download.pending === main.href} />
+					<span className="max-sm:sr-only">{download.pending === main.href ? "Preparing…" : "Download"}</span>
+				</FileLink>
 			)}
 			<details className="group">
 				<summary
@@ -58,13 +69,17 @@ export function BookDownload({ book, className }: { book: BookWithPages; classNa
 				>
 					{!main && (
 						<>
-							<DownloadIcon />
-							<span className="max-sm:sr-only">Download</span>
+							<DownloadIcon busy={!!download.pending} />
+							<span className="max-sm:sr-only">{download.pending ? "Preparing…" : "Download"}</span>
 						</>
 					)}
-					<svg viewBox="0 0 24 24" className="h-4 w-4 transition group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-						<path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-					</svg>
+					{main && download.pending && download.pending !== main.href ? (
+						<Spinner />
+					) : (
+						<svg viewBox="0 0 24 24" className="h-4 w-4 transition group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+							<path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+						</svg>
+					)}
 				</summary>
 				<div className="absolute right-0 z-50 mt-2 w-64 panel rounded-xl p-2 text-left !shadow-xl">
 					{options.map((option) =>
@@ -77,10 +92,13 @@ export function BookDownload({ book, className }: { book: BookWithPages; classNa
 								<span className="block text-xs text-ink-500">{option.detail}</span>
 							</Link>
 						) : (
-							<a key={option.label} href={option.href} download className="block rounded-md px-3 py-2 hover:bg-surface-100">
-								<span className="block text-sm font-medium text-ink-900">{option.label}</span>
-								<span className="block text-xs text-ink-500">{option.detail}</span>
-							</a>
+							<FileLink key={option.label} option={option} download={download} className="block w-full rounded-md px-3 py-2 text-left hover:bg-surface-100 disabled:cursor-wait disabled:opacity-60">
+								<span className="flex items-center gap-2 text-sm font-medium text-ink-900">
+									{option.label}
+									{download.pending === option.href && <Spinner className="h-3.5 w-3.5" />}
+								</span>
+								<span className="block text-xs text-ink-500">{download.pending === option.href ? "Preparing your file. This can take a minute." : option.detail}</span>
+							</FileLink>
 						),
 					)}
 				</div>
@@ -89,7 +107,47 @@ export function BookDownload({ book, className }: { book: BookWithPages; classNa
 	);
 }
 
-function DownloadIcon() {
+/**
+ * One file to download. A file that downloads as it streams is a plain link; a file the API draws first
+ * is fetched in the page, so the button shows it is on its way and ignores clicks until it arrives.
+ */
+function FileLink({
+	option,
+	download,
+	className,
+	title,
+	children,
+}: {
+	option: Option;
+	download: ReturnType<typeof useFileDownload>;
+	className: string;
+	title?: string;
+	children: ReactNode;
+}) {
+	if (!option.prepared)
+		return (
+			<a href={option.href} download className={className} title={title}>
+				{children}
+			</a>
+		);
+
+	return (
+		<button
+			type="button"
+			className={className}
+			title={title}
+			disabled={!!download.pending}
+			aria-busy={download.pending === option.href}
+			onClick={() => download.start(option.href)}
+		>
+			{children}
+		</button>
+	);
+}
+
+function DownloadIcon({ busy = false }: { busy?: boolean }) {
+	if (busy) return <Spinner className="h-5 w-5" />;
+
 	return (
 		<svg viewBox="0 0 24 24" className="h-5 w-5 sm:hidden" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
 			<path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14" strokeLinecap="round" strokeLinejoin="round" />
