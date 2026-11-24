@@ -13,20 +13,6 @@ on:
         description: Build an Android APK (attached to the run as an artifact)
         type: boolean
         default: true
-      play_store:
-        description: Build an Android App Bundle and submit it to Google Play
-        type: boolean
-        default: false
-      play_store_track:
-        description: Google Play track
-        type: choice
-        options: [internal, alpha, beta, production]
-        default: internal
-      play_store_release_status:
-        description: Google Play release status (use draft until the app's first release is published)
-        type: choice
-        options: [completed, draft, inProgress, halted]
-        default: completed
       android_builder:
         description: Where Android builds run
         type: choice
@@ -121,66 +107,3 @@ jobs:
           name: toneflix-photos-${{ github.sha }}-apk
           path: ${{ runner.temp }}/app.apk
           if-no-files-found: error
-
-  play-store:
-    if: (github.event_name == 'push' && vars.PLAY_STORE_ON_DEPLOY == 'true') || inputs.play_store
-    runs-on: ubuntu-latest
-    environment: play-store
-    timeout-minutes: 120
-    env:
-      TRACK: ${{ inputs.play_store_track || vars.PLAY_STORE_TRACK || 'internal' }}
-      RELEASE_STATUS: ${{ inputs.play_store_release_status || vars.PLAY_STORE_RELEASE_STATUS || 'completed' }}
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-eas
-        with:
-          expo-token: ${{ secrets.EXPO_TOKEN }}
-          builder: ${{ env.ANDROID_BUILDER }}
-          eas-project-id: ${{ vars.EAS_PROJECT_ID }}
-          eas-owner: ${{ vars.EAS_OWNER }}
-          api-url: ${{ vars.API_URL }}
-          web-url: ${{ vars.WEB_URL }}
-
-      - name: Configure the Google Play submission
-        working-directory: apps/mobile
-        env:
-          SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
-        run: |
-          submit='.submit.production.android.track = $track | .submit.production.android.releaseStatus = $status'
-
-          if [ -n "$SERVICE_ACCOUNT_JSON" ]; then
-            printf '%s' "$SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/play-service-account.json"
-            submit="$submit | .submit.production.android.serviceAccountKeyPath = \$key"
-          fi
-
-          jq --arg track "$TRACK" --arg status "$RELEASE_STATUS" --arg key "$RUNNER_TEMP/play-service-account.json" \
-            "$submit" eas.json > eas.tmp.json
-          mv eas.tmp.json eas.json
-
-      - name: Build the App Bundle
-        id: build
-        working-directory: apps/mobile
-        run: |
-          if [ "$ANDROID_BUILDER" = "runner" ]; then
-            eas build --platform android --profile production --local --non-interactive --output "$RUNNER_TEMP/app.aab"
-          else
-            eas build --platform android --profile production --non-interactive --wait --json > "$RUNNER_TEMP/build.json"
-            echo "id=$(jq -r '.[0].id' "$RUNNER_TEMP/build.json")" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Submit to Google Play
-        working-directory: apps/mobile
-        env:
-          BUILD_ID: ${{ steps.build.outputs.id }}
-        run: |
-          if [ -n "$BUILD_ID" ]; then
-            eas submit --platform android --profile production --id "$BUILD_ID" --non-interactive --wait
-          else
-            eas submit --platform android --profile production --path "$RUNNER_TEMP/app.aab" --non-interactive --wait
-          fi
-
-      - uses: actions/upload-artifact@v7
-        if: env.ANDROID_BUILDER == 'runner'
-        with:
-          name: toneflix-photos-${{ github.sha }}-aab
-          path: ${{ runner.temp }}/app.aab
