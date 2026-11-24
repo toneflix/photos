@@ -1,11 +1,12 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 
 import { app } from '../src/core/bootstrap'
+import { execFileSync } from 'node:child_process'
 import { putOnPlan, seedPlans } from './support/plans'
 import request from 'parasito'
 
-const tokens = { free: '', paid: '' }
-const emails = { free: `brand-free-${Date.now()}@toneflix.test`, paid: `brand-paid-${Date.now()}@toneflix.test` }
+const tokens = { free: '', paid: '', admin: '' }
+const emails = { free: `brand-free-${Date.now()}@toneflix.test`, paid: `brand-paid-${Date.now()}@toneflix.test`, admin: `brand-admin-${Date.now()}@toneflix.test` }
 
 const api = (method: 'get' | 'post' | 'put', path: string, body?: Record<string, unknown>, as?: keyof typeof tokens, code?: string) => {
   const call = request(app)[method](`/api${path}`).set({ Accept: 'application/json' })
@@ -25,17 +26,18 @@ describe('Book branding', () => {
   beforeAll(async () => {
     seedPlans()
 
-    for (const who of ['free', 'paid'] as const) {
+    for (const who of ['free', 'paid', 'admin'] as const) {
       const register = await api('post', '/auth/register', { name: `Brand ${who}`, email: emails[who], password: 'password123' })
 
       tokens[who] = register.body.data.token
     }
 
     putOnPlan(emails.paid)
+    execFileSync('npx', ['ark', 'users:role', emails.admin, 'admin'], { cwd: process.cwd(), encoding: 'utf8' })
 
     freeBook = (await api('post', '/books', { title: 'Free', visibility: 'shared' }, 'free')).body.data.id
     paidBook = (await api('post', '/books', { title: 'Paid', visibility: 'shared' }, 'paid')).body.data.id
-  }, 30_000)
+  }, 60_000)
 
   it('prints the Toneflix cover line and back cover by default', async () => {
     const book = await api('get', `/books/${freeBook}`, undefined, 'free')
@@ -89,14 +91,29 @@ describe('Book branding', () => {
     expect(restyle.status).toBe(200)
   })
 
-  it('goes back to Toneflix branding when the plan ends, keeping the saved text', async () => {
+  it('keeps the branding saved under a plan after the plan ends', async () => {
     putOnPlan(emails.paid, 'free')
 
     const shown = await api('get', `/books/${paidBook}`, undefined, 'paid')
+    const rebrand = await api('put', `/books/${paidBook}`, { kicker: 'A new album' }, 'paid')
 
-    expect(shown.body.data.branding).toEqual(TONEFLIX)
-    expect(shown.body.data.customBranding).toEqual({ kicker: 'A wedding album', brand: 'Ada Studio', imprint: 'Ada Studio Books' })
-    expect((await api('put', `/books/${paidBook}`, { title: 'Renamed', brand: 'Ada Studio' }, 'paid')).status).toBe(200)
-    expect((await api('put', `/books/${paidBook}`, { brand: null }, 'paid')).status).toBe(200)
+    expect(shown.body.data.branding).toEqual({ kicker: 'A wedding album', brand: 'Ada Studio', imprint: 'Ada Studio Books', colophon: null })
+    expect(shown.body.data.brandingAllowed).toEqual({ kicker: false, brand: false, imprint: false })
+    expect(rebrand.status).toBe(422)
+  })
+
+  it('goes back to Toneflix branding after the plan ends when admins turn keeping it off, keeping the saved text', async () => {
+    await api('put', '/admin/settings/branding', { outlasts_plan: false }, 'admin')
+
+    try {
+      const shown = await api('get', `/books/${paidBook}`, undefined, 'paid')
+
+      expect(shown.body.data.branding).toEqual(TONEFLIX)
+      expect(shown.body.data.customBranding).toEqual({ kicker: 'A wedding album', brand: 'Ada Studio', imprint: 'Ada Studio Books' })
+      expect((await api('put', `/books/${paidBook}`, { title: 'Renamed', brand: 'Ada Studio' }, 'paid')).status).toBe(200)
+      expect((await api('put', `/books/${paidBook}`, { brand: null }, 'paid')).status).toBe(200)
+    } finally {
+      await api('put', '/admin/settings/branding', { outlasts_plan: null }, 'admin')
+    }
   })
 })

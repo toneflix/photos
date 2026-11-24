@@ -773,7 +773,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 	const uniquePhotos = useMemo(() => [...new Map(bookPhotos.map((p) => [p.id, p])).values()], [bookPhotos]);
 	const coverPhoto = uniquePhotos.find((p) => p.id === coverPhotoId) ?? uniquePhotos[0] ?? null;
 	const { bookKicker } = useLimits();
-	const kicker = (book.brandingAllowed?.kicker && branding.kicker?.trim()) || bookKicker;
+	const kicker = book.brandingAllowed?.kicker ? branding.kicker?.trim() || bookKicker : book.branding.kicker;
 	const cover = { ...book, title: title || "Untitled", description, theme, coverDesign, coverText, coverPhoto, coverPosition, branding: { ...book.branding, kicker } };
 	const positioner = usePhotoPositioner(coverPosition, coverPhoto ? (position) => setCoverPosition(storedPosition(position)) : undefined);
 	const titled = coverHasText(FlipbookModel.cover(cover));

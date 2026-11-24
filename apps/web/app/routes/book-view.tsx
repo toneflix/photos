@@ -157,8 +157,11 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 							</button>
 						)}
 						{book.canDownload && (
-							<a href={`/books/${book.id}/download`} download className={`${chip} max-sm:hidden`} title={can("transfer") ? "Every original photo, as a zip" : "Openly licensed photos, as a zip"}>
-								Download
+							<a href={`/books/${book.id}/download`} download className={`${chip} inline-flex items-center gap-2 max-sm:px-2`} title={can("transfer") ? "Every original photo, as a zip" : "Openly licensed photos, as a zip"}>
+								<svg viewBox="0 0 24 24" className="h-5 w-5 sm:hidden" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+									<path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14" strokeLinecap="round" strokeLinejoin="round" />
+								</svg>
+								<span className="max-sm:sr-only">Download</span>
 							</a>
 						)}
 						{book.canEdit && (
