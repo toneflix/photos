@@ -1,4 +1,4 @@
-import { COVER_DESIGNS, COVER_THEMES, FlipbookModel, type Book, type BookTheme, type CoverDesign } from "@photos/types";
+import { COVER_DESIGNS, COVER_THEMES, FlipbookModel, pageAspect, type Book, type BookTheme, type CoverDesign } from "@photos/types";
 import { CoverView } from "@toneflix/flipbook-react";
 
 /** Radio chips for the cover cloth, each with a swatch of the cloth and its ink. */
@@ -30,7 +30,7 @@ export function ClothPicker({ value, onChange, name }: { value: BookTheme; onCha
 	);
 }
 
-type CoverLook = Pick<Book, "title" | "description" | "theme" | "coverDesign" | "coverText" | "coverPhoto">;
+type CoverLook = Pick<Book, "title" | "description" | "theme" | "coverDesign" | "coverText" | "coverPhoto"> & Partial<Pick<Book, "pageShape">>;
 
 /** Every cover design as a small cover of this book. */
 export function CoverDesignPicker({ book, onChange }: { book: CoverLook; onChange: (design: CoverDesign) => void }) {
@@ -49,10 +49,10 @@ export function CoverDesignPicker({ book, onChange }: { book: CoverLook; onChang
 						className="group flex flex-col items-center gap-1.5"
 					>
 						<span
-							className={`relative block aspect-[3/4] w-full overflow-hidden rounded-r-sm shadow-md ring-2 ring-offset-2 transition ${
+							className={`relative block w-full overflow-hidden rounded-r-sm shadow-md ring-2 ring-offset-2 transition ${
 								book.coverDesign === design ? "ring-brand-500" : "ring-transparent group-hover:ring-surface-300"
 							}`}
-							style={{ containerType: "size" }}
+							style={{ aspectRatio: pageAspect(book.pageShape), containerType: "size" }}
 						>
 							<CoverView book={FlipbookModel.cover({ ...book, coverDesign: design, coverText: book.coverDesign === design ? book.coverText : null })} />
 						</span>
