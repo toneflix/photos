@@ -17,6 +17,7 @@ export {
   PAPER_COLORS,
   PHOTO_ZOOM,
   PhotoCrop,
+  bleeds,
   coverHasText,
   pageAspect,
   pageMillimetres,

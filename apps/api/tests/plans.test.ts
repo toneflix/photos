@@ -106,9 +106,9 @@ describe('Plans', () => {
     const paid = await api('post', '/books', { title: 'Layout book' }, 'paid')
     const paidBook = await api('get', `/books/${paid.body.data.id}`, undefined, 'paid')
 
-    expect(free.body.data.layoutsAllowed).toEqual(['single', 'framed', 'pair', 'grid', 'text', 'duo', 'panorama'])
+    expect(free.body.data.layoutsAllowed).toEqual(['single', 'framed', 'pair', 'grid', 'text', 'duo'])
     expect(free.body.data.framesAllowed).toContain('hairline')
-    expect(paidBook.body.data.layoutsAllowed).toContain('mosaic')
+    expect(paidBook.body.data.layoutsAllowed).toEqual(expect.arrayContaining(['mosaic', 'panorama']))
   })
 
   it('keeps free spaces private and one to an account', async () => {

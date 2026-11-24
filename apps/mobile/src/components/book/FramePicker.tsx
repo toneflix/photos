@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { FRAME_STYLES, type FrameStyle, type Photo } from '@photos/types'
+import { bleeds, FRAME_STYLES, type FrameStyle, type Photo } from '@photos/types'
 import { PrintedPhoto, usePaper } from '@toneflix/flipbook-native'
 import { Text } from '@/components/ui'
 import type { DraftPage } from '@/lib/book-draft'
@@ -40,11 +40,11 @@ export function FramePicker({
   const [forPhoto, setForPhoto] = useState(!!photo?.frame)
   const [asked, setAsked] = useState<FrameStyle | null>(null)
 
-  if (page.layout === 'single' || page.layout === 'text') {
+  if (bleeds(page.layout) || page.layout === 'text') {
     return (
       <View style={styles.panel}>
         <Text variant="muted" style={[styles.small, styles.center]}>
-          {page.layout === 'single' ? 'Full-bleed photos print to the edge, so they have no frame.' : 'Pages of words have no frame.'}
+          {page.layout !== 'text' ? 'Photos printed to the edge have no frame.' : 'Pages of words have no frame.'}
         </Text>
       </View>
     )
