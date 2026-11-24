@@ -8,6 +8,7 @@ export const ADMIN_PAGES: { to: string; label: string; icon: string; permissions
 	{ to: "/admin/books", label: "Books", icon: "book", permissions: ["content.moderate"] },
 	{ to: "/admin/spaces", label: "Spaces", icon: "grid", permissions: ["content.moderate"] },
 	{ to: "/admin/plans", label: "Plans", icon: "tag", permissions: ["plans.manage"] },
+	{ to: "/admin/designs", label: "Book designs", icon: "layout", permissions: ["plans.manage"] },
 	{ to: "/admin/payment-regions", label: "Payment regions", icon: "globe", permissions: ["plans.manage"] },
 	{ to: "/admin/pages", label: "Pages", icon: "file", permissions: ["pages.manage"] },
 	{ to: "/admin/roles", label: "Roles", icon: "key", permissions: ["roles.manage"] },

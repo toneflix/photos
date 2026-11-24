@@ -12,7 +12,7 @@ import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
 import { ClothPicker, CoverDesignPicker } from "~/components/book/CoverPickers";
-import { LayoutPicker } from "~/components/book/LayoutPicker";
+import { LayoutPicker, PlanStar } from "~/components/book/LayoutPicker";
 import { jsonPosition, PhotoPositionControls, storedPosition } from "~/components/book/PhotoPositionControls";
 import { Button, Field, Input, Textarea, buttonClass, Spinner } from "~/components/ui";
 import { copyText } from "~/lib/toast";
@@ -111,6 +111,17 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [paper, setPaper] = useState<PaperColor>(book.paper ?? "ivory");
 	const layoutsAllowed = useMemo(() => book.layoutsAllowed && [...new Set([...book.layoutsAllowed, ...book.pages.map((p) => p.layout)])], [book]);
+	const framesAllowed = useMemo(
+		() =>
+			book.framesAllowed && [
+				...new Set([
+					...book.framesAllowed,
+					book.frame,
+					...book.pages.flatMap((p) => [p.frame, ...p.photos.map((photo) => photo.frame)]).filter((frame): frame is FrameStyle => !!frame),
+				]),
+			],
+		[book],
+	);
 	const [bookFrame, setBookFrame] = useState<FrameStyle>(book.frame ?? "none");
 	const [dragPage, setDragPage] = useState<number | null>(null);
 	const [dropAt, setDropAt] = useState<number | null>(null);
@@ -539,6 +550,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 										slot={slot !== null && current.photos[slot] ? slot : null}
 										paper={paper}
 										bookFrame={bookFrame}
+										allowed={framesAllowed}
 										sample={current.photos[0] ?? photos[0] ?? null}
 										onPick={setFrame}
 										onPickPhoto={setPhotoFrame}
@@ -640,6 +652,7 @@ function FramePicker({
 	slot,
 	paper,
 	bookFrame,
+	allowed,
 	sample,
 	onPick,
 	onPickPhoto,
@@ -649,6 +662,8 @@ function FramePicker({
 	slot: number | null;
 	paper: PaperColor;
 	bookFrame: FrameStyle;
+	/** Frames the owner's plan includes. The rest carry a mark and can't be picked. */
+	allowed?: FrameStyle[];
 	sample: Photo | null;
 	onPick: (frame: FrameStyle | null) => void;
 	onPickPhoto: (slot: number, frame: FrameStyle | null) => void;
@@ -656,6 +671,7 @@ function FramePicker({
 }) {
 	const photo = slot !== null ? page.photos[slot] : null;
 	const [forPhoto, setForPhoto] = useState(!!photo?.frame);
+	const [asked, setAsked] = useState<FrameStyle | null>(null);
 
 	if (page.layout === "single" || page.layout === "text") {
 		return (
@@ -675,6 +691,7 @@ function FramePicker({
 
 	const swatch = (frame: FrameStyle, label: string, value: FrameStyle | null) => {
 		const checked = choosing.current === value;
+		const locked = !!value && !!allowed && !allowed.includes(value);
 
 		return (
 			<button
@@ -682,19 +699,28 @@ function FramePicker({
 				type="button"
 				role="radio"
 				aria-checked={checked}
-				onClick={() => pick(value)}
+				aria-disabled={locked || undefined}
+				aria-describedby={locked ? "locked-frame" : undefined}
+				onClick={() => {
+					setAsked(locked ? value : null);
+
+					if (!locked) pick(value);
+				}}
 				title={FRAME_STYLES[frame].description}
 				className="group flex flex-col items-center gap-1"
 			>
-				<span
-					className={`fb-paper fb-paper-${paper} relative block aspect-square w-full overflow-hidden rounded-md ring-2 transition ${
-						checked ? "ring-brand-500" : "ring-black/5 group-hover:ring-surface-300"
-					}`}
-					style={{ containerType: "size" }}
-				>
-					<span className="absolute inset-[12%]">
-						<PrintedPhoto photo={FlipbookModel.photo(forPhoto && photo ? photo : sample)} frame={frame} scale={3} />
+				<span className="relative block w-full">
+					<span
+						className={`fb-paper fb-paper-${paper} relative block aspect-square w-full overflow-hidden rounded-md ring-2 transition ${
+							checked ? "ring-brand-500" : locked ? "ring-gold-200 group-hover:ring-gold-400" : "ring-black/5 group-hover:ring-surface-300"
+						}`}
+						style={{ containerType: "size" }}
+					>
+						<span className={`absolute inset-[12%] ${locked ? "opacity-45" : ""}`}>
+							<PrintedPhoto photo={FlipbookModel.photo(forPhoto && photo ? photo : sample)} frame={frame} scale={3} />
+						</span>
 					</span>
+					{locked && <PlanStar />}
 				</span>
 				<span className={`text-[11px] leading-tight ${checked ? "font-medium text-ink-900" : "text-ink-500"}`}>{label}</span>
 			</button>
@@ -736,7 +762,16 @@ function FramePicker({
 				{swatch(choosing.inherited, choosing.inheritLabel, null)}
 				{(Object.keys(FRAME_STYLES) as FrameStyle[]).map((frame) => swatch(frame, FRAME_STYLES[frame].label, frame))}
 			</div>
-			<p className="mt-1.5 text-xs text-ink-500">{FRAME_STYLES[shown].description}.</p>
+			{asked ? (
+				<p id="locked-frame" className="mt-1.5 text-xs text-ink-700">
+					{FRAME_STYLES[asked].label} isn't included in your plan.{" "}
+					<Link to="/pricing" className="font-semibold text-brand-700 hover:underline">
+						See plans
+					</Link>
+				</p>
+			) : (
+				<p className="mt-1.5 text-xs text-ink-500">{FRAME_STYLES[shown].description}.</p>
+			)}
 		</div>
 	);
 }

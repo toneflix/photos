@@ -46,6 +46,7 @@ export default [
 				route(`${kind}/:id`, "routes/admin/content-item.tsx", { id: `admin-${kind}-item` }),
 			]),
 			route("plans/:plan?", "routes/admin/plans.tsx"),
+			route("designs", "routes/admin/designs.tsx"),
 			route("payment-regions/:region?", "routes/admin/payment-regions.tsx"),
 			route("pages/:document?", "routes/admin/pages.tsx"),
 			route("roles/:role?", "routes/admin/roles.tsx"),
