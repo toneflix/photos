@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { app } from '../src/core/bootstrap'
 import request from 'parasito'
 import sharp from 'sharp'
+import { unzipSync } from 'fflate'
 import { putOnPlan } from './support/plans'
 
 const tokens = { premium: '', free: '', guest: '' }
@@ -57,8 +58,18 @@ describe('Book pages to print', () => {
     expect(res.headers.get('content-disposition')).toContain('lake-days-pages-toneflix-photos.pdf')
   }, 60_000)
 
+  it('gives a Premium owner every page as an image in a zip', async () => {
+    const res = await api('get', `/books/${books.premium}/pages/download?format=images`, undefined, 'premium')
+    const names = Object.keys(unzipSync(new Uint8Array(res.body as Buffer)))
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-disposition')).toContain('lake-days-pages-toneflix-photos.zip')
+    expect(names).toEqual(['1-cover.png', '2-title.png', '3-page-1.png', '4-page-2.png', '5-colophon.png', '6-back.png'])
+  }, 60_000)
+
   it('keeps page downloads to Premium', async () => {
     expect((await api('get', `/books/${books.free}/pages/download`, undefined, 'free')).status).toBe(403)
+    expect((await api('get', `/books/${books.free}/pages/download?format=images`, undefined, 'free')).status).toBe(403)
   })
 
   it('keeps page downloads to the owner', async () => {
@@ -66,11 +77,11 @@ describe('Book pages to print', () => {
     expect((await api('get', `/books/${books.premium}/pages/download`)).status).toBe(401)
   })
 
-  it('tells each visitor whether they can download pages', async () => {
-    const canDownloadPages = async (id: string, as: keyof typeof tokens) => (await api('get', `/books/${id}`, undefined, as)).body.data.canDownloadPages
+  it('tells each visitor which page downloads they have', async () => {
+    const pageDownloads = async (id: string, as: keyof typeof tokens) => (await api('get', `/books/${id}`, undefined, as)).body.data.pageDownloads
 
-    expect(await canDownloadPages(books.premium, 'premium')).toBe(true)
-    expect(await canDownloadPages(books.premium, 'guest')).toBe(false)
-    expect(await canDownloadPages(books.free, 'free')).toBe(false)
+    expect(await pageDownloads(books.premium, 'premium')).toEqual({ pdf: true, images: true })
+    expect(await pageDownloads(books.premium, 'guest')).toEqual({ pdf: false, images: false })
+    expect(await pageDownloads(books.free, 'free')).toEqual({ pdf: false, images: false })
   })
 })

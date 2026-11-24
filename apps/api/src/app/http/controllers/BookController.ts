@@ -1,8 +1,9 @@
 import { abortIf, perPage } from '@arkstack/common'
 import { BaseController } from './BaseController'
 import { Book } from '@app/models/Book'
-import { BookAccess } from '@app/policies/BookAccess'
+import { BookAccess, type PageFormat } from '@app/policies/BookAccess'
 import { BookArchive } from '@app/services/BookArchive'
+import { BookPageImages } from '@app/services/BookPageImages'
 import { BookPrint } from '@app/services/BookPrint'
 import { BookCollection } from '@app/http/resources/BookCollection'
 import { BookDetailResource } from '@app/http/resources/BookDetailResource'
@@ -250,18 +251,23 @@ export default class BookController extends BaseController {
     return archive.response()
   }
 
-  /** The book's designed pages as a print-ready PDF, for its owner when their plan includes it. */
+  /** The book's designed pages to print, as one PDF or a zip of page images, for its owner when their plan includes that format. */
   async pages() {
+    const { format = 'pdf' } = await this.validateQuery({ format: 'nullable|in:pdf,images' })
     const access = (await this.access()).authorize('view')
 
     abortIf(!access.isOwner, 'Only the book\'s owner can download its pages.', 403)
-    abortIf(!(await access.mayDownloadPages()), 'Downloading pages to print is not included in your plan.', 403)
+    abortIf(
+      !(await access.pageDownloads())[format as PageFormat],
+      format === 'pdf' ? 'Downloading pages as a PDF is not included in your plan.' : 'Downloading pages as images is not included in your plan.',
+      403,
+    )
 
     const print = await BookPrint.for(access)
 
     abortIf(print.isEmpty, 'This book has no pages yet.', 404)
 
-    return print.response()
+    return format === 'pdf' ? print.pdfResponse() : new BookPageImages(print).response()
   }
 
   /** The book in the route and what this visitor may do with it, from their sign-in and any access code they sent. */

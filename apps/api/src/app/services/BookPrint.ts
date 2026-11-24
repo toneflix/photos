@@ -4,7 +4,7 @@ import path from 'node:path'
 import { Storage } from '@arkstack/filesystem'
 import { FlipbookModel, type BookWithPages } from '@photos/types'
 import type { FlipbookBook, FlipbookPhoto } from '@toneflix/flipbook-core'
-import { chromium, type Route } from 'playwright-core'
+import { chromium, type Page, type Route } from 'playwright-core'
 import { BookDetailResource } from '@app/http/resources/BookDetailResource'
 import { Photo } from '@app/models/Photo'
 import type { BookAccess } from '@app/policies/BookAccess'
@@ -19,7 +19,7 @@ declare const Flipbook: {
 const require = createRequire(import.meta.url)
 
 /**
- * A book's designed pages as one print-ready PDF, drawn in headless Chromium by the flipbook library's
+ * A book's designed pages as a print-ready PDF or one image per page, drawn in headless Chromium by the flipbook library's
  * print layout, so every page matches the reader. Photos print from their originals at print size.
  * Books are drawn one at a time.
  */
@@ -57,38 +57,57 @@ export class BookPrint {
     return !this.model.pages.length
   }
 
-  filename(): string {
-    return `${BookArchive.slug(this.access.book.title, 'book')}-pages-toneflix-photos.pdf`
+  /** The file name for this book's pages, ending in the given extension. */
+  filename(extension: 'pdf' | 'zip'): string {
+    return `${BookArchive.slug(this.access.book.title, 'book')}-pages-toneflix-photos.${extension}`
   }
 
-  async response(): Promise<Response> {
-    const pdf = await this.pdf()
+  /** What each printed page is called, in order: cover, title, the numbered pages, colophon and back. */
+  get sheetNames(): string[] {
+    return ['cover', 'title', ...this.model.pages.map((_, index) => `page-${index + 1}`), 'colophon', 'back']
+  }
+
+  /** The book as one print-ready PDF. */
+  async pdfResponse(): Promise<Response> {
+    const pdf = await this.session((page) => page.pdf({ preferCSSPageSize: true, printBackground: true }))
 
     return new Response(pdf as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${this.filename()}"`,
+        'Content-Disposition': `attachment; filename="${this.filename('pdf')}"`,
         'Cache-Control': 'no-store',
       },
     })
   }
 
-  /** The PDF, once every book queued before it has been drawn. */
-  pdf(): Promise<Buffer> {
-    const turn = BookPrint.queue.then(() => this.draw())
+  /** Each page as a PNG at the print resolution, handed over one at a time in reading order. */
+  eachImage(take: (name: string, png: Buffer) => void): Promise<void> {
+    const names = this.sheetNames
+
+    return this.session(async (page) => {
+      const sheets = await page.locator('.fb-print-sheet').all()
+
+      for (const [index, sheet] of sheets.entries()) take(names[index] ?? `sheet-${index + 1}`, await sheet.screenshot({ type: 'png' }))
+    })
+  }
+
+  /** Lays the book out in a fresh browser and runs `work` on it, once every book queued before it is done. */
+  private session<T>(work: (page: Page) => Promise<T>): Promise<T> {
+    const turn = BookPrint.queue.then(() => this.open(work))
 
     BookPrint.queue = turn.catch(() => undefined)
 
     return turn
   }
 
-  private async draw(): Promise<Buffer> {
+  private async open<T>(work: (page: Page) => Promise<T>): Promise<T> {
     const timeout = Number(config('print.timeout') ?? 180) * 1000
     const width = Number(config('print.page_width_mm') ?? 210)
+    const scale = Number(config('print.image_dpi') ?? 300) / 96
     const browser = await chromium.launch({ executablePath: String(config('print.chromium_path') ?? '') || undefined })
 
     try {
-      const page = await browser.newPage()
+      const page = await browser.newPage({ deviceScaleFactor: scale })
 
       page.setDefaultTimeout(timeout)
       await page.route(`${BookPrint.ORIGIN}/**`, (route) => this.serve(route))
@@ -100,7 +119,7 @@ export class BookPrint {
         { book: this.model, width },
       )
 
-      return await page.pdf({ preferCSSPageSize: true, printBackground: true })
+      return await work(page)
     } finally {
       await browser.close()
     }

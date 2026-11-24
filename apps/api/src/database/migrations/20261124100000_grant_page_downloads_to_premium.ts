@@ -7,10 +7,11 @@ export default class GrantPageDownloadsToPremiumMigration extends Migration {
   public async done(direction: 'up' | 'down'): Promise<void> {
     if (direction !== 'up') return
 
-    await DB.raw(
-      `update plans set features = jsonb_set(features::jsonb, '{page_downloads}', '{"value": true, "active": true, "listed": true}'::jsonb)::json
-        where slug = 'premium' and features::jsonb -> 'page_downloads' is null`,
-    )
+    for (const key of ['page_pdf', 'page_images'])
+      await DB.raw(
+        `update plans set features = jsonb_set(features::jsonb, '{${key}}', '{"value": true, "active": true, "listed": true}'::jsonb)::json
+          where slug = 'premium' and features::jsonb -> '${key}' is null`,
+      )
   }
 
   public async down(_schema: SchemaBuilder): Promise<void> {}
