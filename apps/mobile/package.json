@@ -1,6 +1,7 @@
 {
   "name": "@photos/mobile",
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "baseBuildNumber": 5,
   "main": "expo-router/entry",
   "dependencies": {
     "@expo-google-fonts/fraunces": "^0.4.1",
@@ -51,7 +52,9 @@
     "android:studio": "expo prebuild -p android && node scripts/open-android-studio.mjs",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "release:plan": "node scripts/play-release.mjs plan",
+    "release:notes": "node scripts/play-release.mjs notes --out store-assets/play/whatsnew"
   },
   "private": true
 }
