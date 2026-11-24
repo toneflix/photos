@@ -35,7 +35,7 @@ export function LayoutSketch({ layout, color }: { layout: PageLayout; color: str
   )
 }
 
-/** One row of page layouts that scrolls sideways, keeping the chosen one in view. Layouts outside `allowed` carry a Premium mark. */
+/** One row of page layouts that scrolls sideways, keeping the chosen one in view. Layouts outside `allowed` carry a star. */
 export function LayoutPicker({ value, allowed, onPick }: { value: PageLayout; allowed?: PageLayout[]; onPick: (layout: PageLayout) => void }) {
   const row = useRef<ScrollViewInstance>(null)
   const [width, setWidth] = useState(0)
@@ -74,7 +74,7 @@ export function LayoutPicker({ value, allowed, onPick }: { value: PageLayout; al
               }}
               accessibilityRole="radio"
               accessibilityState={{ checked: on, disabled: premium }}
-              accessibilityLabel={premium ? `${PAGE_LAYOUTS[layout].label}, Premium` : PAGE_LAYOUTS[layout].label}
+              accessibilityLabel={premium ? `${PAGE_LAYOUTS[layout].label}, not in your plan` : PAGE_LAYOUTS[layout].label}
               style={styles.item}
             >
               <View>
@@ -98,7 +98,7 @@ export function LayoutPicker({ value, allowed, onPick }: { value: PageLayout; al
       </ScrollView>
       {asked && (
         <Text style={styles.hint}>
-          {PAGE_LAYOUTS[asked].label} pages come with Premium.{' '}
+          {PAGE_LAYOUTS[asked].label} pages aren't included in your plan.{' '}
           <Text style={styles.hintLink} onPress={() => Linking.openURL(webUrl('/pricing')).catch(() => undefined)}>
             See plans
           </Text>

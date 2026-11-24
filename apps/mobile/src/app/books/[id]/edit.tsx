@@ -78,6 +78,16 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
   const [book, setBook] = useState(loaded)
   const [draft, setDraft] = useState(() => BookDraft.from(loaded))
   const [layoutsAllowed] = useState(() => loaded.layoutsAllowed && [...new Set([...loaded.layoutsAllowed, ...loaded.pages.map((page) => page.layout)])])
+  const [framesAllowed] = useState(
+    () =>
+      loaded.framesAllowed && [
+        ...new Set([
+          ...loaded.framesAllowed,
+          loaded.frame,
+          ...loaded.pages.flatMap((page) => [page.frame, ...page.photos.map((photo) => photo.frame)]).filter((frame): frame is FrameStyle => !!frame),
+        ]),
+      ],
+  )
   const [selected, setSelected] = useState(0)
   const [slot, setSlot] = useState<number | null>(0)
   const [positioning, setPositioning] = useState(false)
@@ -412,6 +422,7 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
                 page={current}
                 slot={slot !== null && current.photos[slot] ? slot : null}
                 bookFrame={book.frame ?? 'none'}
+                allowed={framesAllowed}
                 sample={current.photos[0] ?? photos[0] ?? null}
                 onPick={(frame) => change(draft.update(selected, { frame }))}
                 onPickPhoto={(at, frame) => change(draft.photoFrame(selected, at, frame))}
