@@ -78,11 +78,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/types
       '@toneflix/flipbook':
-        specifier: ^0.3.8
-        version: 0.3.8
+        specifier: ^0.4.0
+        version: 0.4.0
       '@toneflix/flipbook-core':
-        specifier: ^0.3.6
-        version: 0.3.6
+        specifier: ^0.4.0
+        version: 0.4.0
       '@toneflix/money':
         specifier: ^1.0.2
         version: 1.0.2
@@ -2702,11 +2702,11 @@ packages:
   '@toneflix/flipbook-core@0.3.6':
     resolution: {integrity: sha512-y2aZKo6mW2CLcNKmiD17HDu9CRK7rw83nhbpv6e7i55gRfetiyvm7NS9SXACRWAop1xQarpEXlmwtHgR2CnlRA==}
 
-  '@toneflix/flipbook-core@0.3.7':
-    resolution: {integrity: sha512-YgQeTxgNdbDxtQLNmA3obc9pcQ5OCu2QHzr2mpXtBeIOR9NpAJ2zLJGTXp5DkV088RIv7Q4sQ6V26X9lraZg6g==}
-
   '@toneflix/flipbook-core@0.3.8':
     resolution: {integrity: sha512-ITAhydGFVZHYspCdTRn4jZZbCdwm2BDA9bL7fHxqKZCggczdyyz83xZ1SS/ALRCxGsPSodqDMKxwLcLqlEKrGQ==}
+
+  '@toneflix/flipbook-core@0.4.0':
+    resolution: {integrity: sha512-9rGbnaVYrMtjJlPI+eq91iCHEZPseiF0ZpucKh2jFBt2+1XPFrIBWUSNHFvAUoIolYYSnKf6a0LpdcABFOG5ng==}
 
   '@toneflix/flipbook-native@0.3.8':
     resolution: {integrity: sha512-N/FxVwPp8o+XohCipSwHMbhTNQ8yyig8wCJe+c3HMjorO+o6kVBkICc4U/NRjsWsnK9eTmw2HviYRt6uhICjJg==}
@@ -2725,11 +2725,11 @@ packages:
       react: '>=18'
       react-dom: '>=18'
 
-  '@toneflix/flipbook@0.3.6':
-    resolution: {integrity: sha512-qsgowGezHQFvs7buneu4Ku50eLKwOIzpvaEh1x2hLzBo2p4n8zFwJ5unhrV4WXwbPt46spdtSHS4K2ORaAfV+A==}
-
   '@toneflix/flipbook@0.3.8':
     resolution: {integrity: sha512-c5m/U144/yikQeKz/XV/0AIZFKptr2xss6vQln3BgC04WjB2w4FGfRGydzOkOpfgokIgwU9o7bpgOMRaqRxreg==}
+
+  '@toneflix/flipbook@0.4.0':
+    resolution: {integrity: sha512-AD5wXP26k9vQgYO7L0Nsu6drP+pcYEbR6XegD4qPiQ5bhQ6SoZNIPm4ujOzZVtMeLLK7lX/TPFctlnf8sck3lg==}
 
   '@toneflix/money@1.0.2':
     resolution: {integrity: sha512-/cuULpFuvt6OFeClLmaJOzvJwK1Kr2z3vzr6fr+d0cJgLi6cgYFnF+Pg49zFuSfa+icC4wUhRbub9LhLw/D/eA==}
@@ -9478,9 +9478,9 @@ snapshots:
 
   '@toneflix/flipbook-core@0.3.6': {}
 
-  '@toneflix/flipbook-core@0.3.7': {}
-
   '@toneflix/flipbook-core@0.3.8': {}
+
+  '@toneflix/flipbook-core@0.4.0': {}
 
   '@toneflix/flipbook-native@0.3.8(expo-screen-orientation@58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)))(react-native-svg@15.16.0(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)':
     dependencies:
@@ -9493,18 +9493,18 @@ snapshots:
 
   '@toneflix/flipbook-react@0.3.6(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
-      '@toneflix/flipbook': 0.3.6
-      '@toneflix/flipbook-core': 0.3.6
+      '@toneflix/flipbook': 0.3.8
+      '@toneflix/flipbook-core': 0.3.8
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
-
-  '@toneflix/flipbook@0.3.6':
-    dependencies:
-      '@toneflix/flipbook-core': 0.3.7
 
   '@toneflix/flipbook@0.3.8':
     dependencies:
       '@toneflix/flipbook-core': 0.3.8
+
+  '@toneflix/flipbook@0.4.0':
+    dependencies:
+      '@toneflix/flipbook-core': 0.4.0
 
   '@toneflix/money@1.0.2': {}
 
