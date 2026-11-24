@@ -52,7 +52,7 @@ The book's photos, fonts and the flipbook library are served to the remote brows
 | `CHROMIUM_PATH`         | A system Chromium, if any     | The local Chromium binary.                          |
 | `CLOUDFLARE_ACCOUNT_ID` |                               | Browser Run account, used when no Chromium is found. |
 | `CLOUDFLARE_API_TOKEN`  |                               | Token with Browser Rendering Edit.                  |
-| `PAGE_WIDTH_MM`         | `210`                         | Page width; pages are 3:4.                          |
-| `IMAGE_DPI`             | `300`                         | Resolution of page images.                          |
-| `PHOTO_MAX_EDGE`        | `3300`                        | Longest side photos are printed at, in pixels.      |
-| `TIMEOUT`               | `180`                         | Seconds one book may take to draw.                  |
+| `PRINT_PAGE_WIDTH_MM`         | `210`                         | Page width; pages are 3:4.                          |
+| `PRINT_IMAGE_DPI`             | `300`                         | Resolution of page images.                          |
+| `PRINT_PHOTO_MAX_EDGE`        | `3300`                        | Longest side photos are printed at, in pixels.      |
+| `PRINT_TIMEOUT`               | `180`                         | Seconds one book may take to draw.                  |
