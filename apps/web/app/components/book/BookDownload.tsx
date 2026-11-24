@@ -12,6 +12,8 @@ interface Option {
 	upgrade?: boolean;
 	/** A file the API draws on request, which takes a while before it starts. */
 	prepared?: boolean;
+	/** Opens the print dialog instead of downloading. */
+	print?: boolean;
 }
 
 /**
@@ -36,12 +38,14 @@ export function BookDownload({ book, className }: { book: BookWithPages; classNa
 		if (book.pageDownloads[format]) options.push({ label, detail, href: `/books/${book.id}/pages/${format}`, prepared: true });
 		else if (book.isOwner) options.push({ label, detail, href: "/pricing", upgrade: true });
 	}
+	if (book.pageDownloads.print) options.push({ label: "Print", detail: "Every page as designed, from your printer", href: `/books/${book.id}/print`, print: true });
+	else if (book.isOwner) options.push({ label: "Print", detail: "Every page as designed, from your printer", href: "/pricing", upgrade: true });
 
-	const files = options.filter((option) => !option.upgrade);
+	const files = options.filter((option) => !option.upgrade && !option.print);
 	const main = files[0];
 
 	if (!options.length) return null;
-	if (options.length === 1 && main)
+	if (options.length === 1 && main === options[0])
 		return (
 			<FileLink option={main} download={download} className={`${className} inline-flex items-center gap-2 max-sm:px-2`} title={main.detail}>
 				<DownloadIcon busy={download.pending === main.href} />
@@ -97,7 +101,7 @@ export function BookDownload({ book, className }: { book: BookWithPages; classNa
 									{option.label}
 									{download.pending === option.href && <Spinner className="h-3.5 w-3.5" />}
 								</span>
-								<span className="block text-xs text-ink-500">{download.pending === option.href ? "Preparing your file. This can take a minute." : option.detail}</span>
+								<span className="block text-xs text-ink-500">{download.pending === option.href ? (option.print ? "Getting your book ready to print…" : "Preparing your file. This can take a minute.") : option.detail}</span>
 							</FileLink>
 						),
 					)}
@@ -124,7 +128,7 @@ function FileLink({
 	title?: string;
 	children: ReactNode;
 }) {
-	if (!option.prepared)
+	if (!option.prepared && !option.print)
 		return (
 			<a href={option.href} download className={className} title={title}>
 				{children}
@@ -138,7 +142,7 @@ function FileLink({
 			title={title}
 			disabled={!!download.pending}
 			aria-busy={download.pending === option.href}
-			onClick={() => download.start(option.href)}
+			onClick={() => (option.print ? download.print(option.href) : download.start(option.href))}
 		>
 			{children}
 		</button>

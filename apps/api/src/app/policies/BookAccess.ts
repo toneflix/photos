@@ -62,13 +62,13 @@ export class BookAccess {
     return (await Limits.for(owner)).allows('book_zip')
   }
 
-  /** Which page downloads this visitor has: only the book's owner, each as their plan includes it. */
-  async pageDownloads(): Promise<Record<PageFormat, boolean>> {
-    if (!this.isOwner) return { pdf: false, images: false }
+  /** Which page downloads, and printing, this visitor has: only the book's owner, each as their plan includes it. */
+  async pageDownloads(): Promise<Record<PageFormat | 'print', boolean>> {
+    if (!this.isOwner) return { pdf: false, images: false, print: false }
 
     const limits = await Limits.for(this.viewer)
 
-    return { pdf: await limits.allows('page_pdf'), images: await limits.allows('page_images') }
+    return { pdf: await limits.allows('page_pdf'), images: await limits.allows('page_images'), print: await limits.allows('page_print') }
   }
 
   /** Whether this visitor would get a zip with at least one photo in it, for clients to show the download button. */

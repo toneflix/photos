@@ -19,6 +19,7 @@ export type FeatureKey =
   | 'original_downloads'
   | 'page_pdf'
   | 'page_images'
+  | 'page_print'
   | 'custom_frames'
   | 'book_stats'
   | 'badge'
@@ -174,6 +175,13 @@ export class Feature {
       key: 'page_images',
       title: 'Pages as images',
       description: 'Download each page of your books as designed, as a high resolution image.',
+      type: 'toggle',
+      fallback: false,
+    },
+    {
+      key: 'page_print',
+      title: 'Print books',
+      description: 'Print your books as designed, page by page, from your browser or phone.',
       type: 'toggle',
       fallback: false,
     },
