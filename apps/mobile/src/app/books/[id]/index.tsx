@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRequest } from 'alova/client'
-import { licenseFor, type BookPermission, type BookWithPages } from '@photos/types'
+import type { BookPermission, BookWithPages } from '@photos/types'
 import { Flipbook } from '@toneflix/flipbook-native'
 import { AuthFrame } from '@/components/AuthFrame'
 import { ContentCounts } from '@/components/ContentCounts'
@@ -112,7 +112,6 @@ function Book({ book, code, startPage, reload }: { book: BookWithPages; code: st
   const { width } = useWindowDimensions()
   const [panel, setPanel] = useState<'add' | 'claim' | 'download' | null>(null)
   const can = (permission: BookPermission) => book.permissions.includes(permission)
-  const downloadable = can('transfer') || book.pages.some((page) => page.photos.some((photo) => licenseFor(photo.license).downloadable))
   const model = useMemo(() => FlipbookModel.book(book), [book])
 
   return (
@@ -136,7 +135,7 @@ function Book({ book, code, startPage, reload }: { book: BookWithPages; code: st
             {book.isOwner && book.creatorId === book.userId && <Chip title="Stats" onPress={() => router.push({ pathname: '/stats/[kind]/[id]', params: { kind: 'books', id: book.id } })} />}
             {!book.isOwner && can('add') && <Chip title="Add photos" onPress={() => setPanel('add')} />}
             {!book.isOwner && can('transfer') && <Chip title="Make it yours" onPress={() => setPanel('claim')} />}
-            {downloadable && <Chip title="Download" onPress={() => setPanel('download')} />}
+            {book.canDownload && <Chip title="Download" onPress={() => setPanel('download')} />}
             {book.canEdit && <Chip title="Edit" onPress={() => router.push({ pathname: '/books/[id]/edit', params: { id: book.id } })} />}
           </>
         }

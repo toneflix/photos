@@ -11,7 +11,6 @@ import { PhotoUploader } from "~/components/PhotoUploader";
 import { AuthFrame } from "~/components/AuthFrame";
 import { Alert, Button, Field, Input, buttonClass } from "~/components/ui";
 import { FlipbookModel, type BookWithPages } from "@photos/types";
-import { licenseFor } from "~/lib/licenses";
 import type { Route } from "./+types/book-view";
 
 export const handle: ShareImageHandle = { shareImage: true };
@@ -122,7 +121,6 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 
 	const back = book.isOwner ? { to: "/books", label: "Back to your books" } : { to: "/explore/books", label: "Back to Explore" };
 	const can = (permission: string) => book.permissions.includes(permission as never);
-	const downloadable = can("transfer") || book.pages.some((page) => page.photos.some((photo) => licenseFor(photo.license).downloadable));
 
 	return (
 		<div className="relative h-dvh">
@@ -158,7 +156,7 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 								Make it yours
 							</button>
 						)}
-						{downloadable && (
+						{book.canDownload && (
 							<a href={`/books/${book.id}/download`} download className={`${chip} inline-flex items-center gap-2 max-sm:px-2`} title={can("transfer") ? "Every original photo, as a zip" : "Openly licensed photos, as a zip"}>
 								<svg viewBox="0 0 24 24" className="h-5 w-5 sm:hidden" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
 									<path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14" strokeLinecap="round" strokeLinejoin="round" />

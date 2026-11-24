@@ -764,6 +764,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 	const [coverDesign, setCoverDesign] = useState<CoverDesign>(book.coverDesign);
 	const [coverText, setCoverText] = useState<boolean | null>(book.coverText);
 	const [visibility, setVisibility] = useState<Visibility>(book.visibility);
+	const [allowDownloads, setAllowDownloads] = useState(book.allowDownloads);
 	const [coverPhotoId, setCoverPhotoId] = useState<string | null>(book.coverPhotoId);
 	const [coverPosition, setCoverPosition] = useState<PhotoPosition | null>(book.coverPosition);
 	const [spaceId, setSpaceId] = useState(book.spaceId ?? "");
@@ -787,7 +788,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 		fetcher.submit(
 			{
 				intent: "update",
-				changes: { title, description: description || null, theme, coverDesign, coverText, coverPhotoId, coverPosition: jsonPosition(coverPosition), ...(book.isOwner ? { visibility, spaceId: spaceId || null } : {}), ...brandingChanges(book, branding) },
+				changes: { title, description: description || null, theme, coverDesign, coverText, coverPhotoId, coverPosition: jsonPosition(coverPosition), ...(book.isOwner ? { visibility, spaceId: spaceId || null, allowDownloads } : {}), ...brandingChanges(book, branding) },
 			},
 			{ method: "post", encType: "application/json" },
 		);
@@ -917,6 +918,15 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 								</Link>
 							</p>
 						</fieldset>
+					)}
+					{book.isOwner && (
+						<label className="flex cursor-pointer items-start gap-3 text-sm text-ink-700">
+							<input type="checkbox" checked={allowDownloads} onChange={(e) => setAllowDownloads(e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand-600" />
+							<span>
+								Allow downloads
+								<span className="block text-ink-500">People who open the book can download its openly licensed photos. Clients with a transfer code always can.</span>
+							</span>
+						</label>
 					)}
 					{fetcher.data && "ok" in fetcher.data && !fetcher.data.ok && <p className="text-sm text-red-700">{fetcher.data.error}</p>}
 				</div>

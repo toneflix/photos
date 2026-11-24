@@ -26,6 +26,7 @@ export class BookResource extends Resource {
       coverText: book.coverText,
       paper: book.paper,
       frame: book.frame,
+      allowDownloads: book.allowDownloads !== false,
       branding: await (await Limits.for(maker)).branding(book),
       pageCount: await book.pages().count(),
       createdAt: book.createdAt,

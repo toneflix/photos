@@ -215,6 +215,8 @@ export interface Book {
   paper: PaperColor
   /** How photos are set on pages that don't choose their own frame. */
   frame: FrameStyle
+  /** Whether visitors may download the book as a zip. The owner and transfer code holders always may. */
+  allowDownloads: boolean
   /** What the book prints on its covers, after the plan of the person who made it. It stays when a client claims the book. */
   branding: BookBranding
   pageCount: number
@@ -347,6 +349,8 @@ export interface BookWithPages extends Book {
   stats: ContentCounts | null
   /** True when the visitor may edit the book, as its owner or with an access code. */
   canEdit: boolean
+  /** True when the visitor would get a zip of at least one photo from the download button. */
+  canDownload: boolean
   isOwner: boolean
   /** Everything the visitor may do with the book. */
   permissions: BookPermission[]

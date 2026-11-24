@@ -47,11 +47,23 @@ export class BookAccess {
     return this.can('transfer') || photo.allowsDownload()
   }
 
+  /** Whether the owner's download switch lets this visitor have the zip: when it is off, only the owner and transfer holders may. */
+  get downloadsOpen(): boolean {
+    return this.book.allowDownloads !== false || this.can('transfer')
+  }
+
   /** Whether the whole book can be downloaded as a zip, which the owner's plan decides. */
   async mayDownloadBook(): Promise<boolean> {
     const owner = await this.book.user().first()
 
     return (await Limits.for(owner)).allows('book_zip')
+  }
+
+  /** Whether this visitor would get a zip with at least one photo in it, for clients to show the download button. */
+  async canDownload(photos: Photo[]): Promise<boolean> {
+    if (!this.downloadsOpen || !photos.some((photo) => this.mayDownload(photo))) return false
+
+    return this.mayDownloadBook()
   }
 
   /** Every permission this visitor has, for clients to show the right controls. */

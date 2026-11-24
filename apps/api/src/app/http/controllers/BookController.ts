@@ -115,6 +115,7 @@ export default class BookController extends BaseController {
       coverText: 'nullable|boolean',
       paper: `nullable|${PAPER}`,
       frame: `nullable|${FRAME}`,
+      allowDownloads: 'nullable|boolean',
       coverPhotoId: ['nullable', UUID],
       ...photoPosition('coverPosition'),
       spaceId: ['nullable', UUID],
@@ -123,6 +124,7 @@ export default class BookController extends BaseController {
     const branded = 'kicker' in data || 'brand' in data || 'imprint' in data
 
     abortIf((!!data.visibility || 'spaceId' in data) && !access.isOwner, 'Only the owner can change who can open this book or its space.', 403)
+    abortIf('allowDownloads' in data && !access.isOwner, 'Only the owner can turn downloads on or off.', 403)
     abortIf(branded && !book.isMadeBy(access.viewer), 'Only the person who made this book can change its branding.', 403)
 
     await (await Limits.for(await book.user().first())).ensureCoverDesign(data.coverDesign, book.coverDesign)
@@ -137,6 +139,7 @@ export default class BookController extends BaseController {
     if ('coverText' in data) book.coverText = data.coverText ?? null
     if (data.paper) book.paper = data.paper
     if (data.frame) book.frame = data.frame
+    if (typeof data.allowDownloads === 'boolean') book.allowDownloads = data.allowDownloads
     if ('kicker' in data) book.kicker = data.kicker?.trim() || null
     if ('brand' in data) book.brand = data.brand?.trim() || null
     if ('imprint' in data) book.imprint = data.imprint?.trim() || null
@@ -229,6 +232,7 @@ export default class BookController extends BaseController {
   async download() {
     const access = (await this.access()).authorize('view')
 
+    abortIf(!access.downloadsOpen, 'The owner has turned off downloads for this book.', 403)
     abortIf(
       !(await access.mayDownloadBook()),
       access.isOwner ? 'Book downloads are not included in your plan.' : 'This book can only be downloaded photo by photo.',

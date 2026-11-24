@@ -8,14 +8,14 @@ import { BookCover } from '@/components/BookCover'
 import { BrandingFields, brandingChanges } from '@/components/book/BrandingFields'
 import { PhotoPositionControls } from '@/components/book/PhotoPositionControls'
 import { ClothPicker, CoverDesignPicker, CoverTextSwitch } from '@/components/book/CoverPickers'
-import { Button, Callout, Field, Input, ModalToastHost, Select, Text } from '@/components/ui'
+import { Button, Callout, CheckOption, Field, Input, ModalToastHost, Select, Text } from '@/components/ui'
 import { useLimits } from '@/lib/limits'
 import { webUrl } from '@/lib/links'
 import { toast } from '@/lib/toast'
 import { spaceOptions } from '@/lib/spaces'
 import { colors, fonts, radius } from '@/theme'
 
-export type BookChanges = Partial<Pick<BookWithPages, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'coverPosition' | 'spaceId' | 'coverDesign' | 'coverText'> & { theme: BookTheme } & BookBrandingInput>
+export type BookChanges = Partial<Pick<BookWithPages, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'coverPosition' | 'spaceId' | 'coverDesign' | 'coverText' | 'allowDownloads'> & { theme: BookTheme } & BookBrandingInput>
 
 const VISIBILITY: [Visibility, string][] = [
   ['private', 'Only me'],
@@ -49,6 +49,7 @@ export function BookSettings({
   const [coverDesign, setCoverDesign] = useState<CoverDesign>(book.coverDesign ?? 'classic')
   const [coverText, setCoverText] = useState<boolean | null>(book.coverText ?? null)
   const [visibility, setVisibility] = useState<Visibility>(book.visibility)
+  const [allowDownloads, setAllowDownloads] = useState(book.allowDownloads)
   const [coverPhotoId, setCoverPhotoId] = useState<string | null>(book.coverPhotoId)
   const [coverPosition, setCoverPosition] = useState<PhotoPosition | null>(book.coverPosition)
   const [positioning, setPositioning] = useState(false)
@@ -85,7 +86,7 @@ export function BookSettings({
       coverText,
       coverPhotoId,
       coverPosition,
-      ...(book.isOwner ? { visibility, spaceId: spaceId || null } : {}),
+      ...(book.isOwner ? { visibility, spaceId: spaceId || null, allowDownloads } : {}),
       ...brandingChanges(book, branding),
     })
 
@@ -171,6 +172,15 @@ export function BookSettings({
                 </View>
               )}
             </Field>
+          )}
+
+          {book.isOwner && (
+            <CheckOption
+              label="Allow downloads"
+              description="People who open the book can download its openly licensed photos. Clients with a transfer code always can."
+              checked={allowDownloads}
+              onPress={() => setAllowDownloads(!allowDownloads)}
+            />
           )}
 
           <Button title={saving ? 'Saving…' : 'Save'} size="lg" loading={saving} disabled={!title.trim()} onPress={save} />
