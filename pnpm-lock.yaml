@@ -78,14 +78,14 @@ importers:
         specifier: workspace:*
         version: link:../../packages/types
       '@toneflix/flipbook':
-        specifier: ^0.5.1
-        version: 0.5.1
+        specifier: ^0.6.0
+        version: 0.6.0
       '@toneflix/flipbook-core':
-        specifier: ^0.5.1
-        version: 0.5.1
+        specifier: ^0.6.0
+        version: 0.6.0
       '@toneflix/flipbook-print':
-        specifier: ^0.5.1
-        version: 0.5.1
+        specifier: ^0.6.0
+        version: 0.6.0
       '@toneflix/money':
         specifier: ^1.0.2
         version: 1.0.2
@@ -208,8 +208,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/types
       '@toneflix/flipbook-native':
-        specifier: ^0.3.8
-        version: 0.3.8(expo-screen-orientation@58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)))(react-native-svg@15.16.0(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
+        specifier: ^0.6.0
+        version: 0.6.0(expo-screen-orientation@58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)))(react-native-svg@15.16.0(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
       alova:
         specifier: ^3.5.5
         version: 3.5.5
@@ -323,8 +323,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/types
       '@toneflix/flipbook-react':
-        specifier: ^0.3.6
-        version: 0.3.6(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        specifier: ^0.6.0
+        version: 0.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       alova:
         specifier: ^3.5.5
         version: 3.5.5
@@ -400,8 +400,8 @@ importers:
   packages/types:
     dependencies:
       '@toneflix/flipbook-core':
-        specifier: ^0.3.6
-        version: 0.3.6
+        specifier: ^0.6.0
+        version: 0.6.0
       '@toneflix/money':
         specifier: ^1.0.2
         version: 1.0.2
@@ -2751,17 +2751,11 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
 
-  '@toneflix/flipbook-core@0.3.6':
-    resolution: {integrity: sha512-y2aZKo6mW2CLcNKmiD17HDu9CRK7rw83nhbpv6e7i55gRfetiyvm7NS9SXACRWAop1xQarpEXlmwtHgR2CnlRA==}
+  '@toneflix/flipbook-core@0.6.0':
+    resolution: {integrity: sha512-13Jj3p/jpn4Qp44xg1L2WkSfkxuDOAE/oe0fnDvBI4Dezq2LFPRpMyQEHwqDbo5RGPGg5NbUmgcPlN9xOEBJ6w==}
 
-  '@toneflix/flipbook-core@0.3.8':
-    resolution: {integrity: sha512-ITAhydGFVZHYspCdTRn4jZZbCdwm2BDA9bL7fHxqKZCggczdyyz83xZ1SS/ALRCxGsPSodqDMKxwLcLqlEKrGQ==}
-
-  '@toneflix/flipbook-core@0.5.1':
-    resolution: {integrity: sha512-VXixzNxqGQ0M7+9IOoNn5AWeLt04lPNbkgRjwyJCdBTaeWMDLd9DHACMqGXui/4+vVdAbn6xMBwypcGFf6i6kQ==}
-
-  '@toneflix/flipbook-native@0.3.8':
-    resolution: {integrity: sha512-N/FxVwPp8o+XohCipSwHMbhTNQ8yyig8wCJe+c3HMjorO+o6kVBkICc4U/NRjsWsnK9eTmw2HviYRt6uhICjJg==}
+  '@toneflix/flipbook-native@0.6.0':
+    resolution: {integrity: sha512-ynh2GXjyoi96FD/eXuHqwsmmE79ixm8ESPbbFexxOhrB5TT7HvEwV2tpU6N2KKKoml6z1WOdHDoI7uDpQt2+tA==}
     peerDependencies:
       expo-screen-orientation: '*'
       react: '>=18'
@@ -2771,21 +2765,18 @@ packages:
       expo-screen-orientation:
         optional: true
 
-  '@toneflix/flipbook-print@0.5.1':
-    resolution: {integrity: sha512-wodGP8hL7bTlno/UUGXsg4OcjMtxWXejB8w/CPKlTaf3PSreQ/CTwNH6MeIQgx3/0PYolYHXAIaxgIMWHtQ3lQ==}
+  '@toneflix/flipbook-print@0.6.0':
+    resolution: {integrity: sha512-Z7OtJ+isxvuwjXQ3HdsgGouA5iLE5xgWgm6hFoyVu77NfRt2CmQUbjzylsbkfz8sILAV5IMhQ5rzpSYknaL+2Q==}
     engines: {node: '>=22'}
 
-  '@toneflix/flipbook-react@0.3.6':
-    resolution: {integrity: sha512-06ZwoK7ylam8Kyci1iJafijpkhvRky5nq/m05PmWAc2k9g2ONLz/05eaeTPyLsoEV+n+TlkYw7kL3GiVYyKOuQ==}
+  '@toneflix/flipbook-react@0.6.0':
+    resolution: {integrity: sha512-zFSe6l8QIzAaJQ5xIxVm1Ffgmg5azFfhtszs2+qGmPq/YlQaOvFlcrwrPrmluid1oKxXwXqQGV5QY6Y3PTixIg==}
     peerDependencies:
       react: '>=18'
       react-dom: '>=18'
 
-  '@toneflix/flipbook@0.3.8':
-    resolution: {integrity: sha512-c5m/U144/yikQeKz/XV/0AIZFKptr2xss6vQln3BgC04WjB2w4FGfRGydzOkOpfgokIgwU9o7bpgOMRaqRxreg==}
-
-  '@toneflix/flipbook@0.5.1':
-    resolution: {integrity: sha512-STRwG5PxsYfh9EpIXL0CJTykR3Y3n1jHDAhucnyznlaJt4Nxs/LI0f7+2xLEJ8L4KcZcEhCPavUuvAx5UlBTxQ==}
+  '@toneflix/flipbook@0.6.0':
+    resolution: {integrity: sha512-J2gCOSi0KNw+9dtGJGgabLlNMMjyoKGQFRKgWVQ2aCImjmHV/gOkOgjQXhG7rouu0L4mwvXTRVQ93K50t5guHw==}
 
   '@toneflix/money@1.0.2':
     resolution: {integrity: sha512-/cuULpFuvt6OFeClLmaJOzvJwK1Kr2z3vzr6fr+d0cJgLi6cgYFnF+Pg49zFuSfa+icC4wUhRbub9LhLw/D/eA==}
@@ -9683,45 +9674,37 @@ snapshots:
       tailwindcss: 4.3.4
       vite: 8.3.5(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)
 
-  '@toneflix/flipbook-core@0.3.6': {}
+  '@toneflix/flipbook-core@0.6.0': {}
 
-  '@toneflix/flipbook-core@0.3.8': {}
-
-  '@toneflix/flipbook-core@0.5.1': {}
-
-  '@toneflix/flipbook-native@0.3.8(expo-screen-orientation@58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)))(react-native-svg@15.16.0(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)':
+  '@toneflix/flipbook-native@0.6.0(expo-screen-orientation@58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)))(react-native-svg@15.16.0(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)':
     dependencies:
-      '@toneflix/flipbook-core': 0.3.8
+      '@toneflix/flipbook-core': 0.6.0
       react: 19.3.0
       react-native: 0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)
       react-native-svg: 15.16.0(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
     optionalDependencies:
       expo-screen-orientation: 58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))
 
-  '@toneflix/flipbook-print@0.5.1':
+  '@toneflix/flipbook-print@0.6.0':
     dependencies:
       '@fontsource-variable/fraunces': 5.3.0
-      '@toneflix/flipbook-core': 0.5.1
+      '@toneflix/flipbook-core': 0.6.0
       skia-canvas: 4.0.1
     transitivePeerDependencies:
       - debug
       - kerberos
       - supports-color
 
-  '@toneflix/flipbook-react@0.3.6(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+  '@toneflix/flipbook-react@0.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
-      '@toneflix/flipbook': 0.3.8
-      '@toneflix/flipbook-core': 0.3.8
+      '@toneflix/flipbook': 0.6.0
+      '@toneflix/flipbook-core': 0.6.0
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
 
-  '@toneflix/flipbook@0.3.8':
+  '@toneflix/flipbook@0.6.0':
     dependencies:
-      '@toneflix/flipbook-core': 0.3.8
-
-  '@toneflix/flipbook@0.5.1':
-    dependencies:
-      '@toneflix/flipbook-core': 0.5.1
+      '@toneflix/flipbook-core': 0.6.0
 
   '@toneflix/money@1.0.2': {}
 
