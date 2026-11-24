@@ -358,6 +358,8 @@ export interface BookWithPages extends Book {
   permissions: BookPermission[]
   /** The page layouts the owner's plan includes, shown to editors. */
   layoutsAllowed?: PageLayout[]
+  /** The frames the owner's plan includes, shown to editors. */
+  framesAllowed?: FrameStyle[]
   owner: Pick<User, 'id' | 'name'>
   /** The saved branding text, shown only to the person who made the book. */
   customBranding?: BookBrandingInput

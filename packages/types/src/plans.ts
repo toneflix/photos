@@ -13,7 +13,6 @@ export type FeatureKey =
   | 'access_codes'
   | 'transfer_codes'
   | 'premium_covers'
-  | 'premium_layouts'
   | 'custom_kicker'
   | 'brand_imprint'
   | 'custom_imprint'
@@ -69,6 +68,33 @@ export interface Plan {
   /** The one plan the pricing page draws attention to. */
   isHighlighted: boolean
   features: PlanFeature[]
+  /** How many of each kind of book design the plan includes. */
+  designs: PlanDesigns[]
+}
+
+/** Kinds of book design admins can keep to some plans. */
+export type DesignKind = 'layout' | 'frame'
+
+/** How many designs of one kind a plan includes, out of all of them. */
+export interface PlanDesigns {
+  kind: DesignKind
+  title: string
+  allowed: number
+  total: number
+}
+
+/** One design as admins restrict it: the plans it is kept to, or null when every plan has it. */
+export interface DesignRestriction {
+  key: string
+  label: string
+  planIds: string[] | null
+}
+
+/** Every design of one kind, as admins restrict them. */
+export interface DesignKindRestrictions {
+  kind: DesignKind
+  title: string
+  designs: DesignRestriction[]
 }
 
 /** The signed-in account's plan, every feature value, and what it uses. */
@@ -228,6 +254,13 @@ export function featureLine(feature: PlanFeature): { text: string; included: boo
   if (!value) return { text: phrase?.unlimited ?? `Unlimited ${title}`, included: true }
 
   return { text: phrase?.limited(limitLabel(feature), value === 1) ?? `Up to ${limitLabel(feature)} ${title}`, included: true }
+}
+
+/** A plan's designs of one kind as the pricing page lists them, e.g. "All 17 page layouts". */
+export function designLine(designs: PlanDesigns): string {
+  const title = designs.title.toLowerCase()
+
+  return designs.allowed >= designs.total ? `All ${designs.total} ${title}` : `${designs.allowed} ${title}`
 }
 
 /** Bytes as people read them. */

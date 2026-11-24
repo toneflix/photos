@@ -44,7 +44,7 @@ export class BookDetailResource extends BookResource {
       pageDownloads: this.access ? await this.access.pageDownloads() : { pdf: false, images: false, print: false },
       isOwner: !!this.access?.isOwner,
       permissions: this.access?.permissions() ?? ['view'],
-      ...(this.access?.can('edit') ? { layoutsAllowed: await (await Limits.for(owner)).pageLayouts() } : {}),
+      ...(this.access?.can('edit') ? await this.designsAllowed(await Limits.for(owner)) : {}),
       stats: ContentStats.shown(book, owner, this.access?.viewer ?? null),
       owner: { id: book.userId, name: owner && (owner.showOwnerName || this.access?.isOwner) ? owner.name : '' },
       ...(book.isMadeBy(this.access?.viewer ?? null)
@@ -54,5 +54,10 @@ export class BookDetailResource extends BookResource {
           }
         : {}),
     }
+  }
+
+  /** The layouts and frames the owner's plan includes, for the editor's pickers. */
+  private async designsAllowed(limits: Limits) {
+    return { layoutsAllowed: await limits.designs('layout'), framesAllowed: await limits.designs('frame') }
   }
 }

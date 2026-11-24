@@ -107,6 +107,7 @@ describe('Plans', () => {
     const paidBook = await api('get', `/books/${paid.body.data.id}`, undefined, 'paid')
 
     expect(free.body.data.layoutsAllowed).toEqual(['single', 'framed', 'pair', 'grid', 'text'])
+    expect(free.body.data.framesAllowed).toContain('hairline')
     expect(paidBook.body.data.layoutsAllowed).toContain('mosaic')
   })
 

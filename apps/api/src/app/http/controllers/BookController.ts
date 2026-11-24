@@ -66,6 +66,7 @@ export default class BookController extends BaseController {
 
     await limits.ensureCanCreateBook()
     await limits.ensureCoverDesign(data.coverDesign)
+    await limits.ensureDesigns('frame', [data.frame], [], 'frame')
     await limits.ensureBranding(data)
 
     const space = data.spaceId ? (await SpaceAccess.find(data.spaceId, this.user)).authorize('create').space : null
@@ -129,7 +130,10 @@ export default class BookController extends BaseController {
     abortIf('allowDownloads' in data && !access.isOwner, 'Only the owner can turn downloads on or off.', 403)
     abortIf(branded && !book.isMadeBy(access.viewer), 'Only the person who made this book can change its branding.', 403)
 
-    await (await Limits.for(await book.user().first())).ensureCoverDesign(data.coverDesign, book.coverDesign)
+    const limits = await Limits.for(await book.user().first())
+
+    await limits.ensureCoverDesign(data.coverDesign, book.coverDesign)
+    await limits.ensureDesigns('frame', [data.frame], [book.frame], 'frame')
 
     if (branded) await (await Limits.for(access.viewer)).ensureBranding(data, book)
 
@@ -187,12 +191,21 @@ export default class BookController extends BaseController {
     })
 
     const limits = await Limits.for(await book.user().first())
-    const current = (await book.orderedPages()).map((page) => page.layout)
+    const current = await book.orderedPages()
+    const pages = data.pages as Array<{ layout?: string | null; frame?: string | null; photoFrames?: Array<string | null> | null }>
 
-    await limits.ensurePageCount(data.pages.length)
-    await limits.ensurePageLayouts(
-      data.pages.map((page: { layout?: string | null }) => page.layout),
-      current,
+    await limits.ensurePageCount(pages.length)
+    await limits.ensureDesigns(
+      'layout',
+      pages.map((page) => page.layout),
+      current.map((page) => page.layout),
+      'pages',
+    )
+    await limits.ensureDesigns(
+      'frame',
+      pages.flatMap((page) => [page.frame, ...(page.photoFrames ?? [])]),
+      current.flatMap((page) => [page.frame, ...(page.photoFrames ?? [])]),
+      'pages',
     )
 
     await book.replacePages(data.pages)

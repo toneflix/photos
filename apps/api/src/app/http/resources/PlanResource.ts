@@ -1,3 +1,4 @@
+import { Design } from '@app/policies/Design'
 import type { Plan } from '@app/models/Plan'
 import { PaymentRegions } from '@app/services/payments/PaymentRegions'
 import { Resource } from 'resora'
@@ -30,6 +31,14 @@ export class PlanResource extends Resource {
       chargeCurrency: options.currency,
       isDefault: plan.isDefault,
       isHighlighted: plan.isHighlighted,
+      designs: await Promise.all(
+        Design.KINDS.map(async ({ kind, title, designs }) => ({
+          kind,
+          title,
+          allowed: (await Design.allowed(kind, plan)).length,
+          total: Object.keys(designs).length,
+        })),
+      ),
       features: (await plan.listedFeatures()).map(({ key, title, description, type, unit, value }) => ({ key, title, description, type, unit, value })),
     }
   }

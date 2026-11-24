@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { chargePerCycle, featureLine, formatMoney, periodLabel } from "@photos/types";
+import { chargePerCycle, designLine, featureLine, formatMoney, periodLabel } from "@photos/types";
 import type { Plan } from "@photos/types";
 
 /** One plan on the pricing page: its price for the chosen billing, what it includes, and an action. */
@@ -7,6 +7,10 @@ export function PlanCard({ plan, cycles, current, children }: { plan: Plan; cycl
 	const billing = plan.billing.find((option) => option.cycles === cycles) ?? plan.billing[0];
 	const free = plan.price <= 0;
 	const perPeriod = chargePerCycle(billing);
+	const lines = [
+		...plan.features.map((feature) => ({ key: feature.key, ...featureLine(feature) })),
+		...plan.designs.map((designs) => ({ key: designs.kind, text: designLine(designs), included: designs.allowed > 0 })),
+	];
 
 	return (
 		<article className={`panel flex flex-col p-6 sm:p-8 ${plan.isHighlighted ? "!border-brand-600" : ""}`}>
@@ -29,32 +33,28 @@ export function PlanCard({ plan, cycles, current, children }: { plan: Plan; cycl
 			</p>
 			<div className="mt-6">{children}</div>
 			<ul className="mt-8 space-y-3 text-sm">
-				{plan.features.map((feature) => {
-					const line = featureLine(feature);
-
-					return (
-						<li key={feature.key} className={`flex gap-3 ${line.included ? "text-ink-900" : "text-ink-500 line-through decoration-ink-500/40"}`}>
-							<svg
-								viewBox="0 0 20 20"
-								className={`mt-0.5 h-4 w-4 shrink-0 ${line.included ? "text-brand-600" : "text-ink-500/60"}`}
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="2.2"
-								aria-hidden
-							>
-								{line.included ? (
-									<path d="m4.5 10.5 3.5 3.5 7.5-8" strokeLinecap="round" strokeLinejoin="round" />
-								) : (
-									<path d="M6 6l8 8M14 6l-8 8" strokeLinecap="round" />
-								)}
-							</svg>
-							<span>
-								<span className="sr-only">{line.included ? "Included: " : "Not included: "}</span>
-								{line.text}
-							</span>
-						</li>
-					);
-				})}
+				{lines.map((line) => (
+					<li key={line.key} className={`flex gap-3 ${line.included ? "text-ink-900" : "text-ink-500 line-through decoration-ink-500/40"}`}>
+						<svg
+							viewBox="0 0 20 20"
+							className={`mt-0.5 h-4 w-4 shrink-0 ${line.included ? "text-brand-600" : "text-ink-500/60"}`}
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2.2"
+							aria-hidden
+						>
+							{line.included ? (
+								<path d="m4.5 10.5 3.5 3.5 7.5-8" strokeLinecap="round" strokeLinejoin="round" />
+							) : (
+								<path d="M6 6l8 8M14 6l-8 8" strokeLinecap="round" />
+							)}
+						</svg>
+						<span>
+							<span className="sr-only">{line.included ? "Included: " : "Not included: "}</span>
+							{line.text}
+						</span>
+					</li>
+				))}
 			</ul>
 		</article>
 	);

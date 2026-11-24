@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { FRAME_STYLES, type FrameStyle, type Photo } from '@photos/types'
 import { PrintedPhoto, usePaper } from '@toneflix/flipbook-native'
 import { Text } from '@/components/ui'
 import type { DraftPage } from '@/lib/book-draft'
 import { FlipbookModel } from '@/lib/flipbook'
+import { webUrl } from '@/lib/links'
 import { colors, fonts, radius } from '@/theme'
 
 const SWATCH = 64
@@ -18,6 +20,7 @@ export function FramePicker({
   page,
   slot,
   bookFrame,
+  allowed,
   sample,
   onPick,
   onPickPhoto,
@@ -26,6 +29,8 @@ export function FramePicker({
   page: DraftPage
   slot: number | null
   bookFrame: FrameStyle
+  /** Frames the owner's plan includes. The rest carry a star and can't be picked. */
+  allowed?: FrameStyle[]
   sample: Photo | null
   onPick: (frame: FrameStyle | null) => void
   onPickPhoto: (slot: number, frame: FrameStyle | null) => void
@@ -33,6 +38,7 @@ export function FramePicker({
 }) {
   const photo = slot !== null ? (page.photos[slot] ?? null) : null
   const [forPhoto, setForPhoto] = useState(!!photo?.frame)
+  const [asked, setAsked] = useState<FrameStyle | null>(null)
 
   if (page.layout === 'single' || page.layout === 'text') {
     return (
@@ -85,26 +91,78 @@ export function FramePicker({
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row} accessibilityRole="radiogroup" accessibilityLabel="Photo frame">
         <Swatch frame={choosing.inherited} label={choosing.inheritLabel} checked={choosing.current === null} sample={preview} onPress={() => pick(null)} />
-        {FRAMES.map((value) => (
-          <Swatch key={value} frame={value} label={FRAME_STYLES[value].label} checked={choosing.current === value} sample={preview} onPress={() => pick(value)} />
-        ))}
+        {FRAMES.map((value) => {
+          const locked = !!allowed && !allowed.includes(value)
+
+          return (
+            <Swatch
+              key={value}
+              frame={value}
+              label={FRAME_STYLES[value].label}
+              checked={choosing.current === value}
+              locked={locked}
+              sample={preview}
+              onPress={() => {
+                setAsked(locked ? value : null)
+
+                if (!locked) pick(value)
+              }}
+            />
+          )
+        })}
       </ScrollView>
-      <Text variant="muted" style={styles.small}>
-        {FRAME_STYLES[shown].description}.
-      </Text>
+      {asked ? (
+        <Text style={styles.small}>
+          {FRAME_STYLES[asked].label} isn't included in your plan.{' '}
+          <Text style={styles.hintLink} onPress={() => Linking.openURL(webUrl('/pricing')).catch(() => undefined)}>
+            See plans
+          </Text>
+        </Text>
+      ) : (
+        <Text variant="muted" style={styles.small}>
+          {FRAME_STYLES[shown].description}.
+        </Text>
+      )}
     </View>
   )
 }
 
-function Swatch({ frame, label, checked, sample, onPress }: { frame: FrameStyle; label: string; checked: boolean; sample: Photo | null; onPress: () => void }) {
+function Swatch({
+  frame,
+  label,
+  checked,
+  locked = false,
+  sample,
+  onPress,
+}: {
+  frame: FrameStyle
+  label: string
+  checked: boolean
+  locked?: boolean
+  sample: Photo | null
+  onPress: () => void
+}) {
   const look = usePaper()
 
   return (
-    <Pressable onPress={onPress} accessibilityRole="radio" accessibilityState={{ checked }} accessibilityLabel={label} style={styles.swatch}>
-      <View style={[styles.tile, { backgroundColor: look.background }, checked && styles.checked]}>
-        <View style={styles.inset}>
-          <PrintedPhoto photo={FlipbookModel.photo(sample)} frame={frame} unit={SWATCH * 0.03} />
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="radio"
+      accessibilityState={{ checked, disabled: locked }}
+      accessibilityLabel={locked ? `${label}, not in your plan` : label}
+      style={styles.swatch}
+    >
+      <View>
+        <View style={[styles.tile, { backgroundColor: look.background }, locked && styles.locked, checked && styles.checked]}>
+          <View style={[styles.inset, locked && styles.faded]}>
+            <PrintedPhoto photo={FlipbookModel.photo(sample)} frame={frame} unit={SWATCH * 0.03} />
+          </View>
         </View>
+        {locked && (
+          <View style={styles.mark}>
+            <Ionicons name="star" size={9} color={colors.ink900} />
+          </View>
+        )}
       </View>
       <Text numberOfLines={2} style={[styles.label, checked && styles.labelChecked]}>
         {label}
@@ -129,6 +187,20 @@ const styles = StyleSheet.create({
   swatch: { width: SWATCH, alignItems: 'center', gap: 4 },
   tile: { width: SWATCH, height: SWATCH, borderRadius: 6, overflow: 'hidden', borderWidth: 2, borderColor: 'rgba(0,0,0,0.05)' },
   checked: { borderColor: colors.brand500 },
+  locked: { borderColor: colors.gold200 },
+  faded: { opacity: 0.45 },
+  mark: {
+    position: 'absolute',
+    top: -7,
+    right: -7,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.gold400,
+  },
+  hintLink: { fontSize: 12, fontFamily: fonts.semibold, color: colors.brand700 },
   inset: { position: 'absolute', top: '12%', right: '12%', bottom: '12%', left: '12%' },
   label: { fontSize: 11, lineHeight: 13, textAlign: 'center', color: colors.ink500 },
   labelChecked: { fontFamily: fonts.medium, color: colors.ink900 },
