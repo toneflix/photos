@@ -41,7 +41,7 @@ export class BookDetailResource extends BookResource {
       })),
       canEdit: !!this.access?.can('edit'),
       canDownload: this.access ? await this.access.canDownload(photos) : false,
-      pageDownloads: this.access ? await this.access.pageDownloads() : { pdf: false, images: false },
+      pageDownloads: this.access ? await this.access.pageDownloads() : { pdf: false, images: false, print: false },
       isOwner: !!this.access?.isOwner,
       permissions: this.access?.permissions() ?? ['view'],
       ...(this.access?.can('edit') ? { layoutsAllowed: await (await Limits.for(owner)).pageLayouts() } : {}),

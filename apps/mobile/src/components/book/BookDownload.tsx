@@ -6,6 +6,7 @@ import { Sheet } from '@/components/access/Sheet'
 import { Button, Callout, Text } from '@/components/ui'
 import { ApiDownload } from '@/lib/download'
 import { webUrl } from '@/lib/links'
+import { printBook } from '@/lib/print'
 import { colors, fonts, radius } from '@/theme'
 
 /**
@@ -13,7 +14,7 @@ import { colors, fonts, radius } from '@/theme'
  * download; without it the whole chip opens the list. Shown when there is anything to list.
  */
 export function DownloadChip({ book, onZip, onOptions }: { book: BookWithPages; onZip: () => void; onOptions: () => void }) {
-  const options = book.pageDownloads.pdf || book.pageDownloads.images || book.isOwner
+  const options = book.pageDownloads.pdf || book.pageDownloads.images || book.pageDownloads.print || book.isOwner
 
   if (!book.canDownload && !options) return null
   if (!options) return <Part title="Download" onPress={onZip} />
@@ -42,7 +43,7 @@ function Part({ title, onPress, style }: { title: string; onPress: () => void; s
   )
 }
 
-type Kind = 'zip' | 'pdf' | 'images'
+type Kind = 'zip' | 'pdf' | 'images' | 'print'
 
 const PAGE_FORMATS = [
   { format: 'pdf', title: 'Pages as a PDF', detail: 'Every page as designed, ready to print', button: 'PDF' },
@@ -64,6 +65,7 @@ export function DownloadOptions({ book, code, onClose }: { book: BookWithPages; 
 
     try {
       if (kind === 'zip') await ApiDownload.book(book.id, code).share(`Save “${book.title}”`)
+      else if (kind === 'print') await printBook(book.id)
       else await ApiDownload.bookPages(book.id, kind).share(`Save the pages of “${book.title}”`, kind === 'pdf' ? ApiDownload.PDF : ApiDownload.ZIP)
       onClose()
     } catch (error) {
@@ -94,6 +96,17 @@ export function DownloadOptions({ book, code, onClose }: { book: BookWithPages; 
             </Option>
           )
         ),
+      )}
+      {book.pageDownloads.print ? (
+        <Option title="Print" detail={busy === 'print' ? 'Getting your book ready to print…' : 'Every page as designed, from your printer'}>
+          <Button title="Print" variant="secondary" loading={busy === 'print'} disabled={!!busy} onPress={() => run('print')} />
+        </Option>
+      ) : (
+        book.isOwner && (
+          <Option title="Print" detail="Every page as designed, from your printer, with Premium">
+            <Button title="See Premium" onPress={() => Linking.openURL(webUrl('/pricing')).catch(() => undefined)} />
+          </Option>
+        )
       )}
     </Sheet>
   )
