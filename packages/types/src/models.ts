@@ -1,4 +1,4 @@
-import type { CoverDesign, CoverTheme, FrameStyle, PageLayout, PaperColor, PhotoPosition } from '@toneflix/flipbook-core'
+import type { CoverDesign, CoverTheme, FrameStyle, PageLayout, PageShape, PaperColor, PhotoPosition } from '@toneflix/flipbook-core'
 
 /**
  * Core domain models, as the API returns them (camelCase keys, ISO dates).
@@ -215,6 +215,8 @@ export interface Book {
   paper: PaperColor
   /** How photos are set on pages that don't choose their own frame. */
   frame: FrameStyle
+  /** The shape of every page and both covers. */
+  pageShape: PageShape
   /** Whether visitors may download the book as a zip. The owner and transfer code holders always may. */
   allowDownloads: boolean
   /** What the book prints on its covers, after the plan of the person who made it. It stays when a client claims the book. */
@@ -358,6 +360,10 @@ export interface BookWithPages extends Book {
   permissions: BookPermission[]
   /** The page layouts the owner's plan includes, shown to editors. */
   layoutsAllowed?: PageLayout[]
+  /** The frames the owner's plan includes, shown to editors. */
+  framesAllowed?: FrameStyle[]
+  /** The page shapes the owner's plan includes, shown to editors. */
+  shapesAllowed?: PageShape[]
   owner: Pick<User, 'id' | 'name'>
   /** The saved branding text, shown only to the person who made the book. */
   customBranding?: BookBrandingInput

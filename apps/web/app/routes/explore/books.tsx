@@ -1,5 +1,5 @@
 import { Link, useLocation, useParams, type MetaDescriptor } from "react-router";
-import { FlipbookModel, type PublicBook } from "@photos/types";
+import { FlipbookModel, pageAspect, type PublicBook } from "@photos/types";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { getServerApi } from "~/lib/api.server";
 import { useInfiniteList } from "~/lib/use-infinite-list";
@@ -73,8 +73,8 @@ function PublicBookCard({ book }: { book: PublicBook }) {
 		<li className="group min-w-0">
 			<Link prefetch="intent"
 				to={`/books/${book.id}`}
-				className="relative block aspect-[3/4] overflow-hidden rounded-lg bg-surface-100 shadow-sm transition duration-300 group-hover:-translate-y-1 group-hover:shadow-xl"
-				style={{ containerType: "size" }}
+				className="relative block overflow-hidden rounded-lg bg-surface-100 shadow-sm transition duration-300 group-hover:-translate-y-1 group-hover:shadow-xl"
+				style={{ aspectRatio: pageAspect(book.pageShape), containerType: "size" }}
 				aria-label={`Open ${book.title}`}
 			>
 				<CoverView book={FlipbookModel.cover(book)} />

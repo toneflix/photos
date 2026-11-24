@@ -59,7 +59,7 @@ export class BookPrint {
     return `${BookArchive.slug(this.access.book.title, 'book')}-pages-toneflix-photos.${extension}`
   }
 
-  /** What each printed page is called, in order: cover, title, the numbered pages, colophon and back. */
+  /** What each printed page is called, in order: cover, title, the numbered pages (a panorama as its left and right halves), colophon and back. */
   get sheetNames(): string[] {
     return this.printer().names
   }
@@ -123,7 +123,7 @@ export class BookPrint {
 
   private printer(): BookPrinter {
     return new BookPrinter(this.model, {
-      width: Number(config('print.page_width_mm') ?? 210),
+      shortSide: Number(config('print.page_short_side_mm') ?? 210),
       dpi: Number(config('print.image_dpi') ?? 300),
       load: (src) => this.load(src),
     })

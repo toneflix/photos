@@ -28,6 +28,8 @@ import type {
   BookQuery,
   PhotoQuery,
   Payment,
+  DesignKind,
+  DesignKindRestrictions,
   PaymentRegion,
   PaymentRegionInput,
   Plan,
@@ -226,11 +228,11 @@ export function createEndpoints(alova: PhotosAlova) {
       list: (params: BookQuery = {}) => alova.Get<PaginatedResponse<Book>>('/books', { params }),
       /** A book with every page. Works signed out for shared and public books, and for private ones with an access `code`. */
       get: (id: ID, code?: string | null) => alova.Get<ApiResponse<BookWithPages>>(`/books/${id}`, withCode(code)),
-      create: (data: Pick<Book, 'title'> & Partial<Pick<Book, 'description' | 'visibility' | 'theme' | 'coverDesign' | 'coverText' | 'paper' | 'frame' | 'spaceId'>>) =>
+      create: (data: Pick<Book, 'title'> & Partial<Pick<Book, 'description' | 'visibility' | 'theme' | 'coverDesign' | 'coverText' | 'paper' | 'frame' | 'pageShape' | 'spaceId'>>) =>
         alova.Post<ApiResponse<Book>>('/books', data),
       update: (
         id: ID,
-        data: Partial<Pick<Book, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'spaceId' | 'theme' | 'coverDesign' | 'coverText' | 'paper' | 'frame' | 'allowDownloads'> & BookBrandingInput>,
+        data: Partial<Pick<Book, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'spaceId' | 'theme' | 'coverDesign' | 'coverText' | 'paper' | 'frame' | 'pageShape' | 'allowDownloads'> & BookBrandingInput>,
         code?: string | null,
       ) => alova.Put<ApiResponse<BookWithPages>>(`/books/${id}`, data, withCode(code)),
       /** Replace every page of the book, in order. */
@@ -295,6 +297,11 @@ export function createEndpoints(alova: PhotosAlova) {
       createPaymentRegion: (data: PaymentRegionInput) => alova.Post<ApiResponse<PaymentRegion>>('/admin/payment-regions', data),
       updatePaymentRegion: (id: ID, data: PaymentRegionInput) => alova.Put<ApiResponse<PaymentRegion>>(`/admin/payment-regions/${id}`, data),
       removePaymentRegion: (id: ID) => alova.Delete<ApiResponse<PaymentRegion>>(`/admin/payment-regions/${id}`),
+      /** Every page layout and frame with the plans each is kept to. */
+      designs: () => alova.Get<ApiResponse<DesignKindRestrictions[]>>('/admin/designs', { cacheFor: null }),
+      /** Keep one design to some plans, or open it to every plan with null. */
+      restrictDesign: (kind: DesignKind, design: string, planIds: string[] | null) =>
+        alova.Put<ApiResponse<DesignKindRestrictions>>(`/admin/designs/${kind}/${design}`, { planIds }),
       /** Every page and policy, drafts too. */
       documents: (params: PageQuery & { type?: DocumentType } = {}) => alova.Get<PaginatedResponse<DocumentSummary>>('/admin/documents', { params, cacheFor: null }),
       document: (id: ID) => alova.Get<ApiResponse<SiteDocument>>(`/admin/documents/${id}`, { cacheFor: null }),

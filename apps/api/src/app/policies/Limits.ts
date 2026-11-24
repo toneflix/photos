@@ -1,5 +1,5 @@
 import { Feature, type FeatureKey } from './Feature'
-import { PAGE_LAYOUTS } from '@toneflix/flipbook-core'
+import { Design, type DesignKind } from './Design'
 import type { Book } from '@app/models/Book'
 import type { Space } from '@app/models/Space'
 import { Photo } from '@app/models/Photo'
@@ -153,17 +153,17 @@ export class Limits {
     await this.ensureAllowed('premium_covers', 'coverDesign', 'This cover design is not included in your plan.')
   }
 
-  /** The page layouts the plan lets its account use. */
-  async pageLayouts(): Promise<string[]> {
-    return (await this.allows('premium_layouts')) ? Object.keys(PAGE_LAYOUTS) : Feature.FREE_LAYOUTS
+  /** The designs of a kind the plan lets its account use. */
+  async designs(kind: DesignKind): Promise<string[]> {
+    return Design.allowed(kind, this.plan)
   }
 
-  /** New pages and changed layouts must be on the plan. Pages that already use a layout keep it. */
-  async ensurePageLayouts(layouts: Array<string | null | undefined>, current: string[] = []): Promise<void> {
-    const allowed = await this.pageLayouts()
-    const added = layouts.filter((layout): layout is string => !!layout && !allowed.includes(layout) && !current.includes(layout))
+  /** New choices must be on the plan. Designs the book already uses can stay. */
+  async ensureDesigns(kind: DesignKind, chosen: Array<string | null | undefined>, current: Array<string | null | undefined> = [], field: string): Promise<void> {
+    const allowed = await this.designs(kind)
+    const added = chosen.filter((design): design is string => !!design && !allowed.includes(design) && !current.includes(design))
 
-    if (added.length) await this.ensureAllowed('premium_layouts', 'pages', 'Some of these page layouts are not included in your plan.')
+    if (added.length) await this.fail(field, Design.find(kind)!.message)
   }
 
   /** Free plans download sized copies up to the large preset; full-size originals need `original_downloads`. */

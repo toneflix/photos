@@ -3,12 +3,14 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 're
 import { router, useLocalSearchParams } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRequest } from 'alova/client'
-import type { BookTheme } from '@photos/types'
+import { pageAspect, type BookTheme, type PageShape } from '@photos/types'
 import { BookCover } from '@/components/BookCover'
 import { ClothPicker } from '@/components/book/CoverPickers'
+import { ShapePicker } from '@/components/book/ShapePicker'
 import { Button, Callout, Field, Input, Select, Text } from '@/components/ui'
 import { api } from '@/lib/api'
 import { FormProblem } from '@/lib/forms'
+import { useLimits } from '@/lib/limits'
 import { bookLists } from '@/lib/lists'
 import { spaceOptions, useSpaces } from '@/lib/spaces'
 import { colors, radius } from '@/theme'
@@ -22,8 +24,10 @@ export default function NewBook() {
   const [description, setDescription] = useState('')
   const [theme, setTheme] = useState<BookTheme>('classic')
   const [spaceId, setSpaceId] = useState(params.space ?? '')
+  const [pageShape, setPageShape] = useState<PageShape>('portrait')
+  const { pageShapes } = useLimits()
   const create = useRequest(
-    () => api.books.create({ title: title.trim(), description: description.trim() || null, theme, spaceId: spaceId || null }),
+    () => api.books.create({ title: title.trim(), description: description.trim() || null, theme, pageShape, spaceId: spaceId || null }),
     { immediate: false },
   ).onSuccess(({ data }) => {
     bookLists.reload()
@@ -42,8 +46,8 @@ export default function NewBook() {
         </View>
 
         <View style={styles.preview}>
-          <View style={styles.cover}>
-            <BookCover book={{ title: title || 'Your title', description: description || null, theme }} />
+          <View style={[styles.cover, coverSize(pageShape)]}>
+            <BookCover book={{ title: title || 'Your title', description: description || null, theme, pageShape }} />
           </View>
         </View>
 
@@ -55,6 +59,8 @@ export default function NewBook() {
           <Input value={description} onChangeText={setDescription} maxLength={2000} placeholder="Two weeks of sun, family and jollof." multiline />
         </Field>
         <ClothPicker value={theme} onChange={setTheme} />
+        <ShapePicker value={pageShape} allowed={pageShapes} onChange={setPageShape} />
+        {problem.fields.pageShape ? <Callout>{problem.fields.pageShape}</Callout> : null}
         {spaces.length > 0 && (
           <Field label="Space">
             <Select label="Space" options={spaceOptions(spaces)} value={spaceId} onChange={setSpaceId} />
@@ -72,10 +78,17 @@ export default function NewBook() {
   )
 }
 
+/** The cover preview, 168 points across its short side. */
+const coverSize = (shape: PageShape) => {
+  const aspect = pageAspect(shape)
+
+  return aspect < 1 ? { width: 168, height: 168 / aspect } : { width: 168 * aspect, height: 168 }
+}
+
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.canvas },
   page: { paddingHorizontal: 20, gap: 18 },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   preview: { alignItems: 'center' },
-  cover: { width: 168, aspectRatio: 3 / 4, borderRadius: radius.md, overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.2)' },
+  cover: { borderRadius: radius.md, overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.2)' },
 })

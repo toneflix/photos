@@ -11,7 +11,6 @@ export type FeatureKey =
   | 'access_codes'
   | 'transfer_codes'
   | 'premium_covers'
-  | 'premium_layouts'
   | 'custom_kicker'
   | 'brand_imprint'
   | 'custom_imprint'
@@ -123,13 +122,6 @@ export class Feature {
       fallback: false,
     },
     {
-      key: 'premium_layouts',
-      title: 'More page layouts',
-      description: 'Collage, triptych, mosaic, film strip, contact sheet, loose prints and story pages.',
-      type: 'toggle',
-      fallback: false,
-    },
-    {
       key: 'custom_kicker',
       title: 'Your own cover line',
       description: 'Replace "A Toneflix photobook" on the cover with your own words.',
@@ -208,9 +200,8 @@ export class Feature {
     },
   ]
 
-  /** Cover designs and page layouts every plan has. The rest need `premium_covers` and `premium_layouts`. */
+  /** Cover designs every plan has. The rest need `premium_covers`. */
   static readonly FREE_COVERS = ['classic', 'image']
-  static readonly FREE_LAYOUTS = ['single', 'framed', 'pair', 'grid', 'text']
 
   static keys(): FeatureKey[] {
     return Feature.ALL.map((feature) => feature.key)

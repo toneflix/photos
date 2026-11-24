@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { data, Link, redirect, useFetcher, type ShouldRevalidateFunctionArgs } from "react-router";
-import type { AppLimits, BookBrandingInput, BookPageInput, BookPagePhoto, BookTheme, BookWithPages, FrameStyle, PageLayout, PaperColor, Photo, PhotoPosition, Space, Visibility } from "@photos/types";
-import { coverHasText, FlipbookModel, FRAME_STYLES, PAGE_LAYOUTS, PAPER_COLORS, type CoverDesign } from "@photos/types";
+import type { AppLimits, BookBrandingInput, BookPageInput, BookPagePhoto, BookTheme, BookWithPages, FrameStyle, PageLayout, PageShape, PaperColor, Photo, PhotoPosition, Space, Visibility } from "@photos/types";
+import { bleeds, coverHasText, FlipbookModel, FRAME_STYLES, PAGE_LAYOUTS, PAPER_COLORS, pageAspect, type CoverDesign } from "@photos/types";
 import { BookLookProvider, CoverView, PageView, PHOTO_DRAG_TYPE, PrintedPhoto, TitlePageView, usePhotoPositioner } from "@toneflix/flipbook-react";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { formError, getServerApi } from "~/lib/api.server";
@@ -12,7 +12,8 @@ import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
 import { ClothPicker, CoverDesignPicker } from "~/components/book/CoverPickers";
-import { LayoutPicker } from "~/components/book/LayoutPicker";
+import { LayoutPicker, PlanStar } from "~/components/book/LayoutPicker";
+import { ShapePicker } from "~/components/book/ShapePicker";
 import { jsonPosition, PhotoPositionControls, storedPosition } from "~/components/book/PhotoPositionControls";
 import { Button, Field, Input, Textarea, buttonClass, Spinner } from "~/components/ui";
 import { copyText } from "~/lib/toast";
@@ -111,9 +112,22 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [paper, setPaper] = useState<PaperColor>(book.paper ?? "ivory");
 	const layoutsAllowed = useMemo(() => book.layoutsAllowed && [...new Set([...book.layoutsAllowed, ...book.pages.map((p) => p.layout)])], [book]);
+	const framesAllowed = useMemo(
+		() =>
+			book.framesAllowed && [
+				...new Set([
+					...book.framesAllowed,
+					book.frame,
+					...book.pages.flatMap((p) => [p.frame, ...p.photos.map((photo) => photo.frame)]).filter((frame): frame is FrameStyle => !!frame),
+				]),
+			],
+		[book],
+	);
 	const [bookFrame, setBookFrame] = useState<FrameStyle>(book.frame ?? "none");
 	const [dragPage, setDragPage] = useState<number | null>(null);
 	const [dropAt, setDropAt] = useState<number | null>(null);
+	const spreadAspect = 2 * pageAspect(book.pageShape);
+	const spreadWidth = `min(56rem, calc((100dvh - 310px) * ${spreadAspect}))`;
 
 	const saver = useFetcher<typeof action>();
 	const lookSaver = useFetcher<typeof action>();
@@ -354,7 +368,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 	);
 
 	return (
-		<BookLookProvider paper={paper} frame={bookFrame}>
+		<BookLookProvider paper={paper} frame={bookFrame} shape={book.pageShape}>
 			<div className="flex h-dvh flex-col bg-[#ece6da]">
 				{/* Header */}
 				<header className="flex items-center gap-3 border-b border-surface-300/70 bg-surface-50 px-3 py-2.5 sm:px-5">
@@ -442,7 +456,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 										aria-label={`Page ${i + 1}`}
 										aria-current={i === selected}
 									>
-										<div className="relative aspect-[3/4]" style={{ containerType: "size" }}>
+										<div className="relative" style={{ aspectRatio: pageAspect(book.pageShape), containerType: "size" }}>
 											<PageView page={FlipbookModel.page(page)} />
 										</div>
 									</button>
@@ -465,13 +479,13 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 					<section className="flex min-h-0 min-w-0 flex-1 flex-col items-center gap-4 overflow-y-auto p-4 sm:p-6">
 						{current ? (
 							<>
-								<div className="w-full max-w-[min(56rem,calc((100dvh-310px)*1.5))] min-w-64">
-									<LayoutPicker value={current.layout} allowed={layoutsAllowed} onPick={setLayout} />
+								<div className="w-full min-w-64" style={{ maxWidth: spreadWidth }}>
+									<LayoutPicker value={current.layout} shape={book.pageShape} allowed={layoutsAllowed} onPick={setLayout} />
 								</div>
 
-								<div className="relative w-full max-w-[min(56rem,calc((100dvh-310px)*1.5))] min-w-64">
+								<div className="relative w-full min-w-64" style={{ maxWidth: spreadWidth }}>
 									<div className="absolute -inset-x-3 -bottom-5 h-8 rounded-[50%] bg-black/25 blur-xl" />
-									<div className="relative grid aspect-[3/2] grid-cols-2 bg-surface-50 shadow-[0_18px_50px_rgb(60_40_20/0.25)]">
+									<div style={{ aspectRatio: spreadAspect }} className="relative grid grid-cols-2 bg-surface-50 shadow-[0_18px_50px_rgb(60_40_20/0.25)]">
 										<div className="relative overflow-hidden">
 											{renderSpreadPage(leftIndex, "left")}
 											<div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-black/15 to-transparent" />
@@ -539,6 +553,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 										slot={slot !== null && current.photos[slot] ? slot : null}
 										paper={paper}
 										bookFrame={bookFrame}
+										allowed={framesAllowed}
 										sample={current.photos[0] ?? photos[0] ?? null}
 										onPick={setFrame}
 										onPickPhoto={setPhotoFrame}
@@ -640,6 +655,7 @@ function FramePicker({
 	slot,
 	paper,
 	bookFrame,
+	allowed,
 	sample,
 	onPick,
 	onPickPhoto,
@@ -649,6 +665,8 @@ function FramePicker({
 	slot: number | null;
 	paper: PaperColor;
 	bookFrame: FrameStyle;
+	/** Frames the owner's plan includes. The rest carry a mark and can't be picked. */
+	allowed?: FrameStyle[];
 	sample: Photo | null;
 	onPick: (frame: FrameStyle | null) => void;
 	onPickPhoto: (slot: number, frame: FrameStyle | null) => void;
@@ -656,11 +674,12 @@ function FramePicker({
 }) {
 	const photo = slot !== null ? page.photos[slot] : null;
 	const [forPhoto, setForPhoto] = useState(!!photo?.frame);
+	const [asked, setAsked] = useState<FrameStyle | null>(null);
 
-	if (page.layout === "single" || page.layout === "text") {
+	if (bleeds(page.layout) || page.layout === "text") {
 		return (
 			<p className="text-center text-xs text-ink-500">
-				{page.layout === "single" ? "Full-bleed photos print to the edge, so they have no frame." : "Pages of words have no frame."}
+				{page.layout !== "text" ? "Photos printed to the edge have no frame." : "Pages of words have no frame."}
 			</p>
 		);
 	}
@@ -675,6 +694,7 @@ function FramePicker({
 
 	const swatch = (frame: FrameStyle, label: string, value: FrameStyle | null) => {
 		const checked = choosing.current === value;
+		const locked = !!value && !!allowed && !allowed.includes(value);
 
 		return (
 			<button
@@ -682,19 +702,28 @@ function FramePicker({
 				type="button"
 				role="radio"
 				aria-checked={checked}
-				onClick={() => pick(value)}
+				aria-disabled={locked || undefined}
+				aria-describedby={locked ? "locked-frame" : undefined}
+				onClick={() => {
+					setAsked(locked ? value : null);
+
+					if (!locked) pick(value);
+				}}
 				title={FRAME_STYLES[frame].description}
 				className="group flex flex-col items-center gap-1"
 			>
-				<span
-					className={`fb-paper fb-paper-${paper} relative block aspect-square w-full overflow-hidden rounded-md ring-2 transition ${
-						checked ? "ring-brand-500" : "ring-black/5 group-hover:ring-surface-300"
-					}`}
-					style={{ containerType: "size" }}
-				>
-					<span className="absolute inset-[12%]">
-						<PrintedPhoto photo={FlipbookModel.photo(forPhoto && photo ? photo : sample)} frame={frame} scale={3} />
+				<span className="relative block w-full">
+					<span
+						className={`fb-paper fb-paper-${paper} relative block aspect-square w-full overflow-hidden rounded-md ring-2 transition ${
+							checked ? "ring-brand-500" : locked ? "ring-gold-200 group-hover:ring-gold-400" : "ring-black/5 group-hover:ring-surface-300"
+						}`}
+						style={{ containerType: "size" }}
+					>
+						<span className={`absolute inset-[12%] ${locked ? "opacity-45" : ""}`}>
+							<PrintedPhoto photo={FlipbookModel.photo(forPhoto && photo ? photo : sample)} frame={frame} scale={3} />
+						</span>
 					</span>
+					{locked && <PlanStar />}
 				</span>
 				<span className={`text-[11px] leading-tight ${checked ? "font-medium text-ink-900" : "text-ink-500"}`}>{label}</span>
 			</button>
@@ -736,7 +765,16 @@ function FramePicker({
 				{swatch(choosing.inherited, choosing.inheritLabel, null)}
 				{(Object.keys(FRAME_STYLES) as FrameStyle[]).map((frame) => swatch(frame, FRAME_STYLES[frame].label, frame))}
 			</div>
-			<p className="mt-1.5 text-xs text-ink-500">{FRAME_STYLES[shown].description}.</p>
+			{asked ? (
+				<p id="locked-frame" className="mt-1.5 text-xs text-ink-700">
+					{FRAME_STYLES[asked].label} isn't included in your plan.{" "}
+					<Link to="/pricing" className="font-semibold text-brand-700 hover:underline">
+						See plans
+					</Link>
+				</p>
+			) : (
+				<p className="mt-1.5 text-xs text-ink-500">{FRAME_STYLES[shown].description}.</p>
+			)}
 		</div>
 	);
 }
@@ -752,6 +790,8 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 	const [theme, setTheme] = useState<BookTheme>(book.theme);
 	const [coverDesign, setCoverDesign] = useState<CoverDesign>(book.coverDesign);
 	const [coverText, setCoverText] = useState<boolean | null>(book.coverText);
+	const [pageShape, setPageShape] = useState<PageShape>(book.pageShape);
+	const shapesAllowed = useMemo(() => book.shapesAllowed && [...new Set([...book.shapesAllowed, book.pageShape])], [book]);
 	const [visibility, setVisibility] = useState<Visibility>(book.visibility);
 	const [allowDownloads, setAllowDownloads] = useState(book.allowDownloads);
 	const [coverPhotoId, setCoverPhotoId] = useState<string | null>(book.coverPhotoId);
@@ -763,7 +803,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 	const coverPhoto = uniquePhotos.find((p) => p.id === coverPhotoId) ?? uniquePhotos[0] ?? null;
 	const { bookKicker } = useLimits();
 	const kicker = book.brandingAllowed?.kicker ? branding.kicker?.trim() || bookKicker : book.branding.kicker;
-	const cover = { ...book, title: title || "Untitled", description, theme, coverDesign, coverText, coverPhoto, coverPosition, branding: { ...book.branding, kicker } };
+	const cover = { ...book, title: title || "Untitled", description, theme, coverDesign, pageShape, coverText, coverPhoto, coverPosition, branding: { ...book.branding, kicker } };
 	const positioner = usePhotoPositioner(coverPosition, coverPhoto ? (position) => setCoverPosition(storedPosition(position)) : undefined);
 	const titled = coverHasText(FlipbookModel.cover(cover));
 	const submitted = useRef(false);
@@ -777,7 +817,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 		fetcher.submit(
 			{
 				intent: "update",
-				changes: { title, description: description || null, theme, coverDesign, coverText, coverPhotoId, coverPosition: jsonPosition(coverPosition), ...(book.isOwner ? { visibility, spaceId: spaceId || null, allowDownloads } : {}), ...brandingChanges(book, branding) },
+				changes: { title, description: description || null, theme, coverDesign, coverText, coverPhotoId, coverPosition: jsonPosition(coverPosition), ...(book.isOwner ? { visibility, spaceId: spaceId || null, allowDownloads, pageShape } : {}), ...brandingChanges(book, branding) },
 			},
 			{ method: "post", encType: "application/json" },
 		);
@@ -804,7 +844,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 				</div>
 				<div className="flex-1 space-y-6 px-6 py-6">
 					<div className="mx-auto w-40">
-						<div ref={positioner} className="relative aspect-[3/4] overflow-hidden rounded-r-md shadow-lg" style={{ containerType: "size" }}>
+						<div ref={positioner} className="relative overflow-hidden rounded-r-md shadow-lg" style={{ aspectRatio: pageAspect(pageShape), containerType: "size" }}>
 							<CoverView book={FlipbookModel.cover(cover)} />
 						</div>
 					</div>
@@ -815,6 +855,7 @@ function SettingsDrawer({ book, spaces, bookPhotos, onClose }: { book: BookWithP
 					<Field label="Title page text">
 						<Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} maxLength={2000} />
 					</Field>
+					{book.isOwner && <ShapePicker value={pageShape} allowed={shapesAllowed} onChange={setPageShape} />}
 					<CoverDesignPicker
 						book={cover}
 						onChange={(design) => {

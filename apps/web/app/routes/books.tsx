@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { data, Form, Link, redirect, useNavigation } from "react-router";
-import { FlipbookModel, type Book, type BookTheme, type Space } from "@photos/types";
+import { FlipbookModel, pageAspect, type Book, type BookTheme, type PageShape, type Space } from "@photos/types";
 import { formError } from "~/lib/api.server";
 import { requireSignIn } from "~/lib/session.server";
 import { spaceFiltered } from "~/lib/space-filter.server";
 import { useInfiniteList } from "~/lib/use-infinite-list";
 import { CoverView } from "@toneflix/flipbook-react";
 import { ClothPicker } from "~/components/book/CoverPickers";
+import { ShapePicker } from "~/components/book/ShapePicker";
+import { useLimits } from "~/lib/limits";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
 import { Alert, Button, Field, Input, Spinner, Textarea } from "~/components/ui";
 import { BOOK_VISIBILITY_FILTER, SORT_FILTER, SearchFilters, THEME_FILTER, filterParam, searchText, spaceFilter } from "~/components/SearchFilters";
@@ -53,6 +55,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 			description: String(form.get("description") ?? "") || null,
 			theme: (String(form.get("theme") ?? "classic") as BookTheme) || "classic",
 			spaceId: String(form.get("spaceId") ?? "") || null,
+			pageShape: (String(form.get("pageShape") ?? "") as PageShape) || undefined,
 		});
 		return redirect(`/books/${book.id}/edit`);
 	} catch (error) {
@@ -132,8 +135,8 @@ function BookCard({ book }: { book: Book }) {
 			<div className="relative">
 				<Link prefetch="intent"
 					to={`/books/${book.id}`}
-					className="relative block aspect-[3/4] overflow-hidden rounded-lg bg-surface-100 shadow-sm transition duration-300 group-hover:shadow-xl"
-					style={{ containerType: "size" }}
+					className="relative block overflow-hidden rounded-lg bg-surface-100 shadow-sm transition duration-300 group-hover:shadow-xl"
+					style={{ aspectRatio: pageAspect(book.pageShape), containerType: "size" }}
 					aria-label={`Open ${book.title}`}
 				>
 					<CoverView book={FlipbookModel.cover(book)} />
@@ -184,6 +187,8 @@ function NewBookForm({
 	const busy = useNavigation().state !== "idle";
 	const [theme, setTheme] = useState<BookTheme>("classic");
 	const [title, setTitle] = useState("");
+	const [pageShape, setPageShape] = useState<PageShape>("portrait");
+	const { pageShapes } = useLimits();
 
 	return (
 		<Form method="post" className="mt-8 grid gap-8 panel p-6 md:grid-cols-[1fr_200px] md:p-8">
@@ -197,6 +202,8 @@ function NewBookForm({
 					<Textarea name="description" rows={2} maxLength={2000} placeholder="Two weeks of sun, family and jollof." />
 				</Field>
 				<ClothPicker value={theme} onChange={setTheme} name="theme" />
+				<ShapePicker value={pageShape} allowed={pageShapes} name="pageShape" onChange={setPageShape} />
+				{error?.fieldErrors.pageShape && <p className="text-sm text-red-700">{error.fieldErrors.pageShape}</p>}
 				{spaces.length > 0 && (
 					<Field label="Space">
 						<SpacePicker spaces={spaces} name="spaceId" defaultValue={spaceId ?? ""} />
@@ -214,8 +221,8 @@ function NewBookForm({
 				</div>
 			</div>
 			<div className="hidden md:block">
-				<div className="relative aspect-[3/4] overflow-hidden rounded-r-md shadow-lg" style={{ containerType: "size" }}>
-					<CoverView book={FlipbookModel.cover({ title: title || "Your title", description: null, theme, coverDesign: "classic", coverText: null })} />
+				<div className="relative overflow-hidden rounded-r-md shadow-lg" style={{ aspectRatio: pageAspect(pageShape), containerType: "size" }}>
+					<CoverView book={FlipbookModel.cover({ title: title || "Your title", description: null, theme, coverDesign: "classic", coverText: null, pageShape })} />
 				</div>
 			</div>
 		</Form>

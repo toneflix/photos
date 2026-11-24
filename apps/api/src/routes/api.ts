@@ -16,6 +16,7 @@ import PaymentController from 'src/app/http/controllers/PaymentController'
 import AdminPlanController from 'src/app/http/controllers/admin/PlanController'
 import AdminDocumentController from 'src/app/http/controllers/admin/DocumentController'
 import PaymentRegionController from 'src/app/http/controllers/admin/PaymentRegionController'
+import DesignController from 'src/app/http/controllers/admin/DesignController'
 import StatsController from 'src/app/http/controllers/StatsController'
 import ModerationController from 'src/app/http/controllers/admin/ModerationController'
 import OverviewController from 'src/app/http/controllers/admin/OverviewController'
@@ -150,6 +151,8 @@ Router.get('/admin/plans', [AdminPlanController, 'index'], [auth, Authorize.to('
 Router.post('/admin/plans', [AdminPlanController, 'create'], [auth, Authorize.to('plans.manage')])
 Router.put('/admin/plans/:plan', [AdminPlanController, 'update'], [auth, Authorize.to('plans.manage')])
 Router.delete('/admin/plans/:plan', [AdminPlanController, 'destroy'], [auth, Authorize.to('plans.manage')])
+Router.get('/admin/designs', [DesignController, 'index'], [auth, Authorize.to('plans.manage')])
+Router.put('/admin/designs/:kind/:design', [DesignController, 'update'], [auth, Authorize.to('plans.manage')])
 Router.get('/admin/payment-regions', [PaymentRegionController, 'index'], [auth, Authorize.to('plans.manage')])
 Router.post('/admin/payment-regions', [PaymentRegionController, 'create'], [auth, Authorize.to('plans.manage')])
 Router.put('/admin/payment-regions/:region', [PaymentRegionController, 'update'], [auth, Authorize.to('plans.manage')])
