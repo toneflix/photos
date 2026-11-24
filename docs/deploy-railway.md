@@ -1,6 +1,6 @@
 # Deploying the API on Railway
 
-The API (`apps/api`) can run on [Railway](https://railway.com) instead of the SSH server described in [deploy.md](./deploy.md). The web app stays on Cloudflare Workers ([deploy-apps.md](./deploy-apps.md)) and only needs `API_URL` pointed at the Railway address.
+The API (`apps/api`) can run on [Railway](https://railway.com) instead of the SSH server described in [deploy.md](./deploy.md). The web app stays on Cloudflare Workers ([deploy-web.md](./deploy-web.md)) and only needs `API_URL` pointed at the Railway address.
 
 The Railway project is described with [Railway Infrastructure as Code](https://docs.railway.com/infrastructure-as-code):
 

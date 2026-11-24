@@ -63,7 +63,7 @@ Useful root scripts: `pnpm typecheck`, `pnpm build`, `pnpm test`, `pnpm lint`.
 
 ## Deploying
 
-Pushing to the `deploy` branch deploys the API over SSH, deploys the web app to Cloudflare Workers and builds an Android APK. Both workflows can also be run by hand with options. See [docs/deploy.md](docs/deploy.md) for the API and [docs/deploy-apps.md](docs/deploy-apps.md) for the web and Android apps, including how to test them. The API can also run on Railway: see [docs/deploy-railway.md](docs/deploy-railway.md).
+Pushing to the `deploy` branch deploys the API over SSH ([docs/deploy.md](docs/deploy.md)). Cloudflare deploys the web app from GitHub ([docs/deploy-web.md](docs/deploy-web.md)). Publishing a GitHub release builds the Android app and submits it to Google Play ([docs/android-release.md](docs/android-release.md)). [docs/deploy-apps.md](docs/deploy-apps.md) covers EAS setup and testing. The API can also run on Railway: see [docs/deploy-railway.md](docs/deploy-railway.md).
 
 ## Using the API client
 

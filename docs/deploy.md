@@ -37,7 +37,7 @@ The API runs from `current/apps/api`.
 
 ## When it runs
 
-- **Push to `deploy`**: checks, then deploys with migrations. The **Deploy apps** workflow runs on the same push (see [deploy-apps.md](./deploy-apps.md)).
+- **Push to `deploy`**: checks, then deploys with migrations.
 - **Manually**: Actions → Deploy API → Run workflow, picking the branch to deploy. Options:
 
 | Option | Default | What it does |

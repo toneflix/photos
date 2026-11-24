@@ -39,7 +39,7 @@ Each download starts a browser for a few seconds and uses a few hundred MB of me
    CLOUDFLARE_API_TOKEN=<token>
    ```
 
-   These are the API's own variables, separate from the `CLOUDFLARE_*` GitHub secrets that deploy the web app ([deploy-apps.md](./deploy-apps.md)); one token can serve both if it has both permissions. On Railway, add them as service variables (`railway variables --set ...`, or in `.railway/railway.ts`). On the SSH server, add them to the API's `.env`.
+   These are the API's own variables, separate from the web app's own deploy, which Cloudflare runs from the dashboard ([deploy-web.md](./deploy-web.md)). On Railway, add them as service variables (`railway variables --set ...`, or in `.railway/railway.ts`). On the SSH server, add them to the API's `.env`.
 
 Browser Run is only used when no local Chromium is found. To use it on Railway, leave the Chromium package out of `railpack.json` (or set `CHROMIUM_PATH` to a path that doesn't exist).
 
