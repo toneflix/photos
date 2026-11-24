@@ -110,6 +110,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 	const [dirty, setDirty] = useState(false);
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [paper, setPaper] = useState<PaperColor>(book.paper ?? "ivory");
+	const layoutsAllowed = useMemo(() => book.layoutsAllowed && [...new Set([...book.layoutsAllowed, ...book.pages.map((p) => p.layout)])], [book]);
 	const [bookFrame, setBookFrame] = useState<FrameStyle>(book.frame ?? "none");
 	const [dragPage, setDragPage] = useState<number | null>(null);
 	const [dropAt, setDropAt] = useState<number | null>(null);
@@ -465,7 +466,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 						{current ? (
 							<>
 								<div className="w-full max-w-[min(56rem,calc((100dvh-310px)*1.5))] min-w-64">
-									<LayoutPicker value={current.layout} onPick={setLayout} />
+									<LayoutPicker value={current.layout} allowed={layoutsAllowed} onPick={setLayout} />
 								</div>
 
 								<div className="relative w-full max-w-[min(56rem,calc((100dvh-310px)*1.5))] min-w-64">

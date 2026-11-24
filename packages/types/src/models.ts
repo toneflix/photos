@@ -356,6 +356,8 @@ export interface BookWithPages extends Book {
   isOwner: boolean
   /** Everything the visitor may do with the book. */
   permissions: BookPermission[]
+  /** The page layouts the owner's plan includes, shown to editors. */
+  layoutsAllowed?: PageLayout[]
   owner: Pick<User, 'id' | 'name'>
   /** The saved branding text, shown only to the person who made the book. */
   customBranding?: BookBrandingInput

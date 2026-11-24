@@ -77,6 +77,7 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
 
   const [book, setBook] = useState(loaded)
   const [draft, setDraft] = useState(() => BookDraft.from(loaded))
+  const [layoutsAllowed] = useState(() => loaded.layoutsAllowed && [...new Set([...loaded.layoutsAllowed, ...loaded.pages.map((page) => page.layout)])])
   const [selected, setSelected] = useState(0)
   const [slot, setSlot] = useState<number | null>(0)
   const [positioning, setPositioning] = useState(false)
@@ -373,6 +374,7 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
             <>
               <LayoutPicker
                 value={current.layout}
+                allowed={layoutsAllowed}
                 onPick={(layout) => {
                   change(draft.layout(selected, layout))
                   setSlot(0)
