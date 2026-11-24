@@ -43,7 +43,7 @@ export class BookPrintPage {
 
   async html(): Promise<string> {
     const { library, style, fonts } = await BookPrintPage.load()
-    const width = Number(config('print.page_width_mm') ?? 210)
+    const shortSide = Number(config('print.page_short_side_mm') ?? 210)
 
     return `<!doctype html>
 <html>
@@ -55,13 +55,13 @@ export class BookPrintPage {
     <style>${fonts} body { margin: 0; }</style>
   </head>
   <body>
-    <main id="book">${BookPrintPage.draw(library, this.model, width)}</main>
+    <main id="book">${BookPrintPage.draw(library, this.model, shortSide)}</main>
   </body>
 </html>`
   }
 
   /** The book's sheets as markup, drawn by `FlipbookPrint` on a throwaway DOM. Drawing is synchronous, so the DOM globals it needs are only lent for the call. */
-  private static draw(library: Library, book: FlipbookBook, width: number): string {
+  private static draw(library: Library, book: FlipbookBook, shortSide: number): string {
     const { window, document } = parseHTML('<!doctype html><html><body><main></main></body></html>')
     const container = document.querySelector('main')!
     const scope = globalThis as Record<string, unknown>
@@ -71,7 +71,7 @@ export class BookPrintPage {
     Object.assign(scope, lent)
 
     try {
-      new library.FlipbookPrint(container as unknown as HTMLElement, book, { width })
+      new library.FlipbookPrint(container as unknown as HTMLElement, book, { shortSide })
 
       return container.innerHTML
     } finally {

@@ -73,7 +73,7 @@ export interface Plan {
 }
 
 /** Kinds of book design admins can keep to some plans. */
-export type DesignKind = 'layout' | 'frame'
+export type DesignKind = 'layout' | 'frame' | 'shape'
 
 /** How many designs of one kind a plan includes, out of all of them. */
 export interface PlanDesigns {

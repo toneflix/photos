@@ -56,8 +56,12 @@ export class BookDetailResource extends BookResource {
     }
   }
 
-  /** The layouts and frames the owner's plan includes, for the editor's pickers. */
+  /** The layouts, frames and page shapes the owner's plan includes, for the editor's pickers. */
   private async designsAllowed(limits: Limits) {
-    return { layoutsAllowed: await limits.designs('layout'), framesAllowed: await limits.designs('frame') }
+    return {
+      layoutsAllowed: await limits.designs('layout'),
+      framesAllowed: await limits.designs('frame'),
+      shapesAllowed: await limits.designs('shape'),
+    }
   }
 }

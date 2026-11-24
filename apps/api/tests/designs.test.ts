@@ -17,6 +17,7 @@ const api = (method: 'get' | 'post' | 'put', path: string, body?: Record<string,
 
 describe('Book designs on plans', () => {
   let premium = ''
+  let tall = ''
 
   beforeAll(async () => {
     seedPlans()
@@ -36,6 +37,7 @@ describe('Book designs on plans', () => {
 
   afterAll(async () => {
     await api('put', '/admin/designs/frame/woodgrain', { planIds: null })
+    await api('put', '/admin/designs/shape/wide', { planIds: null })
   })
 
   it('lists every layout and frame with the plans each is kept to', async () => {
@@ -97,5 +99,36 @@ describe('Book designs on plans', () => {
     const same = await api('put', `/books/${book}`, { frame: 'woodgrain', title: 'Kept still' }, 'free')
 
     expect(same.status).toBe(200)
+  })
+
+  it('gives books a page shape, portrait unless chosen', async () => {
+    const plain = await api('post', '/books', { title: 'Tall' }, 'free')
+    const square = await api('post', '/books', { title: 'Square', pageShape: 'square' }, 'free')
+    const odd = await api('post', '/books', { title: 'Odd', pageShape: 'round' }, 'free')
+    const changed = await api('put', `/books/${plain.body.data.id}`, { pageShape: 'landscape' }, 'free')
+
+    tall = plain.body.data.id
+
+    expect(plain.body.data.pageShape).toBe('portrait')
+    expect(square.body.data.pageShape).toBe('square')
+    expect(odd.status).toBe(422)
+    expect(changed.status).toBe(200)
+    expect(changed.body.data.pageShape).toBe('landscape')
+  })
+
+  it('keeps a restricted page shape to the plans it lists', async () => {
+    await api('put', '/admin/designs/shape/wide', { planIds: [premium] })
+
+    const free = await api('put', `/books/${tall}`, { pageShape: 'wide' }, 'free')
+    const paid = await api('post', '/books', { title: 'Wide', pageShape: 'wide' }, 'paid')
+    const limits = await api('get', '/limits', undefined, 'free')
+    const detail = await api('get', `/books/${paid.body.data.id}`, undefined, 'paid')
+
+    expect(free.status).toBe(422)
+    expect(free.body.errors.pageShape[0]).toContain('not included in your plan')
+    expect(paid.status).toBe(201)
+    expect(limits.body.data.pageShapes).not.toContain('wide')
+    expect(limits.body.data.pageShapes).toContain('square')
+    expect(detail.body.data.shapesAllowed).toContain('wide')
   })
 })

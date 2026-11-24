@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Switch, View } from 'react-native'
-import { COVER_DESIGNS, COVER_THEMES, coverHasText, type BookTheme, type CoverDesign } from '@photos/types'
+import { COVER_DESIGNS, COVER_THEMES, coverHasText, pageAspect, type BookTheme, type CoverDesign } from '@photos/types'
 import { BookCover, type CoverLook } from '@/components/BookCover'
 import { Field, Text } from '@/components/ui'
 import { colors, fonts, radius } from '@/theme'
@@ -40,7 +40,7 @@ export function CoverDesignPicker({ book, onChange }: { book: CoverLook & { cove
           return (
             <Pressable key={design} onPress={() => onChange(design)} accessibilityRole="radio" accessibilityLabel={COVER_DESIGNS[design].label} accessibilityState={{ checked }} style={styles.design}>
               <View style={[styles.ring, checked && styles.ringOn]}>
-                <View style={styles.cover}>
+                <View style={[styles.cover, { aspectRatio: pageAspect(book.pageShape) }]}>
                   <BookCover book={{ ...book, coverDesign: design, coverText: checked ? book.coverText : null }} />
                 </View>
               </View>
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   design: { width: '33.333%', paddingHorizontal: 6, alignItems: 'center', gap: 6 },
   ring: { width: '100%', padding: 2, borderRadius: 6, borderWidth: 2, borderColor: 'transparent' },
   ringOn: { borderColor: colors.brand500 },
-  cover: { width: '100%', aspectRatio: 3 / 4, borderTopRightRadius: 3, borderBottomRightRadius: 3, overflow: 'hidden' },
+  cover: { width: '100%', borderTopRightRadius: 3, borderBottomRightRadius: 3, overflow: 'hidden' },
   designLabel: { fontSize: 12, lineHeight: 15, color: colors.ink500, textAlign: 'center' },
   designLabelOn: { fontFamily: fonts.medium, color: colors.ink900 },
   note: { marginTop: 8, fontSize: 13 },

@@ -28,7 +28,7 @@ export class PrintCache {
 
   /** A fingerprint of the given parts and the settings and library every drawing depends on. */
   static fingerprint(parts: unknown): string {
-    const settings = ['page_width_mm', 'image_dpi', 'photo_max_edge'].map((key) => config(`print.${key}` as never))
+    const settings = ['page_short_side_mm', 'image_dpi', 'photo_max_edge'].map((key) => config(`print.${key}` as never))
     const library = PrintCache.libraryVersion()
 
     return createHash('sha256')

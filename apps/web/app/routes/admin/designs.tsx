@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect } from "react";
 import { data, useFetcher } from "react-router";
-import { LAYOUT_SKETCHES, type DesignKind, type DesignRestriction, type FrameStyle, type PageLayout } from "@photos/types";
+import { PAGE_LAYOUTS, PAGE_SHAPES, pageAspect, type DesignKind, type DesignRestriction, type FrameStyle, type PageLayout, type PageShape } from "@photos/types";
 import { PrintedPhoto } from "@toneflix/flipbook-react";
 import { AdminHeader } from "~/components/admin/AdminHeader";
 import { LayoutSketch } from "~/components/book/LayoutPicker";
@@ -120,10 +120,23 @@ function Chip({ on, muted = false, onClick, children }: { on: boolean; muted?: b
 	);
 }
 
-/** A page sketch for a layout, a framed placeholder for a frame. */
+/** A page sketch for a layout, an outline for a page shape, a framed placeholder for a frame. */
 function DesignPreview({ kind, design }: { kind: DesignKind; design: string }) {
+	if (kind === "shape") {
+		if (!(design in PAGE_SHAPES)) return null;
+
+		return (
+			<span className="flex h-12 w-12 shrink-0 items-center justify-center">
+				<span
+					className={`block rounded-[3px] border-2 border-surface-300 bg-surface-100 ${pageAspect(design as PageShape) < 1 ? "h-11" : "w-11"}`}
+					style={{ aspectRatio: pageAspect(design as PageShape) }}
+				/>
+			</span>
+		);
+	}
+
 	if (kind === "layout") {
-		if (!(design in LAYOUT_SKETCHES)) return null;
+		if (!(design in PAGE_LAYOUTS)) return null;
 
 		return (
 			<span className="flex aspect-[3/4] w-9 shrink-0 items-center justify-center rounded-[5px] border-2 border-surface-200 bg-surface-100 text-ink-500">

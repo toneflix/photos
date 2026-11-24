@@ -6,8 +6,8 @@ import { Ionicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { usePagination, useRequest } from 'alova/client'
-import { PAGE_LAYOUTS, PAPER_COLORS, type BookWithPages, type FrameStyle, type PageLayout, type PaperColor, type Photo } from '@photos/types'
-import { BookLookProvider, PAGE_RATIO, PageView } from '@toneflix/flipbook-native'
+import { PAGE_LAYOUTS, PAPER_COLORS, pageAspect, type BookWithPages, type FrameStyle, type PageLayout, type PaperColor, type Photo } from '@photos/types'
+import { BookLookProvider, PageView } from '@toneflix/flipbook-native'
 import { BookSettings, type BookChanges } from '@/components/book/BookSettings'
 import { FramePicker } from '@/components/book/FramePicker'
 import { LayoutPicker } from '@/components/book/LayoutPicker'
@@ -244,7 +244,7 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
   )
 
   return (
-    <BookLookProvider paper={book.paper ?? 'ivory'} frame={book.frame ?? 'none'} fonts={BOOK_FONTS}>
+    <BookLookProvider paper={book.paper ?? 'ivory'} frame={book.frame ?? 'none'} shape={book.pageShape} fonts={BOOK_FONTS}>
       <View style={[styles.screen, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} hitSlop={8}>
@@ -313,14 +313,14 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
             contentContainerStyle={styles.strip}
             renderItem={({ item: page, index }) => (
               <Pressable onPress={() => select(index)} accessibilityRole="button" accessibilityLabel={`Page ${index + 1}`} accessibilityState={{ selected: index === selected }} style={styles.thumbWrap}>
-                <View style={[styles.thumb, index === selected && styles.thumbOn]}>
+                <View style={[styles.thumb, { height: THUMB / pageAspect(book.pageShape) }, index === selected && styles.thumbOn]}>
                   <PageView page={FlipbookModel.page(page)} width={THUMB} />
                 </View>
                 <Text style={[styles.thumbNumber, index === selected && styles.thumbNumberOn]}>{index + 1}</Text>
               </Pressable>
             )}
             ListFooterComponent={
-              <Pressable onPress={() => addPage()} accessibilityRole="button" accessibilityLabel="Add a page" style={[styles.thumb, styles.addThumb]}>
+              <Pressable onPress={() => addPage()} accessibilityRole="button" accessibilityLabel="Add a page" style={[styles.thumb, { height: THUMB / pageAspect(book.pageShape) }, styles.addThumb]}>
                 <Ionicons name="add" size={22} color={colors.ink500} />
               </Pressable>
             }
@@ -384,6 +384,7 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
             <>
               <LayoutPicker
                 value={current.layout}
+                shape={book.pageShape}
                 allowed={layoutsAllowed}
                 onPick={(layout) => {
                   change(draft.layout(selected, layout))
@@ -492,7 +493,7 @@ const styles = StyleSheet.create({
   centerText: { textAlign: 'center' },
   strip: { gap: 10, paddingVertical: 2 },
   thumbWrap: { alignItems: 'center', gap: 4 },
-  thumb: { width: THUMB, height: THUMB / PAGE_RATIO, borderRadius: 3, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent' },
+  thumb: { width: THUMB, borderRadius: 3, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent' },
   thumbOn: { borderColor: colors.brand500 },
   thumbNumber: { fontSize: 12, color: colors.ink500 },
   thumbNumberOn: { fontFamily: fonts.semibold, color: colors.ink900 },

@@ -19,6 +19,7 @@ const THEME = `in:${Book.THEMES.join(',')}`
 const PAPER = `in:${Book.PAPERS.join(',')}`
 const FRAME = `in:${Book.FRAMES.join(',')}`
 const COVER_DESIGN = `in:${Book.COVER_DESIGNS.join(',')}`
+const SHAPE = `in:${Book.SHAPES.join(',')}`
 
 /** The owner's own cover line and back cover text, each allowed by their plan. */
 const BRANDING = {
@@ -58,6 +59,7 @@ export default class BookController extends BaseController {
       coverText: 'nullable|boolean',
       paper: `nullable|${PAPER}`,
       frame: `nullable|${FRAME}`,
+      pageShape: `nullable|${SHAPE}`,
       spaceId: ['nullable', UUID],
       ...BRANDING,
     })
@@ -67,6 +69,7 @@ export default class BookController extends BaseController {
     await limits.ensureCanCreateBook()
     await limits.ensureCoverDesign(data.coverDesign)
     await limits.ensureDesigns('frame', [data.frame], [], 'frame')
+    await limits.ensureDesigns('shape', [data.pageShape], [], 'pageShape')
     await limits.ensureBranding(data)
 
     const space = data.spaceId ? (await SpaceAccess.find(data.spaceId, this.user)).authorize('create').space : null
@@ -84,6 +87,7 @@ export default class BookController extends BaseController {
       coverText: data.coverText ?? null,
       paper: data.paper || 'ivory',
       frame: data.frame || 'none',
+      pageShape: data.pageShape || 'portrait',
       kicker: data.kicker?.trim() || null,
       brand: data.brand?.trim() || null,
       imprint: data.imprint?.trim() || null,
@@ -118,6 +122,7 @@ export default class BookController extends BaseController {
       coverText: 'nullable|boolean',
       paper: `nullable|${PAPER}`,
       frame: `nullable|${FRAME}`,
+      pageShape: `nullable|${SHAPE}`,
       allowDownloads: 'nullable|boolean',
       coverPhotoId: ['nullable', UUID],
       ...photoPosition('coverPosition'),
@@ -128,12 +133,14 @@ export default class BookController extends BaseController {
 
     abortIf((!!data.visibility || 'spaceId' in data) && !access.isOwner, 'Only the owner can change who can open this book or its space.', 403)
     abortIf('allowDownloads' in data && !access.isOwner, 'Only the owner can turn downloads on or off.', 403)
+    abortIf(!!data.pageShape && data.pageShape !== book.pageShape && !access.isOwner, 'Only the owner can change the shape of the pages.', 403)
     abortIf(branded && !book.isMadeBy(access.viewer), 'Only the person who made this book can change its branding.', 403)
 
     const limits = await Limits.for(await book.user().first())
 
     await limits.ensureCoverDesign(data.coverDesign, book.coverDesign)
     await limits.ensureDesigns('frame', [data.frame], [book.frame], 'frame')
+    await limits.ensureDesigns('shape', [data.pageShape], [book.pageShape], 'pageShape')
 
     if (branded) await (await Limits.for(access.viewer)).ensureBranding(data, book)
 
@@ -145,6 +152,7 @@ export default class BookController extends BaseController {
     if ('coverText' in data) book.coverText = data.coverText ?? null
     if (data.paper) book.paper = data.paper
     if (data.frame) book.frame = data.frame
+    if (data.pageShape) book.pageShape = data.pageShape
     if (typeof data.allowDownloads === 'boolean') book.allowDownloads = data.allowDownloads
     if ('kicker' in data) book.kicker = data.kicker?.trim() || null
     if ('brand' in data) book.brand = data.brand?.trim() || null
