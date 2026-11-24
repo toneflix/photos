@@ -78,11 +78,14 @@ importers:
         specifier: workspace:*
         version: link:../../packages/types
       '@toneflix/flipbook':
-        specifier: ^0.4.0
-        version: 0.4.0
+        specifier: ^0.5.1
+        version: 0.5.1
       '@toneflix/flipbook-core':
-        specifier: ^0.4.0
-        version: 0.4.0
+        specifier: ^0.5.1
+        version: 0.5.1
+      '@toneflix/flipbook-print':
+        specifier: ^0.5.1
+        version: 0.5.1
       '@toneflix/money':
         specifier: ^1.0.2
         version: 1.0.2
@@ -122,9 +125,6 @@ importers:
       pg:
         specifier: ^8.22.0
         version: 8.23.1
-      playwright-core:
-        specifier: ^1.56.1
-        version: 1.56.1
       resora:
         specifier: ^1.5.1
         version: 1.5.1(@h3ravel/musket@2.2.14(@types/node@25.9.9)(tsdown@0.22.14(tsx@4.23.15)(typescript@6.0.3)(unrun@0.3.1)))
@@ -2592,6 +2592,46 @@ packages:
     resolution: {integrity: sha512-tlqY9xq5ukxTUZBmoOp+m61cqwQD5pHJtFY3Mn8CA8ps6yghLH/Hw8UPdqg4OLmFW3IFlcXnQNmo/dh8HzXYIQ==}
     engines: {node: '>=18'}
 
+  '@skia-canvas/darwin-arm64@4.0.1':
+    resolution: {integrity: sha512-agmys9AtQDf+T1ukYHOQrqssWV7qsw252rQlYdZitLaopkVzs3MQm9CTbqoWmnXkHLupXHfw1C5mVyou1XdoDQ==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@skia-canvas/darwin-x64@4.0.1':
+    resolution: {integrity: sha512-w9IX9oPtOPLOGzrtSCREdu+U3myKqz7oUcfphXvXLtYclWPtlMIn2ZDVLqPPR+/Hpk+/dLlCsA4XC+6gLIYg2A==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@skia-canvas/linux-arm64-glibc@4.0.1':
+    resolution: {integrity: sha512-2lHGi1PEK1pAXzr/9Atim6IoZ7eTgIl5r9xt7jYVtnZS9E1QRJYiJKNiOLGaWr29AMY5McMYcwfiIO/mzTrdVQ==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@skia-canvas/linux-arm64-musl@4.0.1':
+    resolution: {integrity: sha512-UctbI9FPwnZ5iwgNbPJk2BRMnhJ/9mUVJY8MDdfiwN/2sXW2O7JHt+HJrwznQHu5sc5CPv09r03ycyJEo4dKTA==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@skia-canvas/linux-x64-glibc@4.0.1':
+    resolution: {integrity: sha512-JZ3i8ohkEA88WDjbqcw260x+iFv64HtgmXHQLAsyMAClMPpxxrarNUTlQEUOV+noakvX0dyTXRd3JW66eaLgRA==}
+    cpu: [x64]
+    os: [linux]
+
+  '@skia-canvas/linux-x64-musl@4.0.1':
+    resolution: {integrity: sha512-NkD2hhuBo0OQmMmP64BtAG/zeRo/V3u3aRXfy/wDuoiiDFtjHqJB08PhGANu4tnYgvppZCbzsh5xuSD1hWkBKg==}
+    cpu: [x64]
+    os: [linux]
+
+  '@skia-canvas/win32-arm64@4.0.1':
+    resolution: {integrity: sha512-K48VJ0cAbmxmPX9q7Hvs9YW/cF9c/4Q2uBaRumjNdMJ7VbhIOuk8HQCrCJNNoTVi3JJY7RoA/x43+HWiJ0bNBQ==}
+    cpu: [arm64]
+    os: [win32]
+
+  '@skia-canvas/win32-x64@4.0.1':
+    resolution: {integrity: sha512-OLv/NPt8pKT/OrPqaetaYNbYd33ZJvjoz1qEL+gcShTEQOsoPA4lp8abwYsbo0+/+O/Nxw601/t5J60QZmcGRQ==}
+    cpu: [x64]
+    os: [win32]
+
   '@smithy/core@3.38.1':
     resolution: {integrity: sha512-U/mB2XiwTLaf+NSgLSWwJfptsMT/H8aBi0aTAA/E5e2/TagFeGCqAyhKGG0w0A9IWTkm4qYEmLoD/HB6aYfnRA==}
     engines: {node: '>=18.0.0'}
@@ -2717,8 +2757,8 @@ packages:
   '@toneflix/flipbook-core@0.3.8':
     resolution: {integrity: sha512-ITAhydGFVZHYspCdTRn4jZZbCdwm2BDA9bL7fHxqKZCggczdyyz83xZ1SS/ALRCxGsPSodqDMKxwLcLqlEKrGQ==}
 
-  '@toneflix/flipbook-core@0.4.0':
-    resolution: {integrity: sha512-9rGbnaVYrMtjJlPI+eq91iCHEZPseiF0ZpucKh2jFBt2+1XPFrIBWUSNHFvAUoIolYYSnKf6a0LpdcABFOG5ng==}
+  '@toneflix/flipbook-core@0.5.1':
+    resolution: {integrity: sha512-VXixzNxqGQ0M7+9IOoNn5AWeLt04lPNbkgRjwyJCdBTaeWMDLd9DHACMqGXui/4+vVdAbn6xMBwypcGFf6i6kQ==}
 
   '@toneflix/flipbook-native@0.3.8':
     resolution: {integrity: sha512-N/FxVwPp8o+XohCipSwHMbhTNQ8yyig8wCJe+c3HMjorO+o6kVBkICc4U/NRjsWsnK9eTmw2HviYRt6uhICjJg==}
@@ -2731,6 +2771,10 @@ packages:
       expo-screen-orientation:
         optional: true
 
+  '@toneflix/flipbook-print@0.5.1':
+    resolution: {integrity: sha512-wodGP8hL7bTlno/UUGXsg4OcjMtxWXejB8w/CPKlTaf3PSreQ/CTwNH6MeIQgx3/0PYolYHXAIaxgIMWHtQ3lQ==}
+    engines: {node: '>=22'}
+
   '@toneflix/flipbook-react@0.3.6':
     resolution: {integrity: sha512-06ZwoK7ylam8Kyci1iJafijpkhvRky5nq/m05PmWAc2k9g2ONLz/05eaeTPyLsoEV+n+TlkYw7kL3GiVYyKOuQ==}
     peerDependencies:
@@ -2740,8 +2784,8 @@ packages:
   '@toneflix/flipbook@0.3.8':
     resolution: {integrity: sha512-c5m/U144/yikQeKz/XV/0AIZFKptr2xss6vQln3BgC04WjB2w4FGfRGydzOkOpfgokIgwU9o7bpgOMRaqRxreg==}
 
-  '@toneflix/flipbook@0.4.0':
-    resolution: {integrity: sha512-AD5wXP26k9vQgYO7L0Nsu6drP+pcYEbR6XegD4qPiQ5bhQ6SoZNIPm4ujOzZVtMeLLK7lX/TPFctlnf8sck3lg==}
+  '@toneflix/flipbook@0.5.1':
+    resolution: {integrity: sha512-STRwG5PxsYfh9EpIXL0CJTykR3Y3n1jHDAhucnyznlaJt4Nxs/LI0f7+2xLEJ8L4KcZcEhCPavUuvAx5UlBTxQ==}
 
   '@toneflix/money@1.0.2':
     resolution: {integrity: sha512-/cuULpFuvt6OFeClLmaJOzvJwK1Kr2z3vzr6fr+d0cJgLi6cgYFnF+Pg49zFuSfa+icC4wUhRbub9LhLw/D/eA==}
@@ -3161,6 +3205,10 @@ packages:
   agent-base@7.1.4:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
+
+  agent-base@9.0.0:
+    resolution: {integrity: sha512-TQf59BsZnytt8GdJKLPfUZ54g/iaUL2OWDSFCCvMOhsHduDQxO8xC4PNeyIkVcA5KwL2phPSv0douC0fgWzmnA==}
+    engines: {node: '>= 20'}
 
   agent-cli-detector@0.1.7:
     resolution: {integrity: sha512-d8OWDVdZMgjhLUT9ZPgSv/BdFFF9pVuscC0JdUSz3bjwE15gcp6u/o0/JooM2yyAWC49KThFhXlgTXRa9B7yng==}
@@ -4662,6 +4710,10 @@ packages:
     resolution: {integrity: sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==}
     engines: {node: '>= 14'}
 
+  https-proxy-agent@9.1.0:
+    resolution: {integrity: sha512-ag87y7cJJ9/3+GxFr8Oy4O5faDsGRGnBGsJj/YjOSsSx/5eadKLYTMPlzuR6obgoCDDm0abAAZitXXQkMOPSpA==}
+    engines: {node: '>= 20'}
+
   human-signals@8.0.1:
     resolution: {integrity: sha512-eKCa6bwnJhvxj14kZk5NCPc6Hb6BdsU9DZcOnmQKSnO1VKrfV0zCvtttPZUsBvjmNDn8rpcJfpwSYnHBjc95MQ==}
     engines: {node: '>=18.18.0'}
@@ -5706,11 +5758,6 @@ packages:
   pkg-types@2.4.0:
     resolution: {integrity: sha512-07Fys7iVx0X6TcviMOgogM1Lk33ZyqOezMnU79S+kffWqwolG/5W9V8EgQSeYCIfFTYVgssRbnH630Oa2+soBA==}
 
-  playwright-core@1.56.1:
-    resolution: {integrity: sha512-hutraynyn31F+Bifme+Ps9Vq59hKuUCz7H1kDOcBs+2oGguKkWTU50bBWrtz34OUWmIwpBTWDxaRPXrIXkgvmQ==}
-    engines: {node: '>=18'}
-    hasBin: true
-
   plist@3.1.1:
     resolution: {integrity: sha512-ZIfcLJC+7E7FBFnDxm9MPmt7D+DidyQ26lewieO75AdhA2ayMtsJSES0iWzqJQbcVRSrTufQoy0DR94xHue0oA==}
     engines: {node: '>=10.4.0'}
@@ -5793,6 +5840,15 @@ packages:
   proxy-addr@2.0.8:
     resolution: {integrity: sha512-5nnx0yGyVUcY6t9RnWcARWtwT9F1D8O9rt08htPvnd49W1IgZtmLkhu9WfMzQj1cFxjHIO6connUNVW5k7AVyQ==}
     engines: {node: '>= 0.10'}
+
+  proxy-agent-negotiate@1.1.0:
+    resolution: {integrity: sha512-N8IBcM3UgCVzz2L2Lqv8DVntDnnC8/hiV4nEDUPkqq72TPUgYWjQc+bdZlBPZK9LzPAvOY//gAt0S0DApoOXWQ==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      kerberos: ^2.0.0
+    peerDependenciesMeta:
+      kerberos:
+        optional: true
 
   proxy-from-env@2.1.0:
     resolution: {integrity: sha512-cJ+oHTW1VAEa8cJslgmUZrc+sjRKgAKl3Zyse6+PV38hZe/V6Z14TbCuXcan9F9ghlz4QrFr2c92TNF82UkYHA==}
@@ -6229,6 +6285,10 @@ packages:
 
   sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
+
+  skia-canvas@4.0.1:
+    resolution: {integrity: sha512-EdHk0VDe/qe/FfwfW2C8y8/Rl0a28z1ZGQMkgPnoIehP6Gikv4cHiHCen6MWnY1e8zvliDnxGu70zaA9e7Mc7w==}
+    engines: {node: '>=18'}
 
   slugify@1.6.9:
     resolution: {integrity: sha512-vZ7rfeehZui7wQs438JXBckYLkIIdfHOXsaVEUMyS5fHo1483l1bMdo0EDSWYclY0yZKFOipDy4KHuKs6ssvdg==}
@@ -9494,6 +9554,30 @@ snapshots:
 
   '@sindresorhus/merge-streams@4.0.0': {}
 
+  '@skia-canvas/darwin-arm64@4.0.1':
+    optional: true
+
+  '@skia-canvas/darwin-x64@4.0.1':
+    optional: true
+
+  '@skia-canvas/linux-arm64-glibc@4.0.1':
+    optional: true
+
+  '@skia-canvas/linux-arm64-musl@4.0.1':
+    optional: true
+
+  '@skia-canvas/linux-x64-glibc@4.0.1':
+    optional: true
+
+  '@skia-canvas/linux-x64-musl@4.0.1':
+    optional: true
+
+  '@skia-canvas/win32-arm64@4.0.1':
+    optional: true
+
+  '@skia-canvas/win32-x64@4.0.1':
+    optional: true
+
   '@smithy/core@3.38.1':
     dependencies:
       '@smithy/types': 4.19.0
@@ -9603,7 +9687,7 @@ snapshots:
 
   '@toneflix/flipbook-core@0.3.8': {}
 
-  '@toneflix/flipbook-core@0.4.0': {}
+  '@toneflix/flipbook-core@0.5.1': {}
 
   '@toneflix/flipbook-native@0.3.8(expo-screen-orientation@58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0)))(react-native-svg@15.16.0(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)':
     dependencies:
@@ -9613,6 +9697,16 @@ snapshots:
       react-native-svg: 15.16.0(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
     optionalDependencies:
       expo-screen-orientation: 58.0.4(expo@58.0.23)(react-native@0.88.1(@babel/core@7.29.13)(@react-native/metro-config@0.88.1(@babel/core@7.29.13))(@types/react@19.3.0)(react@19.3.0))
+
+  '@toneflix/flipbook-print@0.5.1':
+    dependencies:
+      '@fontsource-variable/fraunces': 5.3.0
+      '@toneflix/flipbook-core': 0.5.1
+      skia-canvas: 4.0.1
+    transitivePeerDependencies:
+      - debug
+      - kerberos
+      - supports-color
 
   '@toneflix/flipbook-react@0.3.6(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
@@ -9625,9 +9719,9 @@ snapshots:
     dependencies:
       '@toneflix/flipbook-core': 0.3.8
 
-  '@toneflix/flipbook@0.4.0':
+  '@toneflix/flipbook@0.5.1':
     dependencies:
-      '@toneflix/flipbook-core': 0.4.0
+      '@toneflix/flipbook-core': 0.5.1
 
   '@toneflix/money@1.0.2': {}
 
@@ -10036,6 +10130,8 @@ snapshots:
       - supports-color
 
   agent-base@7.1.4: {}
+
+  agent-base@9.0.0: {}
 
   agent-cli-detector@0.1.7: {}
 
@@ -11652,6 +11748,15 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  https-proxy-agent@9.1.0:
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3
+      proxy-agent-negotiate: 1.1.0
+    transitivePeerDependencies:
+      - kerberos
+      - supports-color
+
   human-signals@8.0.1: {}
 
   hyphenate-style-name@1.1.0: {}
@@ -13037,8 +13142,6 @@ snapshots:
       exsolve: 1.2.0
       pathe: 2.0.3
 
-  playwright-core@1.56.1: {}
-
   plist@3.1.1:
     dependencies:
       '@xmldom/xmldom': 0.9.12
@@ -13112,6 +13215,8 @@ snapshots:
     dependencies:
       forwarded: 0.2.0
       ipaddr.js: 1.9.1
+
+  proxy-agent-negotiate@1.1.0: {}
 
   proxy-from-env@2.1.0: {}
 
@@ -13678,6 +13783,25 @@ snapshots:
   simple-wcswidth@1.1.2: {}
 
   sisteransi@1.0.5: {}
+
+  skia-canvas@4.0.1:
+    dependencies:
+      detect-libc: 2.1.2
+      follow-redirects: 1.16.2
+      https-proxy-agent: 9.1.0
+    optionalDependencies:
+      '@skia-canvas/darwin-arm64': 4.0.1
+      '@skia-canvas/darwin-x64': 4.0.1
+      '@skia-canvas/linux-arm64-glibc': 4.0.1
+      '@skia-canvas/linux-arm64-musl': 4.0.1
+      '@skia-canvas/linux-x64-glibc': 4.0.1
+      '@skia-canvas/linux-x64-musl': 4.0.1
+      '@skia-canvas/win32-arm64': 4.0.1
+      '@skia-canvas/win32-x64': 4.0.1
+    transitivePeerDependencies:
+      - debug
+      - kerberos
+      - supports-color
 
   slugify@1.6.9: {}
 
