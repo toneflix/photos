@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { data, Link, redirect, useFetcher, type ShouldRevalidateFunctionArgs } from "react-router";
 import type { AppLimits, BookBrandingInput, BookPageInput, BookPagePhoto, BookTheme, BookWithPages, FrameStyle, PageLayout, PageShape, PaperColor, Photo, PhotoPosition, Space, Visibility } from "@photos/types";
-import { coverHasText, FlipbookModel, FRAME_STYLES, PAGE_LAYOUTS, PAPER_COLORS, pageAspect, type CoverDesign } from "@photos/types";
+import { bleeds, coverHasText, FlipbookModel, FRAME_STYLES, PAGE_LAYOUTS, PAPER_COLORS, pageAspect, type CoverDesign } from "@photos/types";
 import { BookLookProvider, CoverView, PageView, PHOTO_DRAG_TYPE, PrintedPhoto, TitlePageView, usePhotoPositioner } from "@toneflix/flipbook-react";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { formError, getServerApi } from "~/lib/api.server";
@@ -676,10 +676,10 @@ function FramePicker({
 	const [forPhoto, setForPhoto] = useState(!!photo?.frame);
 	const [asked, setAsked] = useState<FrameStyle | null>(null);
 
-	if (page.layout === "single" || page.layout === "text") {
+	if (bleeds(page.layout) || page.layout === "text") {
 		return (
 			<p className="text-center text-xs text-ink-500">
-				{page.layout === "single" ? "Full-bleed photos print to the edge, so they have no frame." : "Pages of words have no frame."}
+				{page.layout !== "text" ? "Photos printed to the edge have no frame." : "Pages of words have no frame."}
 			</p>
 		);
 	}

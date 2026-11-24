@@ -1,4 +1,4 @@
-import { PAGE_LAYOUTS, pageSize, placedLayout, type PageBox, type PageLayout, type PageShape } from '@toneflix/flipbook-core'
+import { PAGE_LAYOUTS, pageSize, panoramaView, placedLayout, type PageBox, type PageLayout, type PageShape } from '@toneflix/flipbook-core'
 import type { BookPageInput } from './models'
 
 /** Spread photos over pages, mixing layouts so the book has rhythm. */
@@ -74,6 +74,12 @@ export function layoutSketch(layout: PageLayout, shape: PageShape = 'portrait'):
   switch (layout) {
     case 'single':
       return sketch([[0, 0, width, height]])
+    case 'panorama': {
+      // A page sketch shows the panorama whole, as a single page sets it: the spread's shape over its caption.
+      const view = panoramaView(null, size)
+
+      return sketch([sketchBox(view.photo)], typeof view.caption === 'string' ? [] : writing(view.caption))
+    }
     case 'framed': {
       const photo = { x: 9, y: 10, width: width - 18, height: height - 27 }
 
