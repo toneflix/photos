@@ -38,6 +38,10 @@ A release marked as a pre-release on GitHub also goes to open testing, and never
 
 Play's track names are `production`, `beta` (open), `alpha` (closed) and `internal`. Set `PLAY_OPEN_TRACK`, `PLAY_CLOSED_TRACK` or `PLAY_INTERNAL_TRACK` to use custom tracks.
 
+## Code shrinking
+
+Release builds run R8 with resource shrinking (`expo-build-properties` in `app.json`). The workflow uploads R8's `mapping.txt` with each bundle, so crash reports in Play Console show readable stack traces. It is also in the run's artifacts. If a native module breaks only in release builds, add keep rules through `expo-build-properties` (`android.extraProguardRules`).
+
 ## Release notes
 
 The workflow writes Play's "What's new" text (500 characters at most) to `apps/mobile/store-assets/play/whatsnew/whatsnew-en-US`. It takes the release body's bullet points, or the commits since the previous tag when the body has none, and keeps app features:

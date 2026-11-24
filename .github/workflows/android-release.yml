@@ -99,7 +99,10 @@ jobs:
           web-url: ${{ vars.WEB_URL }}
 
       - name: Build the App Bundle and APK
+        id: build
         working-directory: apps/mobile
+        env:
+          EAS_LOCAL_BUILD_SKIP_CLEANUP: 1
         run: |
           build() {
             if [ "$ANDROID_BUILDER" = "runner" ]; then
@@ -110,9 +113,35 @@ jobs:
             fi
           }
 
+          # Keeps R8's mapping.txt from the App Bundle build so Play can deobfuscate crash reports.
+          keep_mapping() {
+            local found="" url=""
+
+            if [ "$ANDROID_BUILDER" = "runner" ]; then
+              found="$(find "$EAS_LOCAL_BUILD_WORKINGDIR" -path '*/mapping/release/mapping.txt' 2>/dev/null | head -n1)"
+            else
+              url="$(jq -r '.[0].artifacts.buildArtifactsUrl // empty' "$RUNNER_TEMP/build.json")"
+
+              if [ -n "$url" ]; then
+                mkdir -p "$RUNNER_TEMP/build-artifacts"
+                curl -fsSL "$url" | tar -xz -C "$RUNNER_TEMP/build-artifacts" || true
+                found="$(find "$RUNNER_TEMP/build-artifacts" -name mapping.txt | head -n1)"
+              fi
+            fi
+
+            if [ -n "$found" ]; then
+              mkdir -p "$ARTIFACTS/mapping"
+              cp "$found" "$ARTIFACTS/mapping/mapping.txt"
+              echo "mapping=$ARTIFACTS/mapping/mapping.txt" >> "$GITHUB_OUTPUT"
+            else
+              echo "::warning::No R8 mapping file was found, so Play crash reports stay obfuscated."
+            fi
+          }
+
           name="toneflix-photos-${{ steps.plan.outputs.version }}-${{ steps.plan.outputs.version_code }}"
 
           build production "$ARTIFACTS/$name.aab"
+          keep_mapping
           build production-apk "$ARTIFACTS/$name.apk"
 
       - uses: actions/upload-artifact@v7
@@ -122,6 +151,7 @@ jobs:
             ${{ env.ARTIFACTS }}/*.aab
             ${{ env.ARTIFACTS }}/*.apk
             ${{ env.ARTIFACTS }}/whatsnew
+            ${{ env.ARTIFACTS }}/mapping
           if-no-files-found: error
 
       - name: Attach the builds to the GitHub release
@@ -152,6 +182,7 @@ jobs:
           tracks: ${{ steps.plan.outputs.tracks }}
           status: ${{ env.RELEASE_STATUS }}
           whatsNewDirectory: ${{ env.ARTIFACTS }}/whatsnew
+          mappingFile: ${{ steps.build.outputs.mapping }}
 
       - name: Commit the store version back to the repository
         if: env.SUBMIT == 'true'
