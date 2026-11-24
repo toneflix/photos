@@ -18,7 +18,10 @@
       "extends": "base",
       "android": {
         "buildType": "app-bundle"
-      }
+      },
+      "buildArtifactPaths": [
+        "android/app/build/outputs/mapping/release/mapping.txt"
+      ]
     },
     "production-apk": {
       "extends": "production",
