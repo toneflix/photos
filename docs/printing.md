@@ -4,8 +4,8 @@ Book owners on a plan with **Pages as a PDF** (`page_pdf`) or **Pages as images*
 
 The API needs a Chromium to draw in. It uses the first of these it finds:
 
-1. **Chromium on the API server** (the hosted option). `PRINT_CHROMIUM_PATH` when it is set and the file exists, else `/usr/bin/chromium`, `/usr/bin/chromium-browser` or `/usr/bin/google-chrome`, else the Chromium Playwright installs.
-2. **Cloudflare Browser Run**, when no local Chromium is found and `PRINT_CLOUDFLARE_ACCOUNT_ID` and `PRINT_CLOUDFLARE_API_TOKEN` are set.
+1. **Chromium on the API server** (the hosted option). `CHROMIUM_PATH` when it is set and the file exists, else `/usr/bin/chromium`, `/usr/bin/chromium-browser` or `/usr/bin/google-chrome`, else the Chromium Playwright installs.
+2. **Cloudflare Browser Run**, when no local Chromium is found and `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` are set.
 
 With neither, page downloads answer 503 and the rest of the API works as usual.
 
@@ -20,9 +20,9 @@ sudo apt-get install -y chromium     # Debian
 sudo apt-get install -y chromium-browser  # Ubuntu
 ```
 
-If it lands somewhere else, set `PRINT_CHROMIUM_PATH` to the binary in the API's `.env`.
+If it lands somewhere else, set `CHROMIUM_PATH` to the binary in the API's `.env`.
 
-**Local development.** `npx playwright-core install chromium` from `apps/api` downloads Playwright's own Chromium, which is found automatically. Or point `PRINT_CHROMIUM_PATH` at any Chrome or Chromium you have.
+**Local development.** `npx playwright-core install chromium` from `apps/api` downloads Playwright's own Chromium, which is found automatically. Or point `CHROMIUM_PATH` at any Chrome or Chromium you have.
 
 Each download starts a browser for a few seconds and uses a few hundred MB of memory while it draws. Books are drawn one at a time.
 
@@ -35,13 +35,13 @@ Each download starts a browser for a few seconds and uses a few hundred MB of me
 3. Set both on the API, then redeploy:
 
    ```sh
-   PRINT_CLOUDFLARE_ACCOUNT_ID=<account id>
-   PRINT_CLOUDFLARE_API_TOKEN=<token>
+   CLOUDFLARE_ACCOUNT_ID=<account id>
+   CLOUDFLARE_API_TOKEN=<token>
    ```
 
-   On Railway, add them as service variables (`railway variables --set ...`, or in `.railway/railway.ts`). On the SSH server, add them to the API's `.env`.
+   These are the API's own variables, separate from the `CLOUDFLARE_*` GitHub secrets that deploy the web app ([deploy-apps.md](./deploy-apps.md)); one token can serve both if it has both permissions. On Railway, add them as service variables (`railway variables --set ...`, or in `.railway/railway.ts`). On the SSH server, add them to the API's `.env`.
 
-Browser Run is only used when no local Chromium is found. To use it on Railway, leave the Chromium package out of `railpack.json` (or set `PRINT_CHROMIUM_PATH` to a path that doesn't exist).
+Browser Run is only used when no local Chromium is found. To use it on Railway, leave the Chromium package out of `railpack.json` (or set `CHROMIUM_PATH` to a path that doesn't exist).
 
 The book's photos, fonts and the flipbook library are served to the remote browser from the API over the same connection, so nothing needs to be public.
 
@@ -49,10 +49,10 @@ The book's photos, fonts and the flipbook library are served to the remote brows
 
 | Variable                      | Default                       |                                                     |
 | ----------------------------- | ----------------------------- | --------------------------------------------------- |
-| `PRINT_CHROMIUM_PATH`         | A system Chromium, if any     | The local Chromium binary.                          |
-| `PRINT_CLOUDFLARE_ACCOUNT_ID` |                               | Browser Run account, used when no Chromium is found. |
-| `PRINT_CLOUDFLARE_API_TOKEN`  |                               | Token with Browser Rendering Edit.                  |
-| `PRINT_PAGE_WIDTH_MM`         | `210`                         | Page width; pages are 3:4.                          |
-| `PRINT_IMAGE_DPI`             | `300`                         | Resolution of page images.                          |
-| `PRINT_PHOTO_MAX_EDGE`        | `3300`                        | Longest side photos are printed at, in pixels.      |
-| `PRINT_TIMEOUT`               | `180`                         | Seconds one book may take to draw.                  |
+| `CHROMIUM_PATH`         | A system Chromium, if any     | The local Chromium binary.                          |
+| `CLOUDFLARE_ACCOUNT_ID` |                               | Browser Run account, used when no Chromium is found. |
+| `CLOUDFLARE_API_TOKEN`  |                               | Token with Browser Rendering Edit.                  |
+| `PAGE_WIDTH_MM`         | `210`                         | Page width; pages are 3:4.                          |
+| `IMAGE_DPI`             | `300`                         | Resolution of page images.                          |
+| `PHOTO_MAX_EDGE`        | `3300`                        | Longest side photos are printed at, in pixels.      |
+| `TIMEOUT`               | `180`                         | Seconds one book may take to draw.                  |
