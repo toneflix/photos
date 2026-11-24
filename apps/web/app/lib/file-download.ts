@@ -77,7 +77,7 @@ export function useFileDownload() {
 					else reject(new Error(page?.body?.innerText.trim() || "We couldn't get your book ready to print."));
 				});
 				frame.src = href;
-				document.body.append(frame);
+				document.body.appendChild(frame);
 			});
 
 			await frame.contentDocument?.fonts?.ready;
