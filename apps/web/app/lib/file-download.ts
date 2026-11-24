@@ -10,10 +10,7 @@ function filename(response: Response, fallback: string) {
 	return encoded ? decodeURIComponent(encoded) : (plain ?? fallback);
 }
 
-/** The message a print page posts once it is fully drawn (see the API's `BookPrintPage`). */
-const PRINT_READY = "toneflix-photos:print-ready";
-
-/** How long a print page may take to load its photos before we give up. */
+/** How long a print page may take to load its photos before we give up. The page is drawn once it has loaded. */
 const PRINT_TIMEOUT = 120_000;
 
 /**
@@ -71,26 +68,19 @@ export function useFileDownload() {
 		try {
 			await new Promise<void>((resolve, reject) => {
 				const timer = window.setTimeout(() => reject(new Error("Your book took too long to get ready. Please try again.")), PRINT_TIMEOUT);
-				const ready = (event: MessageEvent) => {
-					if (event.source !== frame.contentWindow || event.data !== PRINT_READY) return;
-					window.clearTimeout(timer);
-					window.removeEventListener("message", ready);
-					resolve();
-				};
 
-				window.addEventListener("message", ready);
 				frame.addEventListener("load", () => {
 					const page = frame.contentDocument;
 
-					if (page && !page.getElementById("book")) {
-						window.clearTimeout(timer);
-						window.removeEventListener("message", ready);
-						reject(new Error(page.body?.innerText.trim() || "We couldn't get your book ready to print."));
-					}
+					window.clearTimeout(timer);
+					if (page?.getElementById("book")) resolve();
+					else reject(new Error(page?.body?.innerText.trim() || "We couldn't get your book ready to print."));
 				});
 				frame.src = href;
 				document.body.append(frame);
 			});
+
+			await frame.contentDocument?.fonts?.ready;
 
 			frame.contentWindow?.focus();
 			frame.contentWindow?.print();

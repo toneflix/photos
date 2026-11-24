@@ -89,8 +89,9 @@ describe('Book pages to print', () => {
     expect(res.status).toBe(200)
     expect(res.headers.get('content-type')).toContain('text/html')
     expect(res.text).toContain('<title>Lake Days</title>')
-    expect(res.text).toContain('new Flipbook.FlipbookPrint(')
+    expect(res.text.match(/class="fb-print-sheet /g)).toHaveLength(6)
     expect(res.text).toContain('First light')
+    expect(res.text).not.toContain('<script')
     expect(res.text).not.toContain("url('./textures/")
   })
 
