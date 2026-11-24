@@ -40,7 +40,7 @@ export class Design {
   ]
 
   /** Layouts the seeded Premium plan keeps to itself. */
-  static readonly PREMIUM_LAYOUTS = ['collage', 'triptych', 'mosaic', 'strip', 'contact', 'scatter', 'story', 'feature', 'squares', 'aside', 'opener']
+  static readonly PREMIUM_LAYOUTS = ['collage', 'triptych', 'mosaic', 'strip', 'contact', 'scatter', 'story', 'feature', 'squares', 'aside', 'opener', 'panorama']
 
   static readonly CACHE_KEY = 'designs:restrictions'
 
