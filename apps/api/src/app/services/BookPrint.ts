@@ -11,7 +11,10 @@ import type { BookAccess } from '@app/policies/BookAccess'
 import { PhotoImage } from '@app/support/PhotoImage'
 import { BookArchive } from './BookArchive'
 
-declare const Flipbook: typeof import('@toneflix/flipbook')
+/** The flipbook library's script build, as the print page loads it. */
+declare const Flipbook: {
+  FlipbookPrint: new (container: HTMLElement, book: FlipbookBook, options: { width: number }) => { ready(): Promise<void> }
+}
 
 const require = createRequire(import.meta.url)
 

@@ -1,14 +1,16 @@
 import { existsSync } from 'node:fs'
 
+const SYSTEM_BROWSERS = ['/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/google-chrome']
+
 /**
  * How books are drawn into print-ready PDFs.
  */
 export default () => {
   return {
     /**
-     * The Chromium binary that draws the pages. Empty uses the system Chromium when installed, else Playwright's own.
+     * The Chromium binary that draws the pages. Empty uses the system Chromium or Chrome when installed, else Playwright's own.
      */
-    chromium_path: String(env('PRINT_CHROMIUM_PATH', existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : '')),
+    chromium_path: String(env('PRINT_CHROMIUM_PATH', SYSTEM_BROWSERS.find((browser) => existsSync(browser)) ?? '')),
 
     /**
      * Printed page width in millimetres. Pages are 3:4, so 210 gives 210 × 280 mm.
