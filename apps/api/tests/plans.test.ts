@@ -101,6 +101,15 @@ describe('Plans', () => {
     expect(paid.status).toBe(201)
   })
 
+  it('tells editors which page layouts the plan includes', async () => {
+    const free = await api('get', `/books/${freeBook}`, undefined, 'free')
+    const paid = await api('post', '/books', { title: 'Layout book' }, 'paid')
+    const paidBook = await api('get', `/books/${paid.body.data.id}`, undefined, 'paid')
+
+    expect(free.body.data.layoutsAllowed).toEqual(['single', 'framed', 'pair', 'grid', 'text'])
+    expect(paidBook.body.data.layoutsAllowed).toContain('mosaic')
+  })
+
   it('keeps free spaces private and one to an account', async () => {
     const publicSpace = await api('post', '/spaces', { name: 'Open studio', visibility: 'public' }, 'free')
     const first = await api('post', '/spaces', { name: 'Studio' }, 'free')

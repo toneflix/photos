@@ -1,4 +1,5 @@
 import { Feature, type FeatureKey } from './Feature'
+import { PAGE_LAYOUTS } from '@toneflix/flipbook-core'
 import type { Book } from '@app/models/Book'
 import type { Space } from '@app/models/Space'
 import { Photo } from '@app/models/Photo'
@@ -152,9 +153,15 @@ export class Limits {
     await this.ensureAllowed('premium_covers', 'coverDesign', 'This cover design is not included in your plan.')
   }
 
+  /** The page layouts the plan lets its account use. */
+  async pageLayouts(): Promise<string[]> {
+    return (await this.allows('premium_layouts')) ? Object.keys(PAGE_LAYOUTS) : Feature.FREE_LAYOUTS
+  }
+
   /** New pages and changed layouts must be on the plan. Pages that already use a layout keep it. */
   async ensurePageLayouts(layouts: Array<string | null | undefined>, current: string[] = []): Promise<void> {
-    const added = layouts.filter((layout): layout is string => !!layout && !Feature.FREE_LAYOUTS.includes(layout) && !current.includes(layout))
+    const allowed = await this.pageLayouts()
+    const added = layouts.filter((layout): layout is string => !!layout && !allowed.includes(layout) && !current.includes(layout))
 
     if (added.length) await this.ensureAllowed('premium_layouts', 'pages', 'Some of these page layouts are not included in your plan.')
   }
