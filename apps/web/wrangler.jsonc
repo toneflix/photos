@@ -9,5 +9,11 @@
   "vars": {
     // Public URL of the Arkstack API (apps/api). Override per environment.
     "API_URL": "http://localhost:3000/api"
+  },
+  // Branch and pull request previews built by Workers Builds (`wrangler preview`).
+  "previews": {
+    "vars": {
+      "API_URL": "https://api.photos.toneflix.net/api"
+    }
   }
 }
