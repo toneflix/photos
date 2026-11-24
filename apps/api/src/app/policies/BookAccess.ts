@@ -6,6 +6,9 @@ import type { User } from '@app/models/User'
 import { Limits } from './Limits'
 import { SpaceAccess } from './SpaceAccess'
 
+/** The ways a book's designed pages can be downloaded. */
+export type PageFormat = 'pdf' | 'images'
+
 /**
  * What one visitor may do with one book. Owners may do everything; anyone may open
  * shared and public books; members who may edit the book's space can open, add to and
@@ -57,6 +60,15 @@ export class BookAccess {
     const owner = await this.book.user().first()
 
     return (await Limits.for(owner)).allows('book_zip')
+  }
+
+  /** Which page downloads this visitor has: only the book's owner, each as their plan includes it. */
+  async pageDownloads(): Promise<Record<PageFormat, boolean>> {
+    if (!this.isOwner) return { pdf: false, images: false }
+
+    const limits = await Limits.for(this.viewer)
+
+    return { pdf: await limits.allows('page_pdf'), images: await limits.allows('page_images') }
   }
 
   /** Whether this visitor would get a zip with at least one photo in it, for clients to show the download button. */

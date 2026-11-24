@@ -41,6 +41,7 @@ export class BookDetailResource extends BookResource {
       })),
       canEdit: !!this.access?.can('edit'),
       canDownload: this.access ? await this.access.canDownload(photos) : false,
+      pageDownloads: this.access ? await this.access.pageDownloads() : { pdf: false, images: false },
       isOwner: !!this.access?.isOwner,
       permissions: this.access?.permissions() ?? ['view'],
       stats: ContentStats.shown(book, owner, this.access?.viewer ?? null),

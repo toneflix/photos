@@ -5,7 +5,7 @@ The API (`apps/api`) can run on [Railway](https://railway.com) instead of the SS
 The Railway project is described with [Railway Infrastructure as Code](https://docs.railway.com/infrastructure-as-code):
 
 - `.railway/railway.ts`: the project. A PostgreSQL database, a volume for uploads, and the `api` service built from this repository's `main` branch, with its domain and variables.
-- `railpack.json`: how [Railpack](https://railpack.com) builds the image. It uses Node 24, installs the workspace with pnpm, builds only the API (`pnpm --filter @photos/api build`) and starts it with `pnpm --filter @photos/api start`. Dev dependencies stay in the image because `ark migrate` runs from source. Its `ssh-env` step adds `/etc/profile.d/railpack-env.sh`, which gives `railway ssh` shells the image's `PATH` so `node`, `pnpm` and `npx` are found.
+- `railpack.json`: how [Railpack](https://railpack.com) builds the image. It uses Node 24, installs the workspace with pnpm, builds only the API (`pnpm --filter @photos/api build`) and starts it with `pnpm --filter @photos/api start`. Dev dependencies stay in the image because `ark migrate` runs from source. Its `ssh-env` step adds `/etc/profile.d/railpack-env.sh`, which gives `railway ssh` shells the image's `PATH` so `node`, `pnpm` and `npx` are found. It also installs Chromium, which draws book pages for printing ([printing.md](./printing.md)).
 
 Each deploy builds the image, runs `ark migrate --no-interaction` as the pre-deploy command, starts the API and waits for `GET /api` to answer before switching traffic. A failed build, migration or health check leaves the previous deploy running. Only changes to the API, the shared packages or the workspace manifests trigger a build.
 

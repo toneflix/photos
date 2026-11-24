@@ -48,7 +48,8 @@ export class BookArchive extends ZipArchive {
     }
   }
 
-  private static slug(text: string | null | undefined, fallback: string): string {
+  /** A file name part from free text, or the fallback when nothing is left. */
+  static slug(text: string | null | undefined, fallback: string): string {
     return (text ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || fallback
   }
 }

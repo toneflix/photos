@@ -19,6 +19,8 @@ export type FeatureKey =
   | 'custom_imprint'
   | 'book_zip'
   | 'original_downloads'
+  | 'page_pdf'
+  | 'page_images'
   | 'custom_frames'
   | 'book_stats'
   | 'badge'

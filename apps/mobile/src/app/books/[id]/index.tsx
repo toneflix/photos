@@ -12,6 +12,7 @@ import { AuthFrame } from '@/components/AuthFrame'
 import { ContentCounts } from '@/components/ContentCounts'
 import { CodeForm } from '@/components/access/CodeForm'
 import { Sheet } from '@/components/access/Sheet'
+import { DownloadChip, DownloadOptions } from '@/components/book/BookDownload'
 import { BOOK_FONTS } from '@/components/book/look'
 import { Button, Callout, Text } from '@/components/ui'
 import { api } from '@/lib/api'
@@ -110,7 +111,7 @@ function LoadBook({ id, code, startPage, shareError }: { id: string; code: strin
 function Book({ book, code, startPage, reload }: { book: BookWithPages; code: string | null; startPage?: number; reload: () => void }) {
   const insets = useSafeAreaInsets()
   const { width } = useWindowDimensions()
-  const [panel, setPanel] = useState<'add' | 'claim' | 'download' | null>(null)
+  const [panel, setPanel] = useState<'add' | 'claim' | 'download' | 'downloads' | null>(null)
   const can = (permission: BookPermission) => book.permissions.includes(permission)
   const model = useMemo(() => FlipbookModel.book(book), [book])
 
@@ -135,7 +136,7 @@ function Book({ book, code, startPage, reload }: { book: BookWithPages; code: st
             {book.isOwner && book.creatorId === book.userId && <Chip title="Stats" onPress={() => router.push({ pathname: '/stats/[kind]/[id]', params: { kind: 'books', id: book.id } })} />}
             {!book.isOwner && can('add') && <Chip title="Add photos" onPress={() => setPanel('add')} />}
             {!book.isOwner && can('transfer') && <Chip title="Make it yours" onPress={() => setPanel('claim')} />}
-            {book.canDownload && <Chip title="Download" onPress={() => setPanel('download')} />}
+            <DownloadChip book={book} onZip={() => setPanel('download')} onOptions={() => setPanel('downloads')} />
             {book.canEdit && <Chip title="Edit" onPress={() => router.push({ pathname: '/books/[id]/edit', params: { id: book.id } })} />}
           </>
         }
@@ -144,6 +145,7 @@ function Book({ book, code, startPage, reload }: { book: BookWithPages; code: st
       {panel === 'add' && <AddPhotos book={book} code={code} onDone={reload} onClose={() => setPanel(null)} />}
       {panel === 'claim' && <Claim book={book} code={code} onClose={() => setPanel(null)} />}
       {panel === 'download' && <DownloadBook book={book} code={code} everything={can('transfer')} onClose={() => setPanel(null)} />}
+      {panel === 'downloads' && <DownloadOptions book={book} code={code} onClose={() => setPanel(null)} />}
     </View>
   )
 }
