@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { data, Link, redirect, useFetcher, type ShouldRevalidateFunctionArgs } from "react-router";
 import type { AppLimits, BookBrandingInput, BookPageInput, BookPagePhoto, BookTheme, BookWithPages, FrameStyle, PageLayout, PaperColor, Photo, PhotoPosition, Space, Visibility } from "@photos/types";
 import { coverHasText, FlipbookModel, FRAME_STYLES, PAGE_LAYOUTS, PAPER_COLORS, type CoverDesign } from "@photos/types";
-import { BookLookProvider, CoverView, PageView, PHOTO_DRAG_TYPE, PLACED_LAYOUTS, PrintedPhoto, TitlePageView, usePhotoPositioner } from "@toneflix/flipbook-react";
+import { BookLookProvider, CoverView, PageView, PHOTO_DRAG_TYPE, PrintedPhoto, TitlePageView, usePhotoPositioner } from "@toneflix/flipbook-react";
 import { cloudflareContext } from "~/lib/cloudflare";
 import { formError, getServerApi } from "~/lib/api.server";
 import { BookCodes } from "~/lib/book-codes.server";
@@ -12,6 +12,7 @@ import { handlePhotoIntent } from "~/lib/photo-actions.server";
 import { PhotoUploader } from "~/components/PhotoUploader";
 import { SpacePicker } from "~/components/spaces/SpacePicker";
 import { ClothPicker, CoverDesignPicker } from "~/components/book/CoverPickers";
+import { LayoutPicker } from "~/components/book/LayoutPicker";
 import { jsonPosition, PhotoPositionControls, storedPosition } from "~/components/book/PhotoPositionControls";
 import { Button, Field, Input, Textarea, buttonClass, Spinner } from "~/components/ui";
 import { copyText } from "~/lib/toast";
@@ -109,6 +110,7 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 	const [dirty, setDirty] = useState(false);
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [paper, setPaper] = useState<PaperColor>(book.paper ?? "ivory");
+	const layoutsAllowed = useMemo(() => book.layoutsAllowed && [...new Set([...book.layoutsAllowed, ...book.pages.map((p) => p.layout)])], [book]);
 	const [bookFrame, setBookFrame] = useState<FrameStyle>(book.frame ?? "none");
 	const [dragPage, setDragPage] = useState<number | null>(null);
 	const [dropAt, setDropAt] = useState<number | null>(null);
@@ -463,21 +465,8 @@ export default function BookEditor({ loaderData }: Route.ComponentProps) {
 					<section className="flex min-h-0 min-w-0 flex-1 flex-col items-center gap-4 overflow-y-auto p-4 sm:p-6">
 						{current ? (
 							<>
-								<div className="flex flex-wrap items-center justify-center gap-1 rounded-full bg-white p-1 shadow-sm">
-									{(Object.keys(PAGE_LAYOUTS) as PageLayout[]).map((layout) => (
-										<button
-											key={layout}
-											type="button"
-											onClick={() => setLayout(layout)}
-											className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm ${
-												current.layout === layout ? "bg-ink-900 text-surface-50" : "text-ink-700 hover:bg-surface-100"
-											}`}
-											aria-pressed={current.layout === layout}
-										>
-											<LayoutIcon layout={layout} />
-											<span className="hidden sm:inline">{PAGE_LAYOUTS[layout].label}</span>
-										</button>
-									))}
+								<div className="w-full max-w-[min(56rem,calc((100dvh-310px)*1.5))] min-w-64">
+									<LayoutPicker value={current.layout} allowed={layoutsAllowed} onPick={setLayout} />
 								</div>
 
 								<div className="relative w-full max-w-[min(56rem,calc((100dvh-310px)*1.5))] min-w-64">
@@ -1022,39 +1011,3 @@ function IconButton({ label, path, onClick, disabled }: { label: string; path: s
 	);
 }
 
-function LayoutIcon({ layout }: { layout: PageLayout }) {
-	const drawn: Partial<Record<PageLayout, [number, number, number, number][]>> = {
-		single: [[0, 0, 12, 16]],
-		framed: [[2, 2, 8, 9]],
-		pair: [
-			[2, 2, 8, 5.5],
-			[2, 8.5, 8, 5.5],
-		],
-		grid: [
-			[1.5, 1.5, 4, 6],
-			[6.5, 1.5, 4, 6],
-			[1.5, 8.5, 4, 6],
-			[6.5, 8.5, 4, 6],
-		],
-		collage: [
-			[1.5, 1.5, 9, 7],
-			[1.5, 9.5, 4, 5],
-			[6.5, 9.5, 4, 5],
-		],
-		text: [
-			[3, 5, 6, 1],
-			[2, 7.5, 8, 1],
-			[3, 10, 6, 1],
-		],
-	};
-	const rects = drawn[layout] ?? (PLACED_LAYOUTS[layout]?.slots ?? []).map(({ x, y, width, height }) => [x * 0.12, y * 0.12, width * 0.12, height * 0.12]);
-
-	return (
-		<svg viewBox="0 0 12 16" className="h-4 w-3" aria-hidden>
-			<rect x="0.5" y="0.5" width="11" height="15" fill="none" stroke="currentColor" strokeOpacity="0.5" />
-			{rects.map(([x, y, w, h], i) => (
-				<rect key={i} x={x} y={y} width={w} height={h} fill="currentColor" />
-			))}
-		</svg>
-	);
-}

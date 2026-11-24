@@ -10,7 +10,7 @@ import { PAGE_LAYOUTS, PAPER_COLORS, type BookWithPages, type FrameStyle, type P
 import { BookLookProvider, PAGE_RATIO, PageView } from '@toneflix/flipbook-native'
 import { BookSettings, type BookChanges } from '@/components/book/BookSettings'
 import { FramePicker } from '@/components/book/FramePicker'
-import { LayoutIcon } from '@/components/book/LayoutIcon'
+import { LayoutPicker } from '@/components/book/LayoutPicker'
 import { PhotoPositionControls } from '@/components/book/PhotoPositionControls'
 import { BOOK_FONTS } from '@/components/book/look'
 import { Button, Callout, Input, Text } from '@/components/ui'
@@ -25,7 +25,6 @@ import { useSpaces } from '@/lib/spaces'
 import { uploads, useUploads } from '@/lib/uploads'
 import { colors, fonts, radius } from '@/theme'
 
-const LAYOUTS = Object.keys(PAGE_LAYOUTS) as PageLayout[]
 const PAPERS = Object.keys(PAPER_COLORS) as PaperColor[]
 const THUMB = 64
 const SAVE_DELAY = 900
@@ -78,6 +77,7 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
 
   const [book, setBook] = useState(loaded)
   const [draft, setDraft] = useState(() => BookDraft.from(loaded))
+  const [layoutsAllowed] = useState(() => loaded.layoutsAllowed && [...new Set([...loaded.layoutsAllowed, ...loaded.pages.map((page) => page.layout)])])
   const [selected, setSelected] = useState(0)
   const [slot, setSlot] = useState<number | null>(0)
   const [positioning, setPositioning] = useState(false)
@@ -372,27 +372,14 @@ function Editor({ book: loaded, code }: { book: BookWithPages; code: string | nu
 
           {current && (
             <>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.layouts}>
-                {LAYOUTS.map((layout) => {
-                  const on = current.layout === layout
-
-                  return (
-                    <Pressable
-                      key={layout}
-                      onPress={() => {
-                        change(draft.layout(selected, layout))
-                        setSlot(0)
-                      }}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: on }}
-                      style={[styles.layout, on && styles.layoutOn]}
-                    >
-                      <LayoutIcon layout={layout} color={on ? colors.white : colors.ink700} />
-                      <Text style={[styles.layoutText, on && styles.layoutTextOn]}>{PAGE_LAYOUTS[layout].label}</Text>
-                    </Pressable>
-                  )
-                })}
-              </ScrollView>
+              <LayoutPicker
+                value={current.layout}
+                allowed={layoutsAllowed}
+                onPick={(layout) => {
+                  change(draft.layout(selected, layout))
+                  setSlot(0)
+                }}
+              />
 
               <Input
                 value={current.caption}
@@ -511,11 +498,6 @@ const styles = StyleSheet.create({
   uploadTile: { alignItems: 'center', justifyContent: 'center', gap: 2, marginRight: 8, backgroundColor: colors.surface100, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.surface300 },
   uploadText: { fontSize: 11, fontFamily: fonts.medium, color: colors.ink700 },
   usedBadge: { position: 'absolute', top: 4, right: 4, width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(17,17,17,0.8)' },
-  layouts: { gap: 6, padding: 4, borderRadius: radius.full, backgroundColor: colors.white },
-  layout: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 7, borderRadius: radius.full },
-  layoutOn: { backgroundColor: colors.ink900 },
-  layoutText: { fontSize: 13, color: colors.ink700 },
-  layoutTextOn: { color: colors.white },
   paperRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   swatch: { width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: 'rgba(0,0,0,0.15)' },
   swatchOn: { borderWidth: 3, borderColor: colors.brand500 },
