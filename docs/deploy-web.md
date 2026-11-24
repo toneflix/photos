@@ -26,7 +26,7 @@ The web app (`apps/web`) runs on the Worker `toneflix-photos-web` (`apps/web/wra
 
    `API_URL` is a build variable because `wrangler deploy` replaces the Worker's runtime variables with the ones in `wrangler.jsonc` (`localhost`). Passing it with `--var` on deploy sets the production value.
 
-   Previews of other branches run `wrangler preview`, which reads `previews.vars` in `wrangler.jsonc` instead. There is no staging API, so previews use the production API: changes made in a preview are real.
+   Previews of other branches run `wrangler preview`, which reads `previews.vars` in `wrangler.jsonc` instead. There is no staging API, so previews use the production API: changes made in a preview are real. Calls the browser makes to the API from a preview's address need that origin in the API's `CORS_ALLOWED_ORIGINS` (docs/deploy.md).
 5. **Build watch paths** (Settings → Build → Build watch paths), so API-only and mobile-only pushes don't redeploy the site. Include `apps/web/*`, `packages/*`, `pnpm-lock.yaml` and `pnpm-workspace.yaml`.
 6. **Custom domain**: after the first deploy, Settings → Domains & Routes → Add → Custom domain → `photos.toneflix.net`.
 
