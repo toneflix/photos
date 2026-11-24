@@ -1,0 +1,11 @@
+• Scaffold the Toneflix Photos monorepo
+• Web app with photo library, book editor and flipbook viewer
+• Auth flows, account management and privacy settings
+• Public Explore timeline with search and filters
+• Spaces for creators
+• Lock photobooks with access codes
+• Photo licences and downloads for Explore
+• Expo Router foundation and auth flows
+• Six-box code input for two-step sign-in
+• Printed photo frames for book pages
+• Photo library, camera roll upload and book shelf
