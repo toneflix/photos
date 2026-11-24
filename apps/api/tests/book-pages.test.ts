@@ -6,14 +6,19 @@ import { unzipSync } from 'fflate'
 import { putOnPlan } from './support/plans'
 import { startPrintBrowser } from './support/print-browser'
 
-// The print settings are read when the app boots, so the stand-in browser starts first.
+// The print settings are read when the app boots, so the stand-in browser starts first. Each visitor
+// gets their own address, so the download limit counts them apart as it would in production.
 const browser = await startPrintBrowser()
+
+process.env.TRUST_PROXY = 'loopback'
+
 const { app } = await import('../src/core/bootstrap')
 
 const tokens = { premium: '', free: '', guest: '' }
 
 const api = (method: 'get' | 'post' | 'put', path: string, body?: Record<string, unknown>, as?: keyof typeof tokens, code?: string) => {
-  const call = request(app)[method](`/api${path}`).set({ Accept: 'application/json' })
+  const address = { premium: '203.0.113.1', free: '203.0.113.2', guest: '203.0.113.3' }[as ?? 'guest']
+  const call = request(app)[method](`/api${path}`).set({ Accept: 'application/json', 'X-Forwarded-For': address })
 
   if (as) call.set('Authorization', `Bearer ${tokens[as]}`)
   if (code) call.set('X-Access-Code', code)
@@ -71,6 +76,20 @@ describe('Book pages to print', () => {
     expect(res.status).toBe(200)
     expect(res.headers.get('content-disposition')).toContain('lake-days-pages-toneflix-photos.zip')
     expect(names).toEqual(['1-cover.png', '2-title.png', '3-page-1.png', '4-page-2.png', '5-colophon.png', '6-back.png'])
+  }, 60_000)
+
+  it('keeps a drawn book until it changes', async () => {
+    await new Promise((resolve) => setTimeout(resolve, 500))
+    await browser.close()
+
+    const kept = await api('get', `/books/${books.premium}/pages/download`, undefined, 'premium')
+
+    expect(kept.status).toBe(200)
+    expect(kept.headers.get('content-type')).toBe('application/pdf')
+
+    await api('put', `/books/${books.premium}/pages`, { pages: [{ layout: 'text', caption: 'A new start' }] }, 'premium')
+
+    expect((await api('get', `/books/${books.premium}/pages/download`, undefined, 'premium')).status).not.toBe(200)
   }, 60_000)
 
   it('keeps page downloads to Premium', async () => {
