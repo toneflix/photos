@@ -1,7 +1,7 @@
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import { usePagination } from 'alova/client'
-import type { Book } from '@photos/types'
+import { pageAspect, type Book } from '@photos/types'
 import { BookCover } from '@/components/BookCover'
 import { useTabBarInset } from '@/components/GlassTabBar'
 import { SearchFilters } from '@/components/SearchFilters'
@@ -81,7 +81,7 @@ export default function Books() {
           accessibilityRole="button"
           onPress={() => router.push({ pathname: '/books/[id]', params: { id: book.id } })}
         >
-          <View style={[styles.cover, { height: (cover * 4) / 3 }]} accessibilityLabel={book.title}>
+          <View style={[styles.cover, { height: cover / pageAspect(book.pageShape) }]} accessibilityLabel={book.title}>
             <BookCover book={book} />
             {book.visibility !== 'private' && (
               <View style={styles.badge}>

@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react'
 import { ActivityIndicator, FlatList, StyleSheet, View, useWindowDimensions } from 'react-native'
 import { usePagination } from 'alova/client'
-import type { PublicBook, PublicPhoto, PublicSpace } from '@photos/types'
+import { pageAspect, type PublicBook, type PublicPhoto, type PublicSpace } from '@photos/types'
 import { BookCover } from '@/components/BookCover'
 import { useTabBarInset } from '@/components/GlassTabBar'
 import { SearchFilters } from '@/components/SearchFilters'
@@ -113,7 +113,7 @@ export function PublicBooks({ header, space, maker }: { header?: ReactElement; s
       }
       renderItem={({ item: book }) => (
         <View style={{ width: cover }}>
-          <View style={[styles.cover, { height: (cover * 4) / 3 }]} accessibilityLabel={book.title}>
+          <View style={[styles.cover, { height: cover / pageAspect(book.pageShape) }]} accessibilityLabel={book.title}>
             <BookCover book={book} />
           </View>
           <Text style={styles.title} numberOfLines={1}>

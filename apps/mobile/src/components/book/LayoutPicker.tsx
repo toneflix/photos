@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Linking, Pressable, ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import Svg, { Rect } from 'react-native-svg'
-import { LAYOUT_SKETCHES, PAGE_LAYOUTS, type PageLayout, type SketchBox } from '@photos/types'
+import { PAGE_LAYOUTS, layoutSketch, pageAspect, type PageLayout, type PageShape, type SketchBox } from '@photos/types'
 import { Text } from '@/components/ui'
 import { webUrl } from '@/lib/links'
 import { colors, fonts, radius } from '@/theme'
@@ -11,8 +11,8 @@ const LAYOUTS = Object.keys(PAGE_LAYOUTS) as PageLayout[]
 const ITEM = 84
 
 /** A small page drawing showing where a layout puts its photos and writing. */
-export function LayoutSketch({ layout, color }: { layout: PageLayout; color: string }) {
-  const { photos, lines } = LAYOUT_SKETCHES[layout]
+export function LayoutSketch({ layout, shape, color }: { layout: PageLayout; shape?: PageShape; color: string }) {
+  const { width, height, photos, lines } = layoutSketch(layout, shape)
   const box = ([x, y, width, height, turn]: SketchBox, i: number, opacity: number) => (
     <Rect
       key={i}
@@ -20,7 +20,7 @@ export function LayoutSketch({ layout, color }: { layout: PageLayout; color: str
       y={y}
       width={width}
       height={height}
-      rx={0.25}
+      rx={2}
       fill={color}
       fillOpacity={opacity}
       transform={turn ? `rotate(${turn} ${x + width / 2} ${y + height / 2})` : undefined}
@@ -28,15 +28,28 @@ export function LayoutSketch({ layout, color }: { layout: PageLayout; color: str
   )
 
   return (
-    <Svg viewBox="0 0 12 16" width="100%" height="100%">
+    <Svg viewBox={`0 0 ${width} ${height}`} width="100%" height="100%">
       {photos.map((photo, i) => box(photo, i, 1))}
       {lines.map((line, i) => box(line, i, 0.45))}
     </Svg>
   )
 }
 
-/** One row of page layouts that scrolls sideways, keeping the chosen one in view. Layouts outside `allowed` carry a star. */
-export function LayoutPicker({ value, allowed, onPick }: { value: PageLayout; allowed?: PageLayout[]; onPick: (layout: PageLayout) => void }) {
+/** One row of page layouts, sketched in the book's page shape, that scrolls sideways keeping the chosen one in view. Layouts outside `allowed` carry a star. */
+export function LayoutPicker({
+  value,
+  shape = 'portrait',
+  allowed,
+  onPick,
+}: {
+  value: PageLayout
+  shape?: PageShape
+  allowed?: PageLayout[]
+  onPick: (layout: PageLayout) => void
+}) {
+  const aspect = pageAspect(shape)
+  const page = aspect < 1 ? { width: 40, height: 40 / aspect } : { width: 40 * aspect, height: 40 }
+
   const row = useRef<ScrollViewInstance>(null)
   const [width, setWidth] = useState(0)
   const [asked, setAsked] = useState<PageLayout | null>(null)
@@ -78,9 +91,9 @@ export function LayoutPicker({ value, allowed, onPick }: { value: PageLayout; al
               style={styles.item}
             >
               <View>
-                <View style={[styles.page, premium && styles.pagePremium, on && styles.pageOn]}>
+                <View style={[styles.page, page, premium && styles.pagePremium, on && styles.pageOn]}>
                   <View style={premium && styles.sketchPremium}>
-                    <LayoutSketch layout={layout} color={on ? colors.brand600 : premium ? colors.gold600 : colors.ink500} />
+                    <LayoutSketch layout={layout} shape={shape} color={on ? colors.brand600 : premium ? colors.gold600 : colors.ink500} />
                   </View>
                 </View>
                 {premium && (
@@ -112,7 +125,7 @@ const styles = StyleSheet.create({
   panel: { borderRadius: radius.lg, backgroundColor: colors.white, overflow: 'hidden' },
   row: { paddingHorizontal: 6, paddingVertical: 10 },
   item: { width: ITEM, alignItems: 'center', gap: 6 },
-  page: { width: 40, height: 53, borderRadius: 5, borderWidth: 2, borderColor: colors.surface200, backgroundColor: colors.surface100, overflow: 'hidden' },
+  page: { borderRadius: 5, borderWidth: 2, borderColor: colors.surface200, backgroundColor: colors.surface100, overflow: 'hidden' },
   pagePremium: { borderColor: colors.gold200, backgroundColor: colors.gold50 },
   sketchPremium: { flex: 1, opacity: 0.45 },
   mark: {

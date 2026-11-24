@@ -65,7 +65,7 @@ export function DownloadOptions({ book, code, onClose }: { book: BookWithPages; 
 
     try {
       if (kind === 'zip') await ApiDownload.book(book.id, code).share(`Save “${book.title}”`)
-      else if (kind === 'print') await printBook(book.id)
+      else if (kind === 'print') await printBook(book.id, book.pageShape)
       else await ApiDownload.bookPages(book.id, kind).share(`Save the pages of “${book.title}”`, kind === 'pdf' ? ApiDownload.PDF : ApiDownload.ZIP)
       onClose()
     } catch (error) {

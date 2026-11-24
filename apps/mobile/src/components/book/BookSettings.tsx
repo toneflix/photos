@@ -3,11 +3,12 @@ import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleShee
 import { Image } from 'expo-image'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { usePhotoGestures, useNaturalSize } from '@toneflix/flipbook-native'
-import type { BookBrandingInput, BookTheme, BookWithPages, CoverDesign, Photo, PhotoPosition, Space, Visibility } from '@photos/types'
+import { pageAspect, type BookBrandingInput, type BookTheme, type BookWithPages, type CoverDesign, type PageShape, type Photo, type PhotoPosition, type Space, type Visibility } from '@photos/types'
 import { BookCover } from '@/components/BookCover'
 import { BrandingFields, brandingChanges } from '@/components/book/BrandingFields'
 import { PhotoPositionControls } from '@/components/book/PhotoPositionControls'
 import { ClothPicker, CoverDesignPicker, CoverTextSwitch } from '@/components/book/CoverPickers'
+import { ShapePicker } from '@/components/book/ShapePicker'
 import { Button, Callout, CheckOption, Field, Input, ModalToastHost, Select, Text } from '@/components/ui'
 import { useLimits } from '@/lib/limits'
 import { webUrl } from '@/lib/links'
@@ -15,7 +16,7 @@ import { toast } from '@/lib/toast'
 import { spaceOptions } from '@/lib/spaces'
 import { colors, fonts, radius } from '@/theme'
 
-export type BookChanges = Partial<Pick<BookWithPages, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'coverPosition' | 'spaceId' | 'coverDesign' | 'coverText' | 'allowDownloads'> & { theme: BookTheme } & BookBrandingInput>
+export type BookChanges = Partial<Pick<BookWithPages, 'title' | 'description' | 'visibility' | 'coverPhotoId' | 'coverPosition' | 'spaceId' | 'coverDesign' | 'coverText' | 'allowDownloads' | 'pageShape'> & { theme: BookTheme } & BookBrandingInput>
 
 const VISIBILITY: [Visibility, string][] = [
   ['private', 'Only me'],
@@ -48,6 +49,9 @@ export function BookSettings({
   const [theme, setTheme] = useState<BookTheme>(book.theme)
   const [coverDesign, setCoverDesign] = useState<CoverDesign>(book.coverDesign ?? 'classic')
   const [coverText, setCoverText] = useState<boolean | null>(book.coverText ?? null)
+  const [pageShape, setPageShape] = useState<PageShape>(book.pageShape ?? 'portrait')
+  const [shapesAllowed] = useState(() => book.shapesAllowed && [...new Set([...book.shapesAllowed, book.pageShape])])
+  const coverSize = previewSize(pageShape)
   const [visibility, setVisibility] = useState<Visibility>(book.visibility)
   const [allowDownloads, setAllowDownloads] = useState(book.allowDownloads)
   const [coverPhotoId, setCoverPhotoId] = useState<string | null>(book.coverPhotoId)
@@ -57,7 +61,7 @@ export function BookSettings({
   const [branding, setBranding] = useState<BookBrandingInput>(book.customBranding ?? { kicker: null, brand: null, imprint: null })
   const coverPhoto = photos.find((photo) => photo.id === coverPhotoId) ?? null
   const natural = useNaturalSize(coverPhoto && { src: coverPhoto.url, width: coverPhoto.width, height: coverPhoto.height })
-  const gestures = usePhotoGestures(coverPosition, COVER_SIZE, natural, coverPhoto ? setCoverPosition : undefined, setPositioning)
+  const gestures = usePhotoGestures(coverPosition, coverSize, natural, coverPhoto ? setCoverPosition : undefined, setPositioning)
   const { bookKicker } = useLimits()
   const kicker = book.brandingAllowed?.kicker ? branding.kicker?.trim() || bookKicker : book.branding.kicker
   const cover = {
@@ -66,6 +70,7 @@ export function BookSettings({
     theme,
     coverDesign,
     coverText,
+    pageShape,
     coverPhoto,
     coverPosition: gestures.crop.isCentred ? null : gestures.crop.toJSON(),
     branding: { ...book.branding, kicker },
@@ -86,7 +91,7 @@ export function BookSettings({
       coverText,
       coverPhotoId,
       coverPosition,
-      ...(book.isOwner ? { visibility, spaceId: spaceId || null, allowDownloads } : {}),
+      ...(book.isOwner ? { visibility, spaceId: spaceId || null, allowDownloads, pageShape } : {}),
       ...brandingChanges(book, branding),
     })
 
@@ -101,7 +106,7 @@ export function BookSettings({
         </View>
 
         <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 24 }]} keyboardShouldPersistTaps="handled" scrollEnabled={!positioning}>
-          <View style={styles.cover} {...gestures.handlers}>
+          <View style={[styles.cover, coverSize]} {...gestures.handlers}>
             <BookCover book={cover} />
           </View>
           {coverPhoto && <PhotoPositionControls position={coverPosition} onChange={setCoverPosition} />}
@@ -114,6 +119,7 @@ export function BookSettings({
             <Input value={description} onChangeText={setDescription} maxLength={2000} multiline />
           </Field>
 
+          {book.isOwner && <ShapePicker value={pageShape} allowed={shapesAllowed} onChange={setPageShape} />}
           <CoverDesignPicker
             book={cover}
             onChange={(design) => {
@@ -192,14 +198,18 @@ export function BookSettings({
   )
 }
 
-/** The cover preview's size, which a drag on it is measured against. */
-const COVER_SIZE = { width: 150, height: 200 }
+/** The cover preview's size, which a drag on it is measured against: 150 points across its short side. */
+const previewSize = (shape: PageShape) => {
+  const aspect = pageAspect(shape)
+
+  return aspect < 1 ? { width: 150, height: 150 / aspect } : { width: 150 * aspect, height: 150 }
+}
 
 const styles = StyleSheet.create({
   sheet: { flex: 1, backgroundColor: colors.canvas },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.surface200 },
   body: { padding: 20, gap: 18 },
-  cover: { alignSelf: 'center', ...COVER_SIZE, borderTopRightRadius: 6, borderBottomRightRadius: 6, overflow: 'hidden' },
+  cover: { alignSelf: 'center', borderTopRightRadius: 6, borderBottomRightRadius: 6, overflow: 'hidden' },
   photos: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   thumb: { width: 56, height: 56, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.surface100, borderWidth: 2, borderColor: 'transparent' },
   thumbOn: { borderColor: colors.brand500 },
