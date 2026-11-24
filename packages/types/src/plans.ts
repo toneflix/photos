@@ -21,6 +21,7 @@ export type FeatureKey =
   | 'original_downloads'
   | 'page_pdf'
   | 'page_images'
+  | 'page_print'
   | 'custom_frames'
   | 'book_stats'
   | 'badge'

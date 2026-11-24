@@ -5,6 +5,7 @@ import { BookAccess, type PageFormat } from '@app/policies/BookAccess'
 import { BookArchive } from '@app/services/BookArchive'
 import { BookPageImages } from '@app/services/BookPageImages'
 import { BookPrint } from '@app/services/BookPrint'
+import { BookPrintPage } from '@app/services/BookPrintPage'
 import { PrintBrowser } from '@app/support/PrintBrowser'
 import { BookCollection } from '@app/http/resources/BookCollection'
 import { BookDetailResource } from '@app/http/resources/BookDetailResource'
@@ -271,6 +272,20 @@ export default class BookController extends BaseController {
     abortIf(print.isEmpty, 'This book has no pages yet.', 404)
 
     return format === 'pdf' ? print.pdfResponse() : new BookPageImages(print).response()
+  }
+
+  /** The book laid out for printing as one self-contained page, for its owner when their plan includes printing. */
+  async print() {
+    const access = (await this.access()).authorize('view')
+
+    abortIf(!access.isOwner, 'Only the book\'s owner can print it.', 403)
+    abortIf(!(await access.pageDownloads()).print, 'Printing books is not included in your plan.', 403)
+
+    const page = await BookPrintPage.for(access)
+
+    abortIf(page.isEmpty, 'This book has no pages yet.', 404)
+
+    return page.response()
   }
 
   /** The book in the route and what this visitor may do with it, from their sign-in and any access code they sent. */

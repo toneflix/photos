@@ -10,9 +10,15 @@ function filename(response: Response, fallback: string) {
 	return encoded ? decodeURIComponent(encoded) : (plain ?? fallback);
 }
 
+/** The message a print page posts once it is fully drawn (see the API's `BookPrintPage`). */
+const PRINT_READY = "toneflix-photos:print-ready";
+
+/** How long a print page may take to load its photos before we give up. */
+const PRINT_TIMEOUT = 120_000;
+
 /**
- * Downloads files that take a while to prepare. While one is on its way `pending` holds its address,
- * and further starts do nothing until it arrives or fails.
+ * Downloads files that take a while to prepare, and prints pages from a hidden frame. While one is on its
+ * way `pending` holds its address, and further starts do nothing until it arrives or fails.
  */
 export function useFileDownload() {
 	const [pending, setPending] = useState<string | null>(null);
@@ -48,5 +54,54 @@ export function useFileDownload() {
 		}
 	}, []);
 
-	return { pending, start };
+	const print = useCallback(async (href: string) => {
+		if (busy.current) return;
+
+		busy.current = true;
+		setPending(href);
+		document.querySelectorAll("iframe[data-print-frame]").forEach((frame) => frame.remove());
+
+		const frame = document.createElement("iframe");
+
+		frame.dataset.printFrame = "";
+		frame.title = "Print";
+		frame.setAttribute("aria-hidden", "true");
+		frame.style.cssText = "position:fixed;left:-10000px;top:0;width:900px;height:1200px;border:0;";
+
+		try {
+			await new Promise<void>((resolve, reject) => {
+				const timer = window.setTimeout(() => reject(new Error("Your book took too long to get ready. Please try again.")), PRINT_TIMEOUT);
+				const ready = (event: MessageEvent) => {
+					if (event.source !== frame.contentWindow || event.data !== PRINT_READY) return;
+					window.clearTimeout(timer);
+					window.removeEventListener("message", ready);
+					resolve();
+				};
+
+				window.addEventListener("message", ready);
+				frame.addEventListener("load", () => {
+					const page = frame.contentDocument;
+
+					if (page && !page.getElementById("book")) {
+						window.clearTimeout(timer);
+						window.removeEventListener("message", ready);
+						reject(new Error(page.body?.innerText.trim() || "We couldn't get your book ready to print."));
+					}
+				});
+				frame.src = href;
+				document.body.append(frame);
+			});
+
+			frame.contentWindow?.focus();
+			frame.contentWindow?.print();
+		} catch (error) {
+			frame.remove();
+			toast.error(error instanceof Error ? error.message : "We couldn't get your book ready to print.");
+		} finally {
+			busy.current = false;
+			setPending(null);
+		}
+	}, []);
+
+	return { pending, start, print };
 }

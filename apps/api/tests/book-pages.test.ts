@@ -83,11 +83,28 @@ describe('Book pages to print', () => {
     expect((await api('get', `/books/${books.premium}/pages/download`)).status).toBe(401)
   })
 
+  it('gives a Premium owner the book laid out to print as one page', async () => {
+    const res = await api('get', `/books/${books.premium}/print`, undefined, 'premium')
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toContain('text/html')
+    expect(res.text).toContain('<title>Lake Days</title>')
+    expect(res.text).toContain('new Flipbook.FlipbookPrint(')
+    expect(res.text).toContain('First light')
+    expect(res.text).not.toContain("url('./textures/")
+  })
+
+  it('keeps printing to Premium owners', async () => {
+    expect((await api('get', `/books/${books.free}/print`, undefined, 'free')).status).toBe(403)
+    expect((await api('get', `/books/${books.premium}/print`, undefined, 'guest')).status).toBe(403)
+    expect((await api('get', `/books/${books.premium}/print`)).status).toBe(401)
+  })
+
   it('tells each visitor which page downloads they have', async () => {
     const pageDownloads = async (id: string, as: keyof typeof tokens) => (await api('get', `/books/${id}`, undefined, as)).body.data.pageDownloads
 
-    expect(await pageDownloads(books.premium, 'premium')).toEqual({ pdf: true, images: true })
-    expect(await pageDownloads(books.premium, 'guest')).toEqual({ pdf: false, images: false })
-    expect(await pageDownloads(books.free, 'free')).toEqual({ pdf: false, images: false })
+    expect(await pageDownloads(books.premium, 'premium')).toEqual({ pdf: true, images: true, print: true })
+    expect(await pageDownloads(books.premium, 'guest')).toEqual({ pdf: false, images: false, print: false })
+    expect(await pageDownloads(books.free, 'free')).toEqual({ pdf: false, images: false, print: false })
   })
 })
