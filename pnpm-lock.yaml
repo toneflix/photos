@@ -62,6 +62,9 @@ importers:
       '@arkstack/view':
         specifier: ^0.22.4
         version: 0.22.4(@arkstack/common@0.22.4(@arkstack/contract@0.22.4)(@arkstack/foundry@0.22.4)(@h3ravel/support@2.2.7(@types/node@25.9.9)(h3@2.0.8))(arkormx@2.12.14(@types/node@25.9.9)(h3@2.0.8)(tsdown@0.22.14(tsx@4.23.15)(typescript@6.0.3)(unrun@0.3.1))))(@arkstack/foundry@0.22.4)(@h3ravel/musket@2.2.14(@types/node@25.9.9)(tsdown@0.22.14(tsx@4.23.15)(typescript@6.0.3)(unrun@0.3.1)))(clear-router@2.9.5(@h3ravel/support@2.2.7(@types/node@25.9.9)(h3@2.0.8))(express@5.3.0)(h3@2.0.8)(reflect-metadata@0.2.2))
+      '@fontsource-variable/fraunces':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@h3ravel/musket':
         specifier: ^2.2.13
         version: 2.2.14(@types/node@25.9.9)(tsdown@0.22.14(tsx@4.23.15)(typescript@6.0.3)(unrun@0.3.1))
@@ -74,6 +77,9 @@ importers:
       '@photos/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@toneflix/flipbook':
+        specifier: ^0.3.8
+        version: 0.3.8
       '@toneflix/flipbook-core':
         specifier: ^0.3.6
         version: 0.3.6
@@ -113,6 +119,9 @@ importers:
       pg:
         specifier: ^8.22.0
         version: 8.23.1
+      playwright-core:
+        specifier: ^1.56.1
+        version: 1.56.1
       resora:
         specifier: ^1.5.1
         version: 1.5.1(@h3ravel/musket@2.2.14(@types/node@25.9.9)(tsdown@0.22.14(tsx@4.23.15)(typescript@6.0.3)(unrun@0.3.1)))
@@ -1551,6 +1560,9 @@ packages:
     resolution: {integrity: sha512-3RQHgEtvL1Frl/d1cSreo7qhJ3Gk1OdNUai/CtZ8G+wYeRQnJih3s9xJ9/kgYekPQRdwgh0HXRPqMlzWGwivIQ==}
     engines: {node: ^20.19.0 || ^22.13.0 || ^23.5.0 || >=24.0.0, npm: '>=10'}
 
+  '@fontsource-variable/fraunces@5.3.0':
+    resolution: {integrity: sha512-9BYGySn4AHEJdgp9Z28tQ3X+laJMEOITXkQarZXeloWQZDq5oOvXJ3kDA8c7MGIfpogIaZfjrQBqmda8POOCKA==}
+
   '@google-cloud/paginator@5.0.2':
     resolution: {integrity: sha512-DJS3s0OVH4zFDB1PzjxAsHqJT6sKVbRwwML0ZBP9PbU7Yebtu/7SWMRzvO2J3nUi9pRNITCfu4LJeooM2w4pjg==}
     engines: {node: '>=14.0.0'}
@@ -2715,6 +2727,9 @@ packages:
 
   '@toneflix/flipbook@0.3.6':
     resolution: {integrity: sha512-qsgowGezHQFvs7buneu4Ku50eLKwOIzpvaEh1x2hLzBo2p4n8zFwJ5unhrV4WXwbPt46spdtSHS4K2ORaAfV+A==}
+
+  '@toneflix/flipbook@0.3.8':
+    resolution: {integrity: sha512-c5m/U144/yikQeKz/XV/0AIZFKptr2xss6vQln3BgC04WjB2w4FGfRGydzOkOpfgokIgwU9o7bpgOMRaqRxreg==}
 
   '@toneflix/money@1.0.2':
     resolution: {integrity: sha512-/cuULpFuvt6OFeClLmaJOzvJwK1Kr2z3vzr6fr+d0cJgLi6cgYFnF+Pg49zFuSfa+icC4wUhRbub9LhLw/D/eA==}
@@ -5574,6 +5589,11 @@ packages:
   pkg-types@2.4.0:
     resolution: {integrity: sha512-07Fys7iVx0X6TcviMOgogM1Lk33ZyqOezMnU79S+kffWqwolG/5W9V8EgQSeYCIfFTYVgssRbnH630Oa2+soBA==}
 
+  playwright-core@1.56.1:
+    resolution: {integrity: sha512-hutraynyn31F+Bifme+Ps9Vq59hKuUCz7H1kDOcBs+2oGguKkWTU50bBWrtz34OUWmIwpBTWDxaRPXrIXkgvmQ==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   plist@3.1.1:
     resolution: {integrity: sha512-ZIfcLJC+7E7FBFnDxm9MPmt7D+DidyQ26lewieO75AdhA2ayMtsJSES0iWzqJQbcVRSrTufQoy0DR94xHue0oA==}
     engines: {node: '>=10.4.0'}
@@ -8383,6 +8403,8 @@ snapshots:
 
   '@faker-js/faker@10.6.0': {}
 
+  '@fontsource-variable/fraunces@5.3.0': {}
+
   '@google-cloud/paginator@5.0.2':
     dependencies:
       arrify: 2.0.1
@@ -9479,6 +9501,10 @@ snapshots:
   '@toneflix/flipbook@0.3.6':
     dependencies:
       '@toneflix/flipbook-core': 0.3.7
+
+  '@toneflix/flipbook@0.3.8':
+    dependencies:
+      '@toneflix/flipbook-core': 0.3.8
 
   '@toneflix/money@1.0.2': {}
 
@@ -12778,6 +12804,8 @@ snapshots:
       confbox: 0.3.2
       exsolve: 1.2.0
       pathe: 2.0.3
+
+  playwright-core@1.56.1: {}
 
   plist@3.1.1:
     dependencies:

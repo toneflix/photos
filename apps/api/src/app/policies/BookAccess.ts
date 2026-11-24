@@ -59,6 +59,13 @@ export class BookAccess {
     return (await Limits.for(owner)).allows('book_zip')
   }
 
+  /** Whether this visitor may download the book's designed pages to print: only its owner, when the owner's plan includes it. */
+  async mayDownloadPages(): Promise<boolean> {
+    if (!this.isOwner) return false
+
+    return (await Limits.for(this.viewer)).allows('page_downloads')
+  }
+
   /** Whether this visitor would get a zip with at least one photo in it, for clients to show the download button. */
   async canDownload(photos: Photo[]): Promise<boolean> {
     if (!this.downloadsOpen || !photos.some((photo) => this.mayDownload(photo))) return false

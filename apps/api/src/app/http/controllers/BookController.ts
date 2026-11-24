@@ -3,6 +3,7 @@ import { BaseController } from './BaseController'
 import { Book } from '@app/models/Book'
 import { BookAccess } from '@app/policies/BookAccess'
 import { BookArchive } from '@app/services/BookArchive'
+import { BookPrint } from '@app/services/BookPrint'
 import { BookCollection } from '@app/http/resources/BookCollection'
 import { BookDetailResource } from '@app/http/resources/BookDetailResource'
 import { Photo } from '@app/models/Photo'
@@ -247,6 +248,20 @@ export default class BookController extends BaseController {
     await new ContentStats(access.book).download(this.visitor(access.viewer), access.viewer)
 
     return archive.response()
+  }
+
+  /** The book's designed pages as a print-ready PDF, for its owner when their plan includes it. */
+  async pages() {
+    const access = (await this.access()).authorize('view')
+
+    abortIf(!access.isOwner, 'Only the book\'s owner can download its pages.', 403)
+    abortIf(!(await access.mayDownloadPages()), 'Downloading pages to print is not included in your plan.', 403)
+
+    const print = await BookPrint.for(access)
+
+    abortIf(print.isEmpty, 'This book has no pages yet.', 404)
+
+    return print.response()
   }
 
   /** The book in the route and what this visitor may do with it, from their sign-in and any access code they sent. */

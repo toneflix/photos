@@ -17,6 +17,7 @@
     }
   },
   "deploy": {
+    "aptPackages": ["chromium"],
     "startCommand": "pnpm --filter @photos/api start"
   }
 }

@@ -351,6 +351,8 @@ export interface BookWithPages extends Book {
   canEdit: boolean
   /** True when the visitor would get a zip of at least one photo from the download button. */
   canDownload: boolean
+  /** True when the visitor may download the book's designed pages as a PDF to print. */
+  canDownloadPages: boolean
   isOwner: boolean
   /** Everything the visitor may do with the book. */
   permissions: BookPermission[]

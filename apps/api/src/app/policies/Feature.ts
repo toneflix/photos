@@ -17,6 +17,7 @@ export type FeatureKey =
   | 'custom_imprint'
   | 'book_zip'
   | 'original_downloads'
+  | 'page_downloads'
   | 'custom_frames'
   | 'book_stats'
   | 'badge'
@@ -158,6 +159,13 @@ export class Feature {
       key: 'original_downloads',
       title: 'Original downloads',
       description: 'Download your photos at full size, not only the smaller copies.',
+      type: 'toggle',
+      fallback: false,
+    },
+    {
+      key: 'page_downloads',
+      title: 'Pages to print',
+      description: 'Download your books as designed, page by page, ready to print.',
       type: 'toggle',
       fallback: false,
     },
