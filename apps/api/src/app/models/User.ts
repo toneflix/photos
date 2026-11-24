@@ -21,6 +21,7 @@ import { Role } from './Role'
 import { Plan } from './Plan'
 import { Subscription } from './Subscription'
 import { Payment } from './Payment'
+import { PrintCache } from '@app/services/PrintCache'
 
 export interface UserPreferences {
   defaultVisibility?: BookVisibility
@@ -340,6 +341,8 @@ export class User extends BaseUser {
       await PasswordReset.query().where({ email: this.email }).delete()
       await this.delete()
     })
+
+    for (const book of books) await PrintCache.forget(book.id)
 
     for (const photo of photos) {
       await Storage.disk(photo.disk as never)

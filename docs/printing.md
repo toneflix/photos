@@ -21,6 +21,8 @@ Pages are drawn in [Cloudflare Browser Run](https://developers.cloudflare.com/br
 
 The book's photos, fonts and the flipbook library are served to the remote browser from the API over the same connection, so nothing needs to be public. Each download holds one Browser Run session for a few seconds, and the session ends as soon as the file is made. Books are drawn one at a time.
 
+Each drawn PDF and image zip is kept on the photos disk under `print-cache/books/<book id>/` until the book changes, so downloading the same book again sends the kept file and uses no Browser Run time. A file is named by a fingerprint of the laid-out book, its photo files, the print settings and the flipbook version, so changing any of them draws the book again. A book keeps one file per format, and its files are removed when the book or its owner's account is deleted.
+
 ## Settings
 
 | Variable                 | Default                     |                                                                  |

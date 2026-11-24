@@ -6,6 +6,7 @@ import { Photo } from './Photo'
 import { Space } from './Space'
 import { User } from './User'
 import { matches } from '@app/support/search'
+import { PrintCache } from '@app/services/PrintCache'
 import type { PageLayout, PhotoPosition } from '@toneflix/flipbook-core'
 import type { QueryBuilder } from 'arkormx'
 
@@ -216,12 +217,13 @@ export class Book extends Model {
     return photos.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id))
   }
 
-  /** Delete the book and its pages. Photos stay in the library. */
+  /** Delete the book, its pages and any drawn copies of them. Photos stay in the library. */
   async remove(): Promise<void> {
     await Book.transaction(async () => {
       await (await this.pages().getQuery()).delete()
       await this.delete()
     })
+    await PrintCache.forget(this.id)
   }
 
   /** The chosen cover, or else the first photo in the book. */

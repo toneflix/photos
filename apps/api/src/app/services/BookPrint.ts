@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import { abortIf } from '@arkstack/common'
 import { Storage } from '@arkstack/filesystem'
 import { FlipbookModel, type BookWithPages } from '@photos/types'
 import type { FlipbookBook, FlipbookPhoto } from '@toneflix/flipbook-core'
@@ -11,6 +12,8 @@ import type { BookAccess } from '@app/policies/BookAccess'
 import { PhotoImage } from '@app/support/PhotoImage'
 import { PrintBrowser } from '@app/support/PrintBrowser'
 import { BookArchive } from './BookArchive'
+import { BookPageImages } from './BookPageImages'
+import { PrintCache, type PrintFormat } from './PrintCache'
 
 /** The flipbook library's script build, as the print page loads it. */
 declare const Flipbook: {
@@ -22,7 +25,7 @@ const require = createRequire(import.meta.url)
 /**
  * A book's designed pages as a print-ready PDF or one image per page, drawn in Cloudflare Browser Run (see `PrintBrowser`) by the flipbook library's
  * print layout, so every page matches the reader. Photos print from their originals at print size.
- * Books are drawn one at a time.
+ * Books are drawn one at a time, and each drawing is kept until the book changes (see `PrintCache`).
  */
 export class BookPrint {
   /** The made-up origin the page, the library and the photos are served from inside the browser. */
@@ -68,15 +71,39 @@ export class BookPrint {
     return ['cover', 'title', ...this.model.pages.map((_, index) => `page-${index + 1}`), 'colophon', 'back']
   }
 
-  /** The book as one print-ready PDF. */
-  async pdfResponse(): Promise<Response> {
+  /** Identifies this version of the book's drawing: its layout and the photo files it prints. */
+  get fingerprint(): string {
+    const photos = [...this.photos.values()].map((photo) => [photo.id, photo.path, photo.displayPath])
+
+    return PrintCache.fingerprint([this.model, photos])
+  }
+
+  /** The book as one print-ready PDF, or its pages as images in a zip: the kept drawing when the book hasn't changed, else a new one. */
+  async response(format: PrintFormat): Promise<Response> {
+    const cache = new PrintCache(this.access.book.id, format, this.fingerprint)
+    const kept = await cache.read()
+
+    abortIf(!kept && !PrintBrowser.available, 'Page downloads are not available right now. Please try again later.', 503)
+
+    const body = kept ?? cache.keep(format === 'pdf' ? await this.pdf() : new BookPageImages(this).stream())
+
+    return new Response(body, {
+      headers: {
+        'Content-Type': format === 'pdf' ? 'application/pdf' : 'application/zip',
+        'Content-Disposition': `attachment; filename="${this.filename(format === 'pdf' ? 'pdf' : 'zip')}"`,
+        'Cache-Control': 'no-store',
+      },
+    })
+  }
+
+  /** The book drawn as one print-ready PDF. */
+  private async pdf(): Promise<ReadableStream<Uint8Array>> {
     const pdf = await this.session((page) => page.pdf({ preferCSSPageSize: true, printBackground: true }))
 
-    return new Response(pdf as BodyInit, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${this.filename('pdf')}"`,
-        'Cache-Control': 'no-store',
+    return new ReadableStream({
+      start(controller) {
+        controller.enqueue(new Uint8Array(pdf))
+        controller.close()
       },
     })
   }

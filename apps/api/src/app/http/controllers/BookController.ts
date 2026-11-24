@@ -3,10 +3,8 @@ import { BaseController } from './BaseController'
 import { Book } from '@app/models/Book'
 import { BookAccess, type PageFormat } from '@app/policies/BookAccess'
 import { BookArchive } from '@app/services/BookArchive'
-import { BookPageImages } from '@app/services/BookPageImages'
 import { BookPrint } from '@app/services/BookPrint'
 import { BookPrintPage } from '@app/services/BookPrintPage'
-import { PrintBrowser } from '@app/support/PrintBrowser'
 import { BookCollection } from '@app/http/resources/BookCollection'
 import { BookDetailResource } from '@app/http/resources/BookDetailResource'
 import { Photo } from '@app/models/Photo'
@@ -265,13 +263,11 @@ export default class BookController extends BaseController {
       403,
     )
 
-    abortIf(!PrintBrowser.available, 'Page downloads are not available right now. Please try again later.', 503)
-
     const print = await BookPrint.for(access)
 
     abortIf(print.isEmpty, 'This book has no pages yet.', 404)
 
-    return format === 'pdf' ? print.pdfResponse() : new BookPageImages(print).response()
+    return print.response(format as PageFormat)
   }
 
   /** The book laid out for printing as one self-contained page, for its owner when their plan includes printing. */
