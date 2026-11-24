@@ -294,24 +294,39 @@ export class Plan extends Model {
     return entry?.active ? entry.value : Feature.fallback(feature)
   }
 
-  /** Every catalogue feature as this plan has it. */
+  /** Every catalogue feature as this plan gives it: features that are off carry the fallback. */
   async allFeatures(): Promise<PlanFeature[]> {
     return Promise.all(
       Feature.ALL.map(async (feature) => {
         const entry = this.entry(feature)
 
-        return {
-          key: feature.key,
-          title: feature.title,
-          description: feature.description,
-          type: feature.type,
-          unit: feature.unit ?? null,
-          value: entry?.active ? entry.value : await Feature.fallback(feature),
-          active: entry?.active ?? false,
-          listed: entry?.listed ?? true,
-        }
+        return { ...this.describe(feature, entry), value: entry?.active ? entry.value : await Feature.fallback(feature) }
       }),
     )
+  }
+
+  /** Every catalogue feature as admins saved it: features that are off keep their own value. */
+  async savedFeatures(): Promise<PlanFeature[]> {
+    return Promise.all(
+      Feature.ALL.map(async (feature) => {
+        const entry = this.entry(feature)
+
+        return { ...this.describe(feature, entry), value: entry ? entry.value : await Feature.fallback(feature) }
+      }),
+    )
+  }
+
+  /** A catalogue feature with this plan's switches for it, without its value. */
+  private describe(feature: FeatureDefinition, entry: PlanFeatureEntry | null): Omit<PlanFeature, 'value'> {
+    return {
+      key: feature.key,
+      title: feature.title,
+      description: feature.description,
+      type: feature.type,
+      unit: feature.unit ?? null,
+      active: entry?.active ?? false,
+      listed: entry?.listed ?? true,
+    }
   }
 
   /** The features shown on pricing and plan pages. */
