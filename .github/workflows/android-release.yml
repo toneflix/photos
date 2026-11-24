@@ -1,0 +1,195 @@
+name: Android release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version name, e.g. 1.2.0, v1.2.0 or 1.2.0-beta.1 (empty uses the version in app.json)
+        type: string
+        default: ''
+      prerelease:
+        description: Pre-release (also publishes to open testing, never to production)
+        type: boolean
+        default: false
+      submit:
+        description: Submit the App Bundle to Google Play
+        type: boolean
+        default: true
+      release_status:
+        description: Google Play release status (use draft until the app's first release is published)
+        type: choice
+        options: [completed, draft, inProgress, halted]
+        default: completed
+      android_builder:
+        description: Where Android builds run
+        type: choice
+        options: [eas, runner]
+        default: eas
+
+concurrency:
+  group: android-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: play-store
+    timeout-minutes: 180
+    env:
+      ANDROID_BUILDER: ${{ inputs.android_builder || vars.ANDROID_BUILDER || 'eas' }}
+      SUBMIT: ${{ github.event_name == 'release' || inputs.submit }}
+      RELEASE_STATUS: ${{ inputs.release_status || vars.PLAY_STORE_RELEASE_STATUS || 'completed' }}
+      PLAY_INTERNAL_TRACK: ${{ vars.PLAY_INTERNAL_TRACK }}
+      PLAY_CLOSED_TRACK: ${{ vars.PLAY_CLOSED_TRACK }}
+      PLAY_OPEN_TRACK: ${{ vars.PLAY_OPEN_TRACK }}
+      VERSION: ${{ github.event.release.tag_name || inputs.version }}
+      PRERELEASE: ${{ github.event.release.prerelease || inputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.release.tag_name && format('refs/tags/{0}', github.event.release.tag_name) || github.ref }}
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PUSH_TOKEN || github.token }}
+
+      - name: Plan the release
+        id: plan
+        working-directory: apps/mobile
+        run: |
+          echo "ARTIFACTS=$RUNNER_TEMP/android-release" >> "$GITHUB_ENV"
+
+          args=(plan --run "$GITHUB_RUN_NUMBER")
+          [ -z "$VERSION" ] || args+=(--version "$VERSION")
+          [ "$PRERELEASE" != "true" ] || args+=(--prerelease)
+
+          node scripts/play-release.mjs "${args[@]}"
+
+      - name: Set the version for this build
+        working-directory: apps/mobile
+        env:
+          NAME: ${{ steps.plan.outputs.version }}
+          CODE: ${{ steps.plan.outputs.version_code }}
+        run: |
+          node scripts/play-release.mjs apply --version "$NAME" --code "$CODE"
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -qam "chore(mobile): release $NAME (build $CODE)"
+
+      - name: Write the release notes
+        working-directory: apps/mobile
+        env:
+          RELEASE_BODY: ${{ github.event.release.body }}
+        run: |
+          printf '%s' "$RELEASE_BODY" > "$RUNNER_TEMP/release-body.md"
+
+          node scripts/play-release.mjs notes --out "$ARTIFACTS/whatsnew" --body-file "$RUNNER_TEMP/release-body.md" --ref HEAD^
+
+      - uses: ./.github/actions/setup-eas
+        with:
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+          builder: ${{ env.ANDROID_BUILDER }}
+          eas-project-id: ${{ vars.EAS_PROJECT_ID }}
+          eas-owner: ${{ vars.EAS_OWNER }}
+          api-url: ${{ vars.API_URL }}
+          web-url: ${{ vars.WEB_URL }}
+
+      - name: Build the App Bundle and APK
+        working-directory: apps/mobile
+        run: |
+          build() {
+            if [ "$ANDROID_BUILDER" = "runner" ]; then
+              eas build --platform android --profile "$1" --local --non-interactive --output "$2"
+            else
+              eas build --platform android --profile "$1" --non-interactive --wait --json > "$RUNNER_TEMP/build.json"
+              curl -fsSL -o "$2" "$(jq -r '.[0].artifacts.buildUrl' "$RUNNER_TEMP/build.json")"
+            fi
+          }
+
+          name="toneflix-photos-${{ steps.plan.outputs.version }}-${{ steps.plan.outputs.version_code }}"
+
+          build production "$ARTIFACTS/$name.aab"
+          build production-apk "$ARTIFACTS/$name.apk"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: toneflix-photos-${{ steps.plan.outputs.version }}-${{ steps.plan.outputs.version_code }}
+          path: |
+            ${{ env.ARTIFACTS }}/*.aab
+            ${{ env.ARTIFACTS }}/*.apk
+            ${{ env.ARTIFACTS }}/whatsnew
+          if-no-files-found: error
+
+      - name: Attach the builds to the GitHub release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" "$ARTIFACTS"/*.aab "$ARTIFACTS"/*.apk --clobber
+
+      - name: Check the Google Play settings
+        if: env.SUBMIT == 'true'
+        env:
+          SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$SERVICE_ACCOUNT_JSON" ]; then
+            echo "Missing the GOOGLE_SERVICE_ACCOUNT_JSON secret." >&2
+            exit 1
+          fi
+
+      - name: Submit to Google Play
+        if: env.SUBMIT == 'true'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          packageName: com.toneflix.photos.app
+          releaseFiles: ${{ env.ARTIFACTS }}/*.aab
+          releaseName: ${{ steps.plan.outputs.version }} (${{ steps.plan.outputs.version_code }})
+          tracks: ${{ steps.plan.outputs.tracks }}
+          status: ${{ env.RELEASE_STATUS }}
+          whatsNewDirectory: ${{ env.ARTIFACTS }}/whatsnew
+
+      - name: Commit the store version back to the repository
+        if: env.SUBMIT == 'true'
+        env:
+          NAME: ${{ steps.plan.outputs.version }}
+          CODE: ${{ steps.plan.outputs.version_code }}
+          TARGET: ${{ github.event.release.target_commitish || (github.ref_type == 'branch' && github.ref_name) || '' }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          branch="$TARGET"
+
+          if [ -z "$branch" ] || ! git ls-remote --exit-code --heads origin "$branch" > /dev/null; then
+            branch="$DEFAULT_BRANCH"
+          fi
+
+          git reset -q --hard
+          git fetch -q origin "$branch"
+          git checkout -q -B "$branch" FETCH_HEAD
+
+          current="$(jq -r '.expo.android.versionCode // 0' apps/mobile/app.json)"
+
+          if [ "$current" -ge "$CODE" ]; then
+            echo "$branch already has version code $current, so nothing is committed."
+            exit 0
+          fi
+
+          node apps/mobile/scripts/play-release.mjs apply --version "$NAME" --code "$CODE"
+          mkdir -p apps/mobile/store-assets/play/whatsnew
+          cp "$ARTIFACTS"/whatsnew/* apps/mobile/store-assets/play/whatsnew/
+
+          git add apps/mobile/app.json apps/mobile/package.json apps/mobile/store-assets/play/whatsnew
+          git commit -qm "chore(mobile): release $NAME (build $CODE) [skip ci]"
+
+          for attempt in 1 2 3 4; do
+            git push -q origin "HEAD:$branch" && exit 0
+            sleep $((attempt * 5))
+            git pull -q --rebase origin "$branch"
+          done
+
+          echo "Couldn't push the version to $branch." >&2
+          exit 1
