@@ -1,15 +1,12 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 import request from 'parasito'
 import sharp from 'sharp'
 import { unzipSync } from 'fflate'
+import { BookPrinter } from '@toneflix/flipbook-print'
 import { putOnPlan } from './support/plans'
-import { startPrintBrowser } from './support/print-browser'
 
-// The print settings are read when the app boots, so the stand-in browser starts first. Each visitor
-// gets their own address, so the download limit counts them apart as it would in production.
-const browser = await startPrintBrowser()
-
+// Each visitor gets their own address, so the download limit counts them apart as it would in production.
 process.env.TRUST_PROXY = 'loopback'
 
 const { app } = await import('../src/core/bootstrap')
@@ -58,8 +55,6 @@ describe('Book pages to print', () => {
     books.premium = await book('premium', 'Lake Days')
     books.free = await book('free', 'Free Book')
   })
-
-  afterAll(() => browser.close())
 
   it('gives a Premium owner every page as one PDF', async () => {
     const res = await api('get', `/books/${books.premium}/pages/download`, undefined, 'premium')
@@ -115,16 +110,19 @@ describe('Book pages to print', () => {
   })
 
   it('keeps a drawn book until it changes', async () => {
+    const drawn = vi.spyOn(BookPrinter.prototype, 'pdf')
+
     await new Promise((resolve) => setTimeout(resolve, 500))
-    await browser.close()
 
     const kept = await api('get', `/books/${books.premium}/pages/download`, undefined, 'premium')
 
     expect(kept.status).toBe(200)
     expect(kept.headers.get('content-type')).toBe('application/pdf')
+    expect(drawn).not.toHaveBeenCalled()
 
     await api('put', `/books/${books.premium}/pages`, { pages: [{ layout: 'text', caption: 'A new start' }] }, 'premium')
 
-    expect((await api('get', `/books/${books.premium}/pages/download`, undefined, 'premium')).status).not.toBe(200)
+    expect((await api('get', `/books/${books.premium}/pages/download`, undefined, 'premium')).status).toBe(200)
+    expect(drawn).toHaveBeenCalledOnce()
   }, 60_000)
 })
