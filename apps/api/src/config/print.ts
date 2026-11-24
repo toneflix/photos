@@ -1,24 +1,16 @@
-import { existsSync } from 'node:fs'
-
-const SYSTEM_BROWSERS = ['/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/google-chrome']
-
 /**
  * How books are drawn into print-ready PDFs.
  */
 export default () => {
   return {
     /**
-     * The Chromium binary that draws the pages. Empty uses the system Chromium or Chrome when installed, else Playwright's own.
-     * When none of these exists, pages are drawn in Cloudflare Browser Run.
-     */
-    chromium_path: String(env('CHROMIUM_PATH', SYSTEM_BROWSERS.find((browser) => existsSync(browser)) ?? '')),
-
-    /**
-     * Cloudflare Browser Run, used when no local Chromium is found. The token needs the "Browser Rendering - Edit" permission.
+     * Cloudflare Browser Run, where pages are drawn. The token needs the "Browser Rendering - Edit" permission.
      */
     cloudflare: {
       account_id: String(env('CLOUDFLARE_ACCOUNT_ID', '')),
       api_token: String(env('CLOUDFLARE_API_TOKEN', '')),
+      /** The CDP endpoint sessions are opened on. Empty uses Browser Run for the account above. */
+      browser_url: String(env('CLOUDFLARE_BROWSER_URL', '')),
     },
 
     /**

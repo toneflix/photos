@@ -20,7 +20,7 @@ declare const Flipbook: {
 const require = createRequire(import.meta.url)
 
 /**
- * A book's designed pages as a print-ready PDF or one image per page, drawn in headless Chromium (see `PrintBrowser`) by the flipbook library's
+ * A book's designed pages as a print-ready PDF or one image per page, drawn in Cloudflare Browser Run (see `PrintBrowser`) by the flipbook library's
  * print layout, so every page matches the reader. Photos print from their originals at print size.
  * Books are drawn one at a time.
  */

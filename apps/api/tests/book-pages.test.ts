@@ -1,10 +1,14 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { app } from '../src/core/bootstrap'
 import request from 'parasito'
 import sharp from 'sharp'
 import { unzipSync } from 'fflate'
 import { putOnPlan } from './support/plans'
+import { startPrintBrowser } from './support/print-browser'
+
+// The print settings are read when the app boots, so the stand-in browser starts first.
+const browser = await startPrintBrowser()
+const { app } = await import('../src/core/bootstrap')
 
 const tokens = { premium: '', free: '', guest: '' }
 
@@ -49,6 +53,8 @@ describe('Book pages to print', () => {
     books.premium = await book('premium', 'Lake Days')
     books.free = await book('free', 'Free Book')
   })
+
+  afterAll(() => browser.close())
 
   it('gives a Premium owner every page as one PDF', async () => {
     const res = await api('get', `/books/${books.premium}/pages/download`, undefined, 'premium')
