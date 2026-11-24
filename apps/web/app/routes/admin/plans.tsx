@@ -418,7 +418,7 @@ function FeatureRow({ feature, entry, onChange }: { feature: FeatureDefinition; 
 			</div>
 			{feature.type === "toggle" ? (
 				<label className="flex items-center gap-2 text-sm text-ink-900">
-					<input type="checkbox" checked={!!entry.value} onChange={(event) => onChange({ value: event.target.checked })} className="h-4 w-4 accent-brand-600" />
+					<input type="checkbox" checked={!!entry.value} onChange={(event) => onChange({ value: event.target.checked, active: true })} className="h-4 w-4 accent-brand-600" />
 					Included
 				</label>
 			) : (
@@ -428,7 +428,7 @@ function FeatureRow({ feature, entry, onChange }: { feature: FeatureDefinition; 
 						type="number"
 						min={0}
 						value={Number(entry.value)}
-						onChange={(event) => onChange({ value: Math.max(0, Math.floor(Number(event.target.value) || 0)) })}
+						onChange={(event) => onChange({ value: Math.max(0, Math.floor(Number(event.target.value) || 0)), active: true })}
 						className="field-input w-full py-2 pl-3 text-sm"
 					/>
 					<span className="field-addon text-xs">{Number(entry.value) ? (feature.unit ?? "") : "no limit"}</span>

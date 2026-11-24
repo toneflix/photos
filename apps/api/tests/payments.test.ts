@@ -100,7 +100,7 @@ describe('Plans admin and checkout', () => {
       [6, 'Twice a year'],
     ])
     expect(plan.features.find((feature: { key: string }) => feature.key === 'book_zip')).toMatchObject({ value: true, active: true, listed: false })
-    expect(plan.features.find((feature: { key: string }) => feature.key === 'badge')).toMatchObject({ value: false, active: false })
+    expect(plan.features.find((feature: { key: string }) => feature.key === 'badge')).toMatchObject({ value: true, active: false })
 
     const offered = (await api('get', '/plans', undefined, null)).body.data.find((item: { slug: string }) => item.slug === 'studio-test')
 
@@ -116,6 +116,20 @@ describe('Plans admin and checkout', () => {
     expect(paidDefault.status).toBe(422)
     expect(paidDefault.body.errors.isDefault[0]).toBe('The default plan must be free.')
     expect(removed.body.deleted).toBe(true)
+  })
+
+  it('keeps a value admins save for a feature that is off', async () => {
+    const created = await api('post', '/admin/plans', { name: 'Pages test', price: 0 })
+    const plan = created.body.data
+    const saved = await api('put', `/admin/plans/${plan.id}`, { features: { max_book_pages: { value: 40, active: false } } })
+    const turnedOn = await api('put', `/admin/plans/${plan.id}`, { features: { max_book_pages: { active: true } } })
+    const offered = (await api('get', '/plans', undefined, null)).body.data.find((item: { slug: string }) => item.slug === 'pages-test')
+
+    await api('delete', `/admin/plans/${plan.id}`)
+
+    expect(saved.body.data.features.find((feature: { key: string }) => feature.key === 'max_book_pages')).toMatchObject({ value: 40, active: false })
+    expect(turnedOn.body.data.features.find((feature: { key: string }) => feature.key === 'max_book_pages')).toMatchObject({ value: 40, active: true })
+    expect(offered.features.find((feature: { key: string }) => feature.key === 'max_book_pages').value).toBe(40)
   })
 
   it('lists plans in the order admins set, even before cheaper ones', async () => {
