@@ -83,6 +83,7 @@ export default [
 	route("explore/photos/:id/download", "routes/explore/download.ts"),
 	route("photos/:id/download", "routes/photo-download.ts"),
 	route("books/:id/download", "routes/book-download.ts"),
+	route("books/:id/pages.pdf", "routes/book-pages-download.ts"),
 	route("explore/photos/:id/preview", "routes/explore/preview.ts"),
 	route("books/:id/cover", "routes/book-cover.ts"),
 

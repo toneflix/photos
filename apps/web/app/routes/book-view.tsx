@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
+import { BookDownload } from "~/components/book/BookDownload";
 import { ContentCounts } from "~/components/ContentCounts";
 import { data, Form, Link, redirect, useLocation, useNavigation } from "react-router";
 import { cloudflareContext } from "~/lib/cloudflare";
@@ -156,11 +157,7 @@ export default function BookView({ loaderData, actionData }: Route.ComponentProp
 								Make it yours
 							</button>
 						)}
-						{book.canDownload && (
-							<a href={`/books/${book.id}/download`} download className={`${chip} max-sm:hidden`} title={can("transfer") ? "Every original photo, as a zip" : "Openly licensed photos, as a zip"}>
-								Download
-							</a>
-						)}
+						<BookDownload book={book} className={chip} />
 						{book.canEdit && (
 							<Link prefetch="intent" to={`/books/${book.id}/edit`} className={chip}>
 								Edit
