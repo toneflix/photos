@@ -264,7 +264,7 @@ export default class BookController extends BaseController {
       403,
     )
 
-    abortIf(!PrintBrowser.source(), 'Page downloads are not available right now. Please try again later.', 503)
+    abortIf(!PrintBrowser.available, 'Page downloads are not available right now. Please try again later.', 503)
 
     const print = await BookPrint.for(access)
 
