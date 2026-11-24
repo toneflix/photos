@@ -7,6 +7,14 @@
     "base": {
       "pnpm": "10.28.0"
     },
+    "development": {
+      "extends": "base",
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
     "preview": {
       "extends": "base",
       "distribution": "internal",
