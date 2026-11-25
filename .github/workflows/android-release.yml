@@ -106,9 +106,13 @@ jobs:
         run: |
           build() {
             if [ "$ANDROID_BUILDER" = "runner" ]; then
-              # The working dir is kept after each build for mapping.txt, and EAS needs it empty.
-              rm -rf "$EAS_LOCAL_BUILD_WORKINGDIR"
-              eas build --platform android --profile "$1" --local --non-interactive --output "$2"
+              # EAS needs an empty working dir, and copies both the app and mapping.txt to its output, so each build gets its own folder.
+              local out="$RUNNER_TEMP/eas-output/$1"
+
+              rm -rf "$EAS_LOCAL_BUILD_WORKINGDIR" "$out"
+              mkdir -p "$out"
+              EAS_LOCAL_BUILD_ARTIFACTS_DIR="$out" eas build --platform android --profile "$1" --local --non-interactive
+              mv "$(find "$out" -maxdepth 1 -name "*.${2##*.}" | head -n1)" "$2"
             else
               eas build --platform android --profile "$1" --non-interactive --wait --json > "$RUNNER_TEMP/build.json"
               curl -fsSL -o "$2" "$(jq -r '.[0].artifacts.buildUrl' "$RUNNER_TEMP/build.json")"
@@ -145,6 +149,10 @@ jobs:
           build production "$ARTIFACTS/$name.aab"
           keep_mapping
           build production-apk "$ARTIFACTS/$name.apk"
+
+          for file in "$ARTIFACTS/$name.aab" "$ARTIFACTS/$name.apk"; do
+            unzip -tq "$file" > /dev/null || { echo "$file is not a valid Android archive." >&2; exit 1; }
+          done
 
       - uses: actions/upload-artifact@v7
         with:
