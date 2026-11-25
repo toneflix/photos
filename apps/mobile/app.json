@@ -2,7 +2,7 @@
   "expo": {
     "name": "Toneflix Photos",
     "slug": "toneflix-photos",
-    "version": "1.1.0",
+    "version": "1.2.1",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -19,7 +19,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.toneflix.photos.app",
-      "versionCode": 6,
+      "versionCode": 12,
       "blockedPermissions": [
         "android.permission.READ_MEDIA_IMAGES",
         "android.permission.READ_MEDIA_VIDEO",
