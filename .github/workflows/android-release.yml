@@ -106,6 +106,8 @@ jobs:
         run: |
           build() {
             if [ "$ANDROID_BUILDER" = "runner" ]; then
+              # The working dir is kept after each build for mapping.txt, and EAS needs it empty.
+              rm -rf "$EAS_LOCAL_BUILD_WORKINGDIR"
               eas build --platform android --profile "$1" --local --non-interactive --output "$2"
             else
               eas build --platform android --profile "$1" --non-interactive --wait --json > "$RUNNER_TEMP/build.json"
